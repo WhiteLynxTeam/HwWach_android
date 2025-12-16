@@ -1,15 +1,19 @@
 *.iml
 .gradle
-.idea
 .kotlin
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/assetWizardSettings.xml
-/.idea/*.xml
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+
+.idea/*
+# Но НЕ игнорировать (разрешить) эти файлы:
+!.idea/.gitignore
+!.idea/.name
+!.idea/compiler.xml
+!.idea/gradle.xml
+!.idea/misc.xml
+!.idea/vcs.xml

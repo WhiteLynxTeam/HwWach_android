@@ -1,14 +1,12 @@
 [versions]
 agp = "8.13.2"
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 coreKtx = "1.17.0"
 junit = "4.13.2"
 lifecycleRuntimeKtx = "2.10.0"
-activityCompose = "1.12.1"
-composeBom = "2025.12.00"
+activityCompose = "1.12.2"
+composeBom = "2025.12.01"
 materialIconsExtended = "1.7.8"
-exoPlayer = "1.8.0"
-accompanist = "0.36.0"
 
 navCompose = "2.9.6"
 
@@ -24,7 +22,7 @@ okhttpLoggingInterceptor = "5.3.2"
 
 kotlinxCoroutines = "1.10.2"
 
-datastorePreferences = "1.1.7"
+datastorePreferences = "1.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,11 +39,6 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIconsExtended" }
 
 androidx-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navCompose" }
-
-androidx-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "exoPlayer"}
-androidx-exoplayer-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "exoPlayer"}
-
-google-accompanist = { group = "com.google.accompanist", name = "accompanist-flowlayout", version.ref = "accompanist" }
 
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }

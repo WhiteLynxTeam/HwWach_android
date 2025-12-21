@@ -35,7 +35,7 @@ class AuthScreenViewModel @Inject constructor() : ViewModel() {
             }
 
             is AuthScreenAction.InputPassword -> {
-                _state.update { it.copy(login = action.password) }
+                _state.update { it.copy(password = action.password) }
             }
 
             AuthScreenAction.OnAuthClicked -> onAuthClicked()

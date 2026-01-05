@@ -1,20 +1,31 @@
 package com.whitelynxteam.hwwach.ui.navflow.mainflow
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import com.whitelynxteam.hwwach.ui.navigation.SubFlowNavigation
+import androidx.navigation.compose.composable
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreen
+import com.whitelynxteam.hwwach.ui.navflow.startflow.StartFlowNavigation.Routes
+import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreen
+import com.whitelynxteam.hwwach.ui.FlowNavigation
 
 class MainFlowNavigation(
     val navController: NavHostController,
     onFinished: (routeName: String) -> Unit
-) : SubFlowNavigation(onFinished) {
+) : FlowNavigation(onFinished) {
     var currentRoute = Routes.MainScreen
 
     override val startRoute: String
         get() = Routes.MainScreen.route
 
-    fun addFlow(builder: NavGraphBuilder) {
+    override fun addFlow(builder: NavGraphBuilder) {
         with(builder) {
+            composable(Routes.MainScreen.route) {
+                MainScreen(
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
     }
 

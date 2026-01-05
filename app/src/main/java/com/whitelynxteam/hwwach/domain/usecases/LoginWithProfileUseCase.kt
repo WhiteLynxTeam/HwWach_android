@@ -5,6 +5,7 @@ import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IUserProfileRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IUserRepository
 import com.whitelynxteam.hwwach.domain.models.User
+import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenAction
 import javax.inject.Inject
 
 class LoginWithProfileUseCase @Inject constructor(
@@ -14,10 +15,14 @@ class LoginWithProfileUseCase @Inject constructor(
     private val authApiUseCase: AuthApiUseCase,
     private val getUserInfoUseCase: GetUserInfoUseCase
 ) {
-    suspend operator fun invoke(user: User): DomainResult<Unit> {
+    suspend operator fun invoke(login: String, password: String): DomainResult<Unit> {
         // Сначала аутентифицируем пользователя
-        return when (val authResult = authApiUseCase(user)) {
+        return when (val authResult = authApiUseCase(User(
+            username = login,
+            password = password,
+        ))) {
             is DomainResult.Success<*> -> {
+                return authResult
                 // Если аутентификация успешна, получаем информацию о пользователе
                 when (val userInfoResult = getUserInfoUseCase()) {
                     is DomainResult.Success<*> -> {

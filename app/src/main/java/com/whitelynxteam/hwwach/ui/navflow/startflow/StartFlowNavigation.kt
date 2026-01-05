@@ -12,16 +12,17 @@ import androidx.navigation.compose.composable
 import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreen
 import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenEvent
 import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenViewModel
+import com.whitelynxteam.hwwach.ui.FlowNavigation
 import kotlinx.coroutines.flow.collectLatest
 
 class StartFlowNavigation(
     val navController: NavHostController,
     onFinished: (routeName: String) -> Unit
-) {
-    val startRoute: String
+) : FlowNavigation(onFinished) {
+    override val startRoute: String
         get() = Routes.AuthScreen.route
 
-    fun addFlow(builder: NavGraphBuilder) {
+    override fun addFlow(builder: NavGraphBuilder) {
         with(builder) {
 
             // ===== AUTH =====
@@ -33,7 +34,9 @@ class StartFlowNavigation(
                 LaunchedEffect(Unit) {
                     viewModel.events.collectLatest { event ->
                         when (event) {
-                            is AuthScreenEvent.NavigateToMain -> navController.navigate(Routes.AuthScreen.route)
+                            is AuthScreenEvent.NavigateToMain -> {
+                                finishFlow()
+                            }
 
                             is AuthScreenEvent.Exit -> {
                                 navController.popBackStack()

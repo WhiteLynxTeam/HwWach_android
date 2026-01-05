@@ -1,6 +1,7 @@
 package com.whitelynxteam.hwwach.di
 
 import com.whitelynxteam.hwwach.BuildConfig
+import com.whitelynxteam.hwwach.data.remote.api.UserApi
 import com.whitelynxteam.hwwach.data.remote.interceptor.TokenInterceptor
 import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
 import dagger.Module
@@ -71,11 +72,11 @@ object NetworkModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-//    @Provides
-//    @Singleton
-//    @Named("auth")
-//    fun provideUserApi(@Named("auth") retrofit: Retrofit): UserApi =
-//        retrofit.create(UserApi::class.java)
+    @Provides
+    @Singleton
+    @Named("auth")
+    fun provideUserApi(@Named("auth") retrofit: Retrofit): UserApi =
+        retrofit.create(UserApi::class.java)
 //
 //    @Provides
 //    @Singleton

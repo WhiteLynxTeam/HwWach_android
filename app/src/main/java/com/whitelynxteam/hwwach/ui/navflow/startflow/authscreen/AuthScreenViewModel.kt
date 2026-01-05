@@ -2,6 +2,8 @@ package com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.whitelynxteam.hwwach.domain.DomainResult
+import com.whitelynxteam.hwwach.domain.usecases.LoginWithProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +16,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AuthScreenViewModel @Inject constructor() : ViewModel() {
+class AuthScreenViewModel @Inject constructor(
+    private val loginWithProfileUseCase: LoginWithProfileUseCase
+) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthScreenState())
     val state: StateFlow<AuthScreenState> = _state.asStateFlow()
@@ -56,29 +60,46 @@ class AuthScreenViewModel @Inject constructor() : ViewModel() {
 
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
-//            val result = loginWithProfileUseCase(username = currentState.login, password = currentState.password)
+            val result = loginWithProfileUseCase(
+                login = currentState.login,
+                password = currentState.password
+            )
 
-            _state.update { it.copy(isLoading = false) }
+            println("AuthScreenViewModel result=$result")
 
-/*            _state.update { previousState ->
-                if (previousState is AuthScreenState.Input) {
-                    val login = previousState.login
-                    val password = previousState.password
+            when (result) {
+                is DomainResult.Success<*> -> {
+                    println("AuthScreenViewModel DomainResult.Success<*>")
 
-                    // здесь должна быть реальная проверка (use case / репозиторий)
-                    val isValid = login == "admin" && password == "1234"
-
-                    if (isValid) {
-                        AuthScreenState.Finished
-                    } else {
-                        previousState.copy(
-                            errorAuth = "Неверный логин или пароль.\nПроверьте пожалуйста правильность написания"
-                        )
-                    }
-                } else {
-                    previousState
+                    _events.emit(AuthScreenEvent.NavigateToMain)
                 }
-            }*/
+                else -> {
+                    println("AuthScreenViewModel DomainResult - else")
+
+                    _state.update { it.copy(isLoading = false) }
+                }
+            }
+
+
+            /*            _state.update { previousState ->
+                            if (previousState is AuthScreenState.Input) {
+                                val login = previousState.login
+                                val password = previousState.password
+
+                                // здесь должна быть реальная проверка (use case / репозиторий)
+                                val isValid = login == "admin" && password == "1234"
+
+                                if (isValid) {
+                                    AuthScreenState.Finished
+                                } else {
+                                    previousState.copy(
+                                        errorAuth = "Неверный логин или пароль.\nПроверьте пожалуйста правильность написания"
+                                    )
+                                }
+                            } else {
+                                previousState
+                            }
+                        }*/
         }
 
     }

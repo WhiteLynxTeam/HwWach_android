@@ -1,5 +1,7 @@
 package com.whitelynxteam.hwwach.data.repositories
 
+import com.whitelynxteam.hwwach.data.mappers.UserDomainToAuthUserRequestMapper
+import com.whitelynxteam.hwwach.data.remote.api.UserApi
 import com.whitelynxteam.hwwach.domain.DomainResult
 import com.whitelynxteam.hwwach.domain.irepositories.IUserRepository
 import com.whitelynxteam.hwwach.domain.models.User
@@ -8,15 +10,29 @@ import javax.inject.Inject
 import javax.inject.Named
 
 class UserRepositoryImpl @Inject constructor(
+    @Named("auth") private val userApi: UserApi,
+    private val userDomainToAuthUserRequestMapper: UserDomainToAuthUserRequestMapper,
 ) : IUserRepository {
 
-    /*[red]  Исправить на возврат Токена модели домен слоя*/
     override suspend fun auth(user: User): DomainResult<String> {
-        return DomainResult.Success("mock")
-    }
+        val userAuthRequest = userDomainToAuthUserRequestMapper.map(user)
+            ?: return DomainResult.ValidationError(
+                when {
+                    user.username.isNullOrBlank() -> "Login is empty"
+                    user.password.isNullOrBlank() -> "Password is empty"
+                    else -> "Invalid credentials"
+                }
+            )
 
-    override suspend fun getUserInfo(): DomainResult<User> {
-        return DomainResult.Success(User())
+        val response = userApi.auth(userAuthRequest)
+
+        return when {
+            !response.isSuccessful -> mapResponseError(response)
+            else -> {
+                val token = response.body()?.accessToken ?: return DomainResult.ValidationError("Token not found")
+                DomainResult.Success(token)
+            }
+        }
     }
 
     private fun mapResponseError(response: Response<*>): DomainResult<String> =

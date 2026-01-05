@@ -97,24 +97,21 @@ fun AuthScreen(
                 )
             }
 
-            if (state.errorMessage != null) {
-
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    state.errorMessage
-                        .split("\n")
-                        .forEach {
-                            Text(
-                                modifier = Modifier.padding(bottom = 4.dp),
-                                text = it,
-                                fontSize = 14.sp,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Red500
-                            )
-                        }
-                }
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                state.errorMessage
+                    .split("\n")
+                    .forEach {
+                        Text(
+                            modifier = Modifier.padding(bottom = 4.dp),
+                            text = it,
+                            fontSize = 14.sp,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Red500
+                        )
+                    }
             }
         }
     }

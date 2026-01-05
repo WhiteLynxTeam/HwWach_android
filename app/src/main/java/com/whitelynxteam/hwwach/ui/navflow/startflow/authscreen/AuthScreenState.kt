@@ -3,7 +3,7 @@ package com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen
 data class AuthScreenState (
     val login: String = "",
     val password: String = "",
-    val errorMessage: String? = null,
+    val errorMessage: String = "",
     val isLoading: Boolean = false,
 )
 

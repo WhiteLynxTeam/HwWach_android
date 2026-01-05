@@ -12,10 +12,13 @@ import androidx.navigation.compose.rememberNavController
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.AddScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.AppliancesScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.ProfileScreen
+import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenState
 
 @Composable
 fun MainScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    state: MainScreenState,
+    onAction: (MainScreenAction) -> Unit
 ) {
 
     val navController = rememberNavController()
@@ -39,5 +42,5 @@ fun MainScreen(
 @Preview
 @Composable
 fun MainScreenPreview() {
-    MainScreen()
+    MainScreen(modifier = Modifier, state = MainScreenState(), onAction = {})
 }

@@ -8,46 +8,76 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.whitelynxteam.hwwach.R
 import com.whitelynxteam.hwwach.ui.theme.Grey50
 
-@Preview
 @Composable
-fun NavigationBarSample(
+fun BottomNavigationBar(
+    navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    var selectedItem by remember { mutableIntStateOf(0) }
-    val items = listOf("Техника", "Добавить", "Кабинет")
-    val selectedIcons = listOf(R.drawable.ic_appliances_selected, R.drawable.ic_add_selected, R.drawable.ic_personal_account_selected)
-    val unselectedIcons =
-        listOf(R.drawable.ic_appliances_unselected, R.drawable.ic_add_unselected, R.drawable.ic_personal_account_unselected)
+    val items = listOf(
+        BottomMenuScreen.Appliances to "Техника",
+        BottomMenuScreen.Add to "Добавить",
+        BottomMenuScreen.Profile to "Кабинет"
+    )
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route?.split('?')?.firstOrNull()
 
     NavigationBar(
         modifier = modifier.fillMaxWidth(),
         containerColor = Grey50
     ) {
-        items.forEachIndexed { index, item ->
+        items.forEach { (screen, label) ->
             NavigationBarItem(
                 icon = {
+                    val isSelected = currentRoute == screen.route
+                    val iconRes = if (isSelected) {
+                        when (screen) {
+                            BottomMenuScreen.Appliances -> R.drawable.ic_appliances_selected
+                            BottomMenuScreen.Add -> R.drawable.ic_add_selected
+                            BottomMenuScreen.Profile -> R.drawable.ic_profile_selected
+                        }
+                    } else {
+                        when (screen) {
+                            BottomMenuScreen.Appliances -> R.drawable.ic_appliances_unselected
+                            BottomMenuScreen.Add -> R.drawable.ic_add_unselected
+                            BottomMenuScreen.Profile -> R.drawable.ic_profile_unselected
+                        }
+                    }
                     Icon(
-                        painter = painterResource(id = (if (selectedItem == index) selectedIcons[index] else unselectedIcons[index]) as Int) ,
-                        contentDescription = item,
+                        painter = painterResource(id = iconRes),
+                        contentDescription = label
                     )
                 },
-                label = { Text(text = item) },
-                selected = selectedItem == index,
+                label = { Text(text = label) },
+                selected = currentRoute == screen.route,
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = Color.Transparent
+                    indicatorColor = Color.Transparent,
                 ),
-                onClick = { selectedItem = index },
+                onClick = {
+                    navController.navigate(screen.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
             )
         }
     }
+}
+
+sealed class BottomMenuScreen(val route: String) {
+    object Appliances : BottomMenuScreen("appliances")
+    object Add : BottomMenuScreen("add")
+    object Profile : BottomMenuScreen("profile")
 }

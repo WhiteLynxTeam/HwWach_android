@@ -58,7 +58,7 @@ class AuthScreenViewModel @Inject constructor(
                 return@launch
             }
 
-            _state.update { it.copy(isLoading = true, errorMessage = null) }
+            _state.update { it.copy(isLoading = true, errorMessage = "") }
 
             val result = loginWithProfileUseCase(
                 login = currentState.login,

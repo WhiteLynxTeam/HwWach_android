@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.runtime.remember
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -31,7 +34,10 @@ fun LoginTextField(
     placeholderText: String,
     onValueChange: (String) -> Unit,
 ) {
-    val borderColor = if (value.isNotEmpty()) Grey800 else Grey300
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused = interactionSource.collectIsFocusedAsState().value
+
+    val borderColor = if (isFocused || value.isNotEmpty()) Grey800 else Grey300
     val textColor = Grey800
 
     Box(
@@ -49,6 +55,7 @@ fun LoginTextField(
                 .fillMaxWidth(),
             value = value,
             onValueChange = onValueChange,
+            interactionSource = interactionSource,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,

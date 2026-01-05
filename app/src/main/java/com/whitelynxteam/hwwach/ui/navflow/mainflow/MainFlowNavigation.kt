@@ -1,7 +1,11 @@
 package com.whitelynxteam.hwwach.ui.navflow.mainflow
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -9,21 +13,37 @@ import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreen
 import com.whitelynxteam.hwwach.ui.navflow.startflow.StartFlowNavigation.Routes
 import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreen
 import com.whitelynxteam.hwwach.ui.FlowNavigation
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreenEvent
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreenViewModel
+import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenEvent
+import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 class MainFlowNavigation(
     val navController: NavHostController,
     onFinished: (routeName: String) -> Unit
 ) : FlowNavigation(onFinished) {
-    var currentRoute = Routes.MainScreen
-
     override val startRoute: String
         get() = Routes.MainScreen.route
 
     override fun addFlow(builder: NavGraphBuilder) {
         with(builder) {
             composable(Routes.MainScreen.route) {
+                val viewModel = hiltViewModel<MainScreenViewModel>()
+                val state by viewModel.state.collectAsState()
+
+                LaunchedEffect(Unit) {
+                    viewModel.events.collectLatest { event ->
+                        when (event) {
+                            is MainScreenEvent.NavigateToInnerScreen -> {}
+                        }
+                    }
+                }
+
                 MainScreen(
                     modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    onAction = viewModel::handleAction
                 )
             }
         }
@@ -41,24 +61,6 @@ class MainFlowNavigation(
 //            iconInactive = R.drawable.ic_showcase_inactive,
             label = "Главный",
         )
-        /*        data object FavoritesScreen : Routes(
-                    route = "MainFlowNavigator.FavoritesScreen",
-                    iconActive = R.drawable.ic_favorites_active,
-                    iconInactive = R.drawable.ic_favorites_inactive,
-                    label = "Избранное",
-                )
-                data object InvitationsScreen : Routes(
-                    route = "MainFlowNavigator.InvitationsScreen",
-                    iconActive = R.drawable.ic_invitations_active,
-                    iconInactive = R.drawable.ic_invitations_inactive,
-                    label = "Приглашения",
-                    )
-                data object QuotasScreen : Routes(
-                    route = "MainFlowNavigator.QuotasScreen",
-                    iconActive = R.drawable.ic_quotas_active,
-                    iconInactive = R.drawable.ic_quotas_inactive,
-                    label = "Квоты",
-                    )*/
 
         companion object {
             //Использовать val с ленивой инициализацией (by lazy),

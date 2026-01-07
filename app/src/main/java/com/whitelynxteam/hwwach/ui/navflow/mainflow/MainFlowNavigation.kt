@@ -9,14 +9,13 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.InnerMainFlowNavigation
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreen
-import com.whitelynxteam.hwwach.ui.navflow.startflow.StartFlowNavigation.Routes
-import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreen
-import com.whitelynxteam.hwwach.ui.FlowNavigation
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreenEvent
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreenViewModel
-import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenEvent
-import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenViewModel
+import com.whitelynxteam.hwwach.ui.FlowNavigation
+import com.whitelynxteam.hwwach.ui.navflow.startflow.StartFlowNavigation.Routes
 import kotlinx.coroutines.flow.collectLatest
 
 class MainFlowNavigation(
@@ -29,13 +28,19 @@ class MainFlowNavigation(
     override fun addFlow(builder: NavGraphBuilder) {
         with(builder) {
             composable(Routes.MainScreen.route) {
+                val innerMainNavController = rememberNavController()
+                val innerMainFlowNavigation =
+                    InnerMainFlowNavigation(innerMainNavController) { }
+
                 val viewModel = hiltViewModel<MainScreenViewModel>()
                 val state by viewModel.state.collectAsState()
 
                 LaunchedEffect(Unit) {
                     viewModel.events.collectLatest { event ->
                         when (event) {
-                            is MainScreenEvent.NavigateToInnerScreen -> {}
+                            is MainScreenEvent.NavigateToBottomMenuItem -> {
+                                innerMainFlowNavigation.navigateToIndex(event.index)
+                            }
                         }
                     }
                 }
@@ -43,7 +48,8 @@ class MainFlowNavigation(
                 MainScreen(
                     modifier = Modifier.fillMaxSize(),
                     state = state,
-                    onAction = viewModel::handleAction
+                    onAction = viewModel::handleAction,
+                    innerMainFlowNavigation = innerMainFlowNavigation
                 )
             }
         }

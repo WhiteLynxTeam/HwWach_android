@@ -7,34 +7,35 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.AddScreen
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.AppliancesScreen
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.ProfileScreen
-import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenState
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
     state: MainScreenState,
-    onAction: (MainScreenAction) -> Unit
+    onAction: (MainScreenAction) -> Unit,
+    innerMainFlowNavigation: InnerMainFlowNavigation
 ) {
-
-    val navController = rememberNavController()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        bottomBar = { BottomNavigationBar(navController = navController) }
+        bottomBar = {
+            BottomNavigationBar(
+                menuItems = state.bottomMenuItems,
+                onTabSelected = { tabIndex ->
+                    onAction(MainScreenAction.OnBottomMenuItemClick(tabIndex))
+                },
+                selectedTabIndex = state.selectedTabIndex
+            )
+        }
     ) { padding ->
         NavHost(
-            navController = navController,
-            startDestination = BottomMenuScreen.Appliances.route,
-            modifier = Modifier.padding(padding)
+            navController = innerMainFlowNavigation.navController,
+            startDestination = innerMainFlowNavigation.startRoute,
+            modifier = Modifier.padding(padding),
         ) {
-            composable(BottomMenuScreen.Appliances.route) { AppliancesScreen() }
-            composable(BottomMenuScreen.Add.route) { AddScreen() }
-            composable(BottomMenuScreen.Profile.route) { ProfileScreen() }
+            innerMainFlowNavigation.addFlow(this)
         }
     }
 }
@@ -42,5 +43,13 @@ fun MainScreen(
 @Preview
 @Composable
 fun MainScreenPreview() {
-    MainScreen(modifier = Modifier, state = MainScreenState(), onAction = {})
+    val innerMainNavController = rememberNavController()
+    val innerMainFlowNavigation =
+        InnerMainFlowNavigation(innerMainNavController) { }
+    MainScreen(
+        modifier = Modifier,
+        state = MainScreenState(),
+        onAction = {},
+        innerMainFlowNavigation = innerMainFlowNavigation
+    )
 }

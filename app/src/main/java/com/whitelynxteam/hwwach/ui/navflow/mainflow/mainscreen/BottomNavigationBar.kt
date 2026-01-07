@@ -7,77 +7,41 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.currentBackStackEntryAsState
-import com.whitelynxteam.hwwach.R
 import com.whitelynxteam.hwwach.ui.theme.Grey50
 
 @Composable
 fun BottomNavigationBar(
-    navController: NavController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    menuItems: List<InnerMainFlowNavigation.Routes> = InnerMainFlowNavigation.Routes.allRoutes,
+    onTabSelected: (Int) -> Unit = {},
+    selectedTabIndex: Int = 0
 ) {
-    val items = listOf(
-        BottomMenuScreen.Appliances to "Техника",
-        BottomMenuScreen.Add to "Добавить",
-        BottomMenuScreen.Profile to "Кабинет"
-    )
-
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route?.split('?')?.firstOrNull()
-
     NavigationBar(
         modifier = modifier.fillMaxWidth(),
         containerColor = Grey50
     ) {
-        items.forEach { (screen, label) ->
+        menuItems.forEachIndexed { index, item ->
             NavigationBarItem(
                 icon = {
-                    val isSelected = currentRoute == screen.route
-                    val iconRes = if (isSelected) {
-                        when (screen) {
-                            BottomMenuScreen.Appliances -> R.drawable.ic_appliances_selected
-                            BottomMenuScreen.Add -> R.drawable.ic_add_selected
-                            BottomMenuScreen.Profile -> R.drawable.ic_profile_selected
-                        }
-                    } else {
-                        when (screen) {
-                            BottomMenuScreen.Appliances -> R.drawable.ic_appliances_unselected
-                            BottomMenuScreen.Add -> R.drawable.ic_add_unselected
-                            BottomMenuScreen.Profile -> R.drawable.ic_profile_unselected
-                        }
-                    }
+                    val isSelected = index == selectedTabIndex
+                    val iconRes = if (isSelected) item.iconActive else item.iconInactive
                     Icon(
                         painter = painterResource(id = iconRes),
-                        contentDescription = label
+                        contentDescription = item.label
                     )
                 },
-                label = { Text(text = label) },
-                selected = currentRoute == screen.route,
+                label = { Text(text = item.label) },
+                selected = index == selectedTabIndex,
                 colors = NavigationBarItemDefaults.colors(
                     indicatorColor = Color.Transparent,
                 ),
                 onClick = {
-                    navController.navigate(screen.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    onTabSelected(index)
                 }
             )
         }
     }
-}
-
-sealed class BottomMenuScreen(val route: String) {
-    object Appliances : BottomMenuScreen("appliances")
-    object Add : BottomMenuScreen("add")
-    object Profile : BottomMenuScreen("profile")
 }

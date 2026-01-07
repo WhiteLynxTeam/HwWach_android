@@ -2,9 +2,6 @@ package com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenAction
-import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenEvent
-import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,13 +24,16 @@ class MainScreenViewModel @Inject constructor(
 
     fun handleAction(action: MainScreenAction) {
         when (action) {
-            is MainScreenAction.SelectTab -> onSelectTab()
+            is MainScreenAction.OnBottomMenuItemClick -> onBottomMenuItemClick(action.tabIndex)
         }
     }
 
-    private fun onSelectTab() {
+    private fun onBottomMenuItemClick(tabIndex: Int) {
         viewModelScope.launch {
-
+            _state.update { currentState ->
+                currentState.copy(selectedTabIndex = tabIndex)
+            }
+            _events.emit(MainScreenEvent.NavigateToBottomMenuItem(tabIndex))
         }
     }
 }

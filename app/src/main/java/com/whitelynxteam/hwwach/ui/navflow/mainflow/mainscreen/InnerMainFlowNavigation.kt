@@ -8,9 +8,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.whitelynxteam.hwwach.R
 import com.whitelynxteam.hwwach.ui.FlowNavigation
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.AddScreen
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.AppliancesScreen
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.ProfileScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.appliances.AppliancesScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.profile.ProfileScreen
 
 class InnerMainFlowNavigation(
     val navController: NavHostController,

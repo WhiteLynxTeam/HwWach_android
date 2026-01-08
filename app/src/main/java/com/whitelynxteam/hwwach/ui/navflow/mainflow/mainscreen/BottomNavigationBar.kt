@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import com.whitelynxteam.hwwach.ui.theme.Grey50
+import com.whitelynxteam.hwwach.ui.theme.Gray250
 
 @Composable
 fun BottomNavigationBar(
@@ -21,7 +21,7 @@ fun BottomNavigationBar(
 ) {
     NavigationBar(
         modifier = modifier.fillMaxWidth(),
-        containerColor = Grey50
+        containerColor = Gray250
     ) {
         menuItems.forEachIndexed { index, item ->
             NavigationBarItem(

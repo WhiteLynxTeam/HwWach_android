@@ -1,4 +1,4 @@
-package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens
+package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.appliances
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
-fun AddScreen(
+fun AppliancesScreen(
     modifier: Modifier = Modifier
 ) {
 
@@ -21,7 +21,7 @@ fun AddScreen(
     ) {
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = "ДОБАВИТЬ",
+            text = "ТЕХНИКА",
             textAlign = TextAlign.Center
         )
     }

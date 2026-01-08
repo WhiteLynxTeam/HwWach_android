@@ -1,5 +1,6 @@
 package com.whitelynxteam.hwwach.ui.navflow.startflow
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,9 +37,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.whitelynxteam.hwwach.ui.theme.Grey300
-import com.whitelynxteam.hwwach.ui.theme.Grey400
-import com.whitelynxteam.hwwach.ui.theme.Grey800
+import com.whitelynxteam.hwwach.ui.theme.Gray300
+import com.whitelynxteam.hwwach.ui.theme.Gray400
+import com.whitelynxteam.hwwach.ui.theme.Gray800
+import com.whitelynxteam.hwwach.ui.theme.White
 
 @Composable
 fun LoginTextField(
@@ -50,13 +52,13 @@ fun LoginTextField(
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium.copy(
         fontSize = 16.sp,
         fontWeight = FontWeight.Medium,
-        color = Grey800
+        color = Gray800
     )
 ) {
 
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused = interactionSource.collectIsFocusedAsState().value
-    val borderColor = if (isFocused || value.isNotEmpty()) Grey800 else Grey300
+    val borderColor = if (isFocused || value.isNotEmpty()) Gray800 else Gray300
 
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -87,6 +89,10 @@ fun LoginTextField(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .background(
+                color = White,
+                shape = RoundedCornerShape(36.dp)
+            )
             .border(
                 width = 1.dp,
                 color = borderColor,
@@ -105,8 +111,8 @@ fun LoginTextField(
                 unfocusedContainerColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                focusedTextColor = Grey800,
-                unfocusedTextColor = Grey800
+                focusedTextColor = Gray800,
+                unfocusedTextColor = Gray800
             ),
             textStyle = textStyle,
             placeholder = {
@@ -114,7 +120,7 @@ fun LoginTextField(
                     text = placeholderText,
                     fontSize = 16.sp,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Grey400
+                    color = Gray400
                 )
             },
             visualTransformation = visualTransformation,

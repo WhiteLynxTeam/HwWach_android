@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.flow.collectLatest
+import com.whitelynxteam.hwwach.ui.theme.Gray250
 
 @Composable
 fun MainScreen(
@@ -20,6 +20,7 @@ fun MainScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        containerColor = Gray250,
         bottomBar = {
             BottomNavigationBar(
                 menuItems = state.bottomMenuItems,

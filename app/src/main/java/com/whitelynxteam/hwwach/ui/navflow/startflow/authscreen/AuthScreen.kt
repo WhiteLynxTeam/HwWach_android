@@ -1,5 +1,6 @@
 package com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,8 +20,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.whitelynxteam.hwwach.ui.navflow.startflow.LoginTextField
-import com.whitelynxteam.hwwach.ui.theme.Grey700
-import com.whitelynxteam.hwwach.ui.theme.Grey800
+import com.whitelynxteam.hwwach.ui.navflow.startflow.TextFieldType
+import com.whitelynxteam.hwwach.ui.theme.Gray250
+import com.whitelynxteam.hwwach.ui.theme.Gray700
+import com.whitelynxteam.hwwach.ui.theme.Gray800
 import com.whitelynxteam.hwwach.ui.theme.Red500
 import com.whitelynxteam.hwwach.ui.theme.White
 
@@ -34,10 +37,11 @@ fun AuthScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .background(Gray250)
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column() {
+        Column {
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
@@ -51,17 +55,17 @@ fun AuthScreen(
                         text = "Добро пожаловать",
                         fontSize = 22.sp,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Grey800
+                        color = Gray800
                     )
                     Text(
                         text = "Введите Ваш логин и пароль",
                         fontSize = 16.sp,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Grey700
+                        color = Gray700
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(40.dp))
             LoginTextField(
                 value = state.login,
                 placeholderText = "Логин",
@@ -71,6 +75,7 @@ fun AuthScreen(
             LoginTextField(
                 value = state.password,
                 placeholderText = "Пароль",
+                type = TextFieldType.PASSWORD,
                 onValueChange = { onAction(AuthScreenAction.InputPassword(it)) }
             )
             Spacer(modifier = Modifier.height(20.dp))
@@ -84,8 +89,8 @@ fun AuthScreen(
                 },
                 shape = RoundedCornerShape(36.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Grey800,
-                    disabledContainerColor = Grey800,
+                    containerColor = Gray800,
+                    disabledContainerColor = Gray800,
                     contentColor = White,
                     disabledContentColor = White,
                 )

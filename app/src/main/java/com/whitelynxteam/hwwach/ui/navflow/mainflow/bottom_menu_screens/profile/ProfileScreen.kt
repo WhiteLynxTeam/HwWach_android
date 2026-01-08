@@ -1,4 +1,4 @@
-package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens
+package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.profile
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

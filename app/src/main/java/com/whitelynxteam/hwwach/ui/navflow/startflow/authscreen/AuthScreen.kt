@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.whitelynxteam.hwwach.ui.navflow.startflow.LoginTextField
+import com.whitelynxteam.hwwach.ui.navflow.startflow.TextFieldType
 import com.whitelynxteam.hwwach.ui.theme.Grey700
 import com.whitelynxteam.hwwach.ui.theme.Grey800
 import com.whitelynxteam.hwwach.ui.theme.Red500
@@ -71,6 +72,7 @@ fun AuthScreen(
             LoginTextField(
                 value = state.password,
                 placeholderText = "Пароль",
+                type = TextFieldType.PASSWORD,
                 onValueChange = { onAction(AuthScreenAction.InputPassword(it)) }
             )
             Spacer(modifier = Modifier.height(20.dp))

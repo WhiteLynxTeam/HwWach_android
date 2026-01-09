@@ -1,17 +1,25 @@
 package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AddScreenViewModel @Inject constructor() : ViewModel() {
     private val _uiState = MutableStateFlow(AddScreenState())
     val uiState: StateFlow<AddScreenState> = _uiState.asStateFlow()
+
+    private val _events = MutableSharedFlow<AddScreenEvent>()
+    val events: SharedFlow<AddScreenEvent> = _events.asSharedFlow()
 
     fun handleAction(action: AddScreenAction) {
         when (action) {
@@ -40,17 +48,29 @@ class AddScreenViewModel @Inject constructor() : ViewModel() {
                 _uiState.update { it.copy(images = it.images.filterIndexed { i, _ -> i != action.index }) }
             }
             is AddScreenAction.OnSubmitClicked -> {
-                if (_uiState.value.name.isBlank()) {
-                    _uiState.update { it.copy(errorMessage = "Название обязательно") }
-                    return
-                }
-                if (_uiState.value.images.isEmpty()) {
-                    _uiState.update { it.copy(errorMessage = "Добавьте хотя бы одно фото") }
-                    return
-                }
-
-
+                validateAndSubmit()
             }
+
+            AddScreenAction.OpenImagePicker -> {}
+        }
+    }
+
+    private fun validateAndSubmit() {
+        viewModelScope.launch {
+            val currentState = _uiState.value
+            if (currentState.name.isBlank()) {
+                _uiState.update { it.copy(errorMessage = "Название обязательно") }
+                return@launch
+            }
+            if (currentState.images.isEmpty()) {
+                _uiState.update { it.copy(errorMessage = "Добавьте хотя бы одно фото") }
+                return@launch
+            }
+
+            // Здесь должен быть вызов use case для сохранения данных
+            // После успешного сохранения отправляем событие
+            _events.emit(AddScreenEvent.ShowSuccessMessage)
+            _events.emit(AddScreenEvent.NavigateBack)
         }
     }
 }

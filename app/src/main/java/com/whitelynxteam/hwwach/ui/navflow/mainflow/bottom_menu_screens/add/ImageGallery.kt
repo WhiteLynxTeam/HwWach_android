@@ -34,8 +34,7 @@ import com.whitelynxteam.hwwach.R
 fun ImageGallery(
     modifier: Modifier = Modifier,
     images: List<String>,
-    onImageSelected: (String) -> Unit,
-    onImageRemoved: (Int) -> Unit
+    onAction: (AddScreenAction) -> Unit
 ) {
 
     LazyVerticalGrid(
@@ -61,7 +60,7 @@ fun ImageGallery(
                         contentScale = ContentScale.Crop
                     )
                     IconButton(
-                        onClick = { onImageRemoved(index) },
+                        onClick = { onAction(AddScreenAction.RemoveImage(index)) },
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(4.dp)
@@ -78,7 +77,7 @@ fun ImageGallery(
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(12.dp))
                         .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
-                        .clickable { /* вызвать галерею устройства */ },
+                        .clickable { onAction(AddScreenAction.OpenImagePicker) }, // Предполагаем, что это действие будет добавлено
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(painter = painterResource(id = R.drawable.ic_add_photo), contentDescription = "Add Photo")
@@ -91,5 +90,5 @@ fun ImageGallery(
 @Preview(showBackground = true)
 @Composable
 private fun ImageGalleryPreview() {
-    ImageGallery(images = emptyList(), onImageSelected = {}, onImageRemoved = {})
+    ImageGallery(images = emptyList(), onAction = {})
 }

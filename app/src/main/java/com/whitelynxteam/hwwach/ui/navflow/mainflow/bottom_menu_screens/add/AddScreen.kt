@@ -54,8 +54,7 @@ fun AddScreen(
             if (state.currentMode is AddScreenTab.Gallery) {
                 ImageGallery(
                     images = state.images,
-                    onImageSelected = { /* TODO */ },
-                    onImageRemoved = { /* TODO */ }
+                    onAction = onAction
                 )
             }
 
@@ -89,12 +88,8 @@ fun AddScreen(
 @Preview(showBackground = true)
 @Composable
 private fun AddScreenPreview() {
-
-    val viewModel = hiltViewModel<AddScreenViewModel>()
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-
     AddScreen(
-        state = uiState.value,
-        onAction = viewModel::handleAction
+        state = AddScreenState(),
+        onAction = {}
     )
 }

@@ -16,11 +16,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.whitelynxteam.hwwach.ui.navflow.startflow.LoginTextField
 import com.whitelynxteam.hwwach.ui.navflow.startflow.TextFieldType
+import com.whitelynxteam.hwwach.ui.theme.Blue800
 import com.whitelynxteam.hwwach.ui.theme.Gray250
 import com.whitelynxteam.hwwach.ui.theme.Gray700
 import com.whitelynxteam.hwwach.ui.theme.Gray800
@@ -117,6 +119,12 @@ fun AuthScreen(
                             color = Red500
                         )
                     }
+                Text(
+                    text = "Регистрация",
+                    color = Blue800,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }

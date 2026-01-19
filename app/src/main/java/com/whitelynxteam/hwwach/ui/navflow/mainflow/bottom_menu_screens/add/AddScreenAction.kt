@@ -4,7 +4,7 @@ sealed class AddScreenAction {
     data class SwitchMode(val mode: AddScreenTab) : AddScreenAction()
 
     data class InputName(val value: String) : AddScreenAction()
-    data class InputCategory(val value: String) : AddScreenAction()
+    data class InputCategory(val value: Categories) : AddScreenAction()
     data class InputInventoryNumber(val value: String) : AddScreenAction()
     data class InputAddress(val value: String) : AddScreenAction()
     data class InputComment(val value: String) : AddScreenAction()

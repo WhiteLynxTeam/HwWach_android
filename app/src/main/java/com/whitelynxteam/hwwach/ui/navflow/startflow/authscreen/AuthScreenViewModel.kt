@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.whitelynxteam.hwwach.domain.DomainResult
 import com.whitelynxteam.hwwach.domain.usecases.LoginWithProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -43,8 +44,16 @@ class AuthScreenViewModel @Inject constructor(
             }
 
             AuthScreenAction.OnAuthClicked -> onAuthClicked()
+            AuthScreenAction.OnRegClicked -> onRegClicked()
         }
     }
+
+    private fun onRegClicked() {
+        viewModelScope.launch {
+            _events.emit(AuthScreenEvent.NavigateToReg)
+        }
+    }
+
 
     private fun onAuthClicked() {
         viewModelScope.launch {

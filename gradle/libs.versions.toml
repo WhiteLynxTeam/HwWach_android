@@ -8,6 +8,9 @@ activityCompose = "1.12.2"
 composeBom = "2025.12.01"
 materialIconsExtended = "1.7.8"
 
+material3 = "1.4.0"
+
+
 navCompose = "2.9.6"
 
 ksp = "2.2.20-2.0.3"

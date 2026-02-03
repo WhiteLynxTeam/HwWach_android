@@ -1,4 +1,4 @@
-package com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen
+package com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -23,20 +23,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.whitelynxteam.hwwach.ui.navflow.startflow.LoginTextField
 import com.whitelynxteam.hwwach.ui.navflow.startflow.TextFieldType
-import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreenAction
 import com.whitelynxteam.hwwach.ui.theme.Gray250
 import com.whitelynxteam.hwwach.ui.theme.Gray700
 import com.whitelynxteam.hwwach.ui.theme.Gray800
-import com.whitelynxteam.hwwach.ui.theme.Red500
 import com.whitelynxteam.hwwach.ui.theme.White
 
 @Composable
-fun AuthScreen(
+fun RegScreen(
     modifier: Modifier = Modifier,
-    state: AuthScreenState,
-    onAction: (AuthScreenAction) -> Unit
+    state: RegScreenState,
+    onAction: (RegScreenAction) -> Unit
 ) {
-
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -44,7 +41,7 @@ fun AuthScreen(
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column (horizontalAlignment = Alignment.CenterHorizontally)
+        Column(horizontalAlignment = Alignment.CenterHorizontally)
         {
             Box(
                 modifier = Modifier.fillMaxWidth(),
@@ -56,40 +53,87 @@ fun AuthScreen(
                 ) {
                     Text(
                         modifier = Modifier.padding(bottom = 4.dp),
-                        text = "Добро пожаловать",
+                        text = "Регистрация",
                         fontSize = 22.sp,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Gray800
                     )
                     Text(
-                        text = "Введите Ваш логин и пароль",
+                        text = "Введите Ваши данные",
                         fontSize = 16.sp,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Gray700
                     )
                 }
             }
+
+
             Spacer(modifier = Modifier.height(40.dp))
+
+            LoginTextField(
+                value = state.lastName,
+                placeholderText = "Фамилия",
+                onValueChange = { onAction(RegScreenAction.InputLastName(it)) }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            LoginTextField(
+                value = state.firstName,
+                placeholderText = "Имя",
+                onValueChange = { onAction(RegScreenAction.InputFirstName(it)) }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            LoginTextField(
+                value = state.middleName,
+                placeholderText = "Отчество",
+                onValueChange = { onAction(RegScreenAction.InputMiddleName(it)) }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            LoginTextField(
+                value = state.phone,
+                placeholderText = "Телефон",
+                onValueChange = { onAction(RegScreenAction.InputPhone(it)) },
+                //[flag.yellow  - посмотреть поле key, разобраться с типами]
+//                keyboardType = KeyboardType.Phone
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            LoginTextField(
+                value = state.position,
+                placeholderText = "Должность",
+                onValueChange = { onAction(RegScreenAction.InputPosition(it)) },
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
             LoginTextField(
                 value = state.login,
                 placeholderText = "Логин",
-                onValueChange = { onAction(AuthScreenAction.InputLogin(it)) }
+                onValueChange = { onAction(RegScreenAction.InputLogin(it)) },
             )
             Spacer(modifier = Modifier.height(20.dp))
+
             LoginTextField(
                 value = state.password,
                 placeholderText = "Пароль",
                 type = TextFieldType.PASSWORD,
-                onValueChange = { onAction(AuthScreenAction.InputPassword(it)) }
+                onValueChange = { onAction(RegScreenAction.InputPassword(it)) }
             )
             Spacer(modifier = Modifier.height(20.dp))
+
             Button(
                 modifier = Modifier
                     .padding(bottom = 8.dp)
                     .fillMaxWidth()
                     .height(56.dp),
                 onClick = {
-                    onAction(AuthScreenAction.OnAuthClicked)
+                    onAction(RegScreenAction.OnRegClicked)
                 },
                 shape = RoundedCornerShape(36.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -100,34 +144,19 @@ fun AuthScreen(
                 )
             ) {
                 Text(
-                    text = "Войти",
+                    text = "Регистрация",
                     fontSize = 16.sp,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                state.errorMessage
-                    .split("\n")
-                    .forEach {
-                        Text(
-                            modifier = Modifier.padding(bottom = 4.dp),
-                            text = it,
-                            fontSize = 14.sp,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Red500
-                        )
-                    }
-            }
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Ссылка на авторизацию
-            TextButton(onClick = {onAction(AuthScreenAction.OnRegClicked)})
+            TextButton(onClick = { onAction(RegScreenAction.OnAuthClicked) })
             {
                 Text(
-                    text = "Регистрация",
+                    text = "Авторизация",
                     fontSize = 14.sp,
                     color = Color(0xFF3D5AFE)
                 )
@@ -139,6 +168,6 @@ fun AuthScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun AuthScreenPreview() {
-    AuthScreen(modifier = Modifier, state = AuthScreenState(), onAction = {})
+fun RegScreenPreview() {
+    RegScreen(modifier = Modifier, state = RegScreenState(), onAction = {})
 }

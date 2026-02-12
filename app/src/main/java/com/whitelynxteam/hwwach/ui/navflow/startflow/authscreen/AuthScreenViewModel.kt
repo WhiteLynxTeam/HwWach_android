@@ -3,9 +3,9 @@ package com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.whitelynxteam.hwwach.domain.DomainResult
+import com.whitelynxteam.hwwach.domain.usecases.CheckRegistrationUseCase
 import com.whitelynxteam.hwwach.domain.usecases.LoginWithProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -18,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthScreenViewModel @Inject constructor(
-    private val loginWithProfileUseCase: LoginWithProfileUseCase
+    private val loginWithProfileUseCase: LoginWithProfileUseCase,
+    private val checkRegistrationUseCase: CheckRegistrationUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthScreenState())
@@ -26,6 +27,17 @@ class AuthScreenViewModel @Inject constructor(
 
     private val _events = MutableSharedFlow<AuthScreenEvent>()
     val events: SharedFlow<AuthScreenEvent> = _events.asSharedFlow()
+
+    init {
+        // Проверяем статус регистрации при инициализации ViewModel
+        viewModelScope.launch {
+            val regStatus = checkRegistrationUseCase()
+            if (regStatus is DomainResult.Success && regStatus.data.uuid != null) {
+                val statusMessage = "Логин: ${regStatus.data.login} ${regStatus.data.status?.toDisplayString()}"
+                _state.update { it.copy(registrationStatusMessage = statusMessage) }
+            }
+        }
+    }
 
     fun handleAction(action: AuthScreenAction) {
         when (action) {
@@ -82,35 +94,28 @@ class AuthScreenViewModel @Inject constructor(
 
                     _events.emit(AuthScreenEvent.NavigateToMain)
                 }
+                is DomainResult.UnauthorizedError -> {
+                    println("AuthScreenViewModel DomainResult.UnauthorizedError")
+
+                    _state.update { 
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "Неверный логин или пароль.\nПроверьте пожалуйста правильность написания"
+                        ) 
+                    }
+                }
                 else -> {
                     println("AuthScreenViewModel DomainResult - else")
 
-                    _state.update { it.copy(isLoading = false) }
+                    _state.update { 
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "Ошибка сервера авторизации"
+                        ) 
+                    }
                 }
             }
-
-
-            /*            _state.update { previousState ->
-                            if (previousState is AuthScreenState.Input) {
-                                val login = previousState.login
-                                val password = previousState.password
-
-                                // здесь должна быть реальная проверка (use case / репозиторий)
-                                val isValid = login == "admin" && password == "1234"
-
-                                if (isValid) {
-                                    AuthScreenState.Finished
-                                } else {
-                                    previousState.copy(
-                                        errorAuth = "Неверный логин или пароль.\nПроверьте пожалуйста правильность написания"
-                                    )
-                                }
-                            } else {
-                                previousState
-                            }
-                        }*/
         }
-
     }
 }
 

@@ -1,16 +1,20 @@
 package com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -141,12 +145,36 @@ fun RegScreen(
                     disabledContainerColor = Gray800,
                     contentColor = White,
                     disabledContentColor = White,
-                )
+                ),
+                enabled = !state.isLoading,
             ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                    }
+                    Text(
+                        text = "Регистрация",
+                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            if (state.errorMessage.isNotBlank()) {
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "Регистрация",
-                    fontSize = 16.sp,
-                    style = MaterialTheme.typography.bodyMedium
+                    text = state.errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 
@@ -170,4 +198,10 @@ fun RegScreen(
 @Composable
 fun RegScreenPreview() {
     RegScreen(modifier = Modifier, state = RegScreenState(), onAction = {})
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RegScreenWithErrorPreview() {
+    RegScreen(modifier = Modifier, state = RegScreenState(errorMessage = "Пример ошибки регистрации"), onAction = {})
 }

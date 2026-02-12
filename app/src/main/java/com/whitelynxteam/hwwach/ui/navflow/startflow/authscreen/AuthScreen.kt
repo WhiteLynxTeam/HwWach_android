@@ -1,16 +1,20 @@
 package com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -18,12 +22,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.whitelynxteam.hwwach.ui.navflow.startflow.LoginTextField
 import com.whitelynxteam.hwwach.ui.navflow.startflow.TextFieldType
+import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreen
 import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreenAction
+import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreenState
 import com.whitelynxteam.hwwach.ui.theme.Gray250
 import com.whitelynxteam.hwwach.ui.theme.Gray700
 import com.whitelynxteam.hwwach.ui.theme.Gray800
@@ -97,12 +104,42 @@ fun AuthScreen(
                     disabledContainerColor = Gray800,
                     contentColor = White,
                     disabledContentColor = White,
-                )
-            ) {
+                ),
+                enabled = !state.isLoading,
+            )
+            {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                    }
+                    Text(
+                        text = "Войти",
+                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            // Отображение статуса регистрации
+            state.registrationStatusMessage?.let { statusMessage ->
                 Text(
-                    text = "Войти",
-                    fontSize = 16.sp,
-                    style = MaterialTheme.typography.bodyMedium
+                    modifier = Modifier
+                        .padding(top = 8.dp, bottom = 8.dp)
+                        .fillMaxWidth(),
+                    text = statusMessage,
+                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Gray700,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
             }
 
@@ -123,7 +160,7 @@ fun AuthScreen(
                     }
             }
 
-            // Ссылка на авторизацию
+            // Ссылка на регистрацию
             TextButton(onClick = {onAction(AuthScreenAction.OnRegClicked)})
             {
                 Text(
@@ -141,4 +178,22 @@ fun AuthScreen(
 @Composable
 fun AuthScreenPreview() {
     AuthScreen(modifier = Modifier, state = AuthScreenState(), onAction = {})
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AuthScreenPreviewWithError() {
+    AuthScreen(modifier = Modifier, state = AuthScreenState(errorMessage = "Ошибка авторизации"), onAction = {})
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AuthScreenPreviewWithErrorWithRegStatus() {
+    AuthScreen(
+        modifier = Modifier,
+        state = AuthScreenState(
+            errorMessage = "Ошибка авторизации",
+registrationStatusMessage = "Логин: Тест на проверке.",
+            ),
+        onAction = {})
 }

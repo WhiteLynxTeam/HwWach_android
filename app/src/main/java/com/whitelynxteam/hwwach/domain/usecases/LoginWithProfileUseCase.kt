@@ -35,7 +35,7 @@ class LoginWithProfileUseCase @Inject constructor(
             }
             else -> {
                 // Если аутентификация не удалась, возвращаем ошибку
-                authResult as DomainResult<Unit>
+                authResult
             }
         }
     }

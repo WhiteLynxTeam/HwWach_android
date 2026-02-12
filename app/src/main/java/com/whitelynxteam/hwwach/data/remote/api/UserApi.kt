@@ -2,13 +2,28 @@ package com.whitelynxteam.hwwach.data.remote.api
 
 import com.whitelynxteam.hwwach.data.remote.model.auth.AuthResponseDto
 import com.whitelynxteam.hwwach.data.remote.model.auth.AuthUserRequest
+import com.whitelynxteam.hwwach.data.remote.model.reg.RegResponseDto
+import com.whitelynxteam.hwwach.data.remote.model.reg.RegStatusResponseDto
+import com.whitelynxteam.hwwach.data.remote.model.reg.RegUserRequest
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface UserApi {
     @POST("/auth/login/")
     suspend fun auth(
         @Body authUserRequest: AuthUserRequest
     ): Response<AuthResponseDto>
+
+    @POST("/auth/register/")
+    suspend fun reg(
+        @Body regUserRequest: RegUserRequest
+    ): Response<RegResponseDto>
+
+    @GET("/registration-status/{id}")
+    suspend fun statusReg(
+        @Path("id") uuid: String
+    ): Response<RegStatusResponseDto>
 }

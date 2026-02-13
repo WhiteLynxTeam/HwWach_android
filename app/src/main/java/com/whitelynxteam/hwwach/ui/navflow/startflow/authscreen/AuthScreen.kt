@@ -21,18 +21,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.whitelynxteam.hwwach.ui.navflow.startflow.LoginTextField
 import com.whitelynxteam.hwwach.ui.navflow.startflow.TextFieldType
 import com.whitelynxteam.hwwach.ui.theme.Blue800
-import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreen
-import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreenAction
-import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreenState
 import com.whitelynxteam.hwwach.ui.theme.Gray250
 import com.whitelynxteam.hwwach.ui.theme.Gray700
 import com.whitelynxteam.hwwach.ui.theme.Gray800
@@ -53,7 +49,7 @@ fun AuthScreen(
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column (horizontalAlignment = Alignment.CenterHorizontally)
+        Column(horizontalAlignment = Alignment.CenterHorizontally)
         {
             Box(
                 modifier = Modifier.fillMaxWidth(),
@@ -160,21 +156,16 @@ fun AuthScreen(
                             color = Red500
                         )
                     }
-                Text(
-                    text = "Регистрация",
-                    color = Blue800,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
             }
 
             // Ссылка на регистрацию
-            TextButton(onClick = {onAction(AuthScreenAction.OnRegClicked)})
+            TextButton(onClick = { onAction(AuthScreenAction.OnRegClicked) })
             {
                 Text(
                     text = "Регистрация",
-                    fontSize = 14.sp,
-                    color = Color(0xFF3D5AFE)
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Blue800,
                 )
             }
         }
@@ -191,7 +182,10 @@ fun AuthScreenPreview() {
 @Preview(showBackground = true)
 @Composable
 fun AuthScreenPreviewWithError() {
-    AuthScreen(modifier = Modifier, state = AuthScreenState(errorMessage = "Ошибка авторизации"), onAction = {})
+    AuthScreen(
+        modifier = Modifier,
+        state = AuthScreenState(errorMessage = "Ошибка авторизации"),
+        onAction = {})
 }
 
 @Preview(showBackground = true)
@@ -201,7 +195,7 @@ fun AuthScreenPreviewWithErrorWithRegStatus() {
         modifier = Modifier,
         state = AuthScreenState(
             errorMessage = "Ошибка авторизации",
-registrationStatusMessage = "Логин: Тест на проверке.",
-            ),
+            registrationStatusMessage = "Логин: Тест на проверке.",
+        ),
         onAction = {})
 }

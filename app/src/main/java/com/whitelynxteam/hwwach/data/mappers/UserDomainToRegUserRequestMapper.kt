@@ -13,11 +13,15 @@ class UserDomainToRegUserRequestMapper @Inject constructor() {
         return RegUserRequest(
             login = login,
             password = password,
-            phone = user.phone,
             lastName = lastName,
             firstName = firstName,
-            middleName = user.middleName,
-            position = user.position,
+
+            // Так для апи сервера пустая строка тоже данные, то поля не проходят валидации
+            // на сервере. Делаем поля значением null, чтобы исключить их из json
+            // И размер отправляемых данных меньше.
+            phone = user.phone?.takeIf { it.isNotBlank() },
+            middleName = user.middleName?.takeIf { it.isNotBlank() },
+            position = user.position?.takeIf { it.isNotBlank() }
         )
     }
 }

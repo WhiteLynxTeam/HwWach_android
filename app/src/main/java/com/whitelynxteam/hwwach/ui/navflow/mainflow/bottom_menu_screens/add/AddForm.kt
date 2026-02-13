@@ -21,13 +21,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -61,10 +69,9 @@ fun AddForm(
                 label = "Название"
             )
             Spacer(modifier = Modifier.height(16.dp))
-            AddFormTextField(
-                value = state.category,
-                onValueChange = { onAction(AddScreenAction.InputCategory(it)) },
-                label = "Категория"
+            CategoryDropdown(
+                selectedCategory = state.category,
+                onCategorySelected = { onAction(AddScreenAction.InputCategory(it)) }
             )
             Spacer(modifier = Modifier.height(16.dp))
             AddFormTextField(
@@ -201,6 +208,84 @@ private fun ImageCard(
         contentScale = ContentScale.Crop
     )
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CategoryDropdown(
+    modifier: Modifier = Modifier,
+    selectedCategory: Categories?,
+    onCategorySelected: (Categories) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused = interactionSource.collectIsFocusedAsState().value
+    val borderColor = if (isFocused || selectedCategory != null) Gray800 else Gray300
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                color = White,
+                shape = RoundedCornerShape(36.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(36.dp)
+            )
+            .padding(horizontal = 12.dp)
+    ) {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            TextField(
+                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                readOnly = true,
+                value = selectedCategory?.displayName ?: "",
+                onValueChange = {},
+                label = {
+                    Text(
+                        text = "Категория",
+                        color = Gray500
+                    )
+                        },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = Gray800,
+                    unfocusedTextColor = Gray800
+                )
+            )
+
+            ExposedDropdownMenu(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White)
+                    .padding(8.dp),
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                Categories.entries.forEach { category ->
+                    DropdownMenuItem(
+                        text = { Text(category.displayName) },
+                        onClick = {
+                            onCategorySelected(category)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable

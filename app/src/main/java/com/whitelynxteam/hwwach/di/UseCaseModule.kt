@@ -4,8 +4,10 @@ import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IUserProfileRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IUserRepository
 import com.whitelynxteam.hwwach.domain.usecases.AuthApiUseCase
+import com.whitelynxteam.hwwach.domain.usecases.CheckRegistrationUseCase
 import com.whitelynxteam.hwwach.domain.usecases.GetUserInfoUseCase
 import com.whitelynxteam.hwwach.domain.usecases.LoginWithProfileUseCase
+import com.whitelynxteam.hwwach.domain.usecases.RegApiUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,7 +26,16 @@ object UseCaseModule {
     ): AuthApiUseCase {
         return AuthApiUseCase(userRepository, tokensRepository)
     }
-    
+
+    @Provides
+    @Singleton
+    fun provideRegApiUseCase(
+        userRepository: IUserRepository,
+        userProfileRepository: IUserProfileRepository,
+    ): RegApiUseCase {
+        return RegApiUseCase(userRepository, userProfileRepository)
+    }
+
     @Provides
     @Singleton
     fun provideGetUserInfoUseCase(
@@ -32,7 +43,7 @@ object UseCaseModule {
     ): GetUserInfoUseCase {
         return GetUserInfoUseCase(userRepository)
     }
-    
+
     @Provides
     @Singleton
     fun provideLoginWithProfileUseCase(
@@ -43,5 +54,13 @@ object UseCaseModule {
         getUserInfoUseCase: GetUserInfoUseCase
     ): LoginWithProfileUseCase {
         return LoginWithProfileUseCase(userRepository, tokensRepository, userProfileRepository, authApiUseCase, getUserInfoUseCase)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCheckRegistrationUseCase(
+        userRepository: IUserRepository
+    ): CheckRegistrationUseCase {
+        return CheckRegistrationUseCase(userRepository)
     }
 }

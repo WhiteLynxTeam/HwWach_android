@@ -10,3 +10,13 @@ sealed class DomainResult<out T> {
 
     data class ValidationError(val message: String) : DomainResult<Nothing>()
 }
+
+suspend fun <T, R> DomainResult<T>.mapSuccess(transform: suspend (T) -> R): DomainResult<R> =
+    when (this) {
+        is DomainResult.Success -> DomainResult.Success(transform(data))
+
+        is DomainResult.UnauthorizedError -> this
+        is DomainResult.ServerError -> this
+        is DomainResult.NetworkError -> this
+        is DomainResult.ValidationError -> this
+    }

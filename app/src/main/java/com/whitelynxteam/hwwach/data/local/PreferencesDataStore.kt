@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "miel_preferences")
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "hwwach_preferences")
 
 @Singleton
 class PreferencesDataStore @Inject constructor(
@@ -21,19 +21,40 @@ class PreferencesDataStore @Inject constructor(
 ) {
     /*** Типобезопасный с явными методами для каждой сущности */
     private object PreferencesKeys {
+        // uuid регистрации во временной таблице для не явной проверки результата регистрации
+        val UUID_TEMP = stringPreferencesKey("uuid_temp")
+
         // Ключи для токена
         val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
         val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh_token")
 
         // Ключи для профиля пользователя
-        val USER_NAME_KEY = stringPreferencesKey("user_name")
-        val USER_FULL_NAME_KEY = stringPreferencesKey("user_full_name")
-        val USER_EMAIL_KEY = stringPreferencesKey("user_email")
+        val USER_USERNAME_KEY = stringPreferencesKey("user_username")
+        val USER_LAST_NAME_KEY = stringPreferencesKey("user_last_name")
+        val USER_FIRST_NAME_KEY = stringPreferencesKey("user_first_name")
+        val USER_MIDDLE_NAME_KEY = stringPreferencesKey("user_middle_name")
         val USER_PHONE_KEY = stringPreferencesKey("user_phone")
-        val USER_PHOTO_KEY = stringPreferencesKey("user_photo")
+        val USER_POSITION_KEY = stringPreferencesKey("user_position")
         val USER_OFFICE_NAME_KEY = stringPreferencesKey("user_office_name")
         val USER_OFFICE_LOCATION_KEY = stringPreferencesKey("user_office_location")
-        val USER_DEPARTMENT_KEY = stringPreferencesKey("user_department")
+    }
+
+    // Методы для работы с uuid временной регистрации
+    val uuidTemp: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.UUID_TEMP]
+        }
+
+    suspend fun saveUUIDTemp(uuidTemp: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.UUID_TEMP] = uuidTemp
+        }
+    }
+
+    suspend fun clearUUIDTemp() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(PreferencesKeys.UUID_TEMP)
+        }
     }
 
     // Методы для работы с токеном
@@ -69,20 +90,23 @@ class PreferencesDataStore @Inject constructor(
     // Методы для работы с профилем пользователя
     val userProfile: Flow<User?> = context.dataStore.data
         .map { preferences ->
-            val username = preferences[PreferencesKeys.USER_NAME_KEY]
-            val fullName = preferences[PreferencesKeys.USER_FULL_NAME_KEY]
-            val email = preferences[PreferencesKeys.USER_EMAIL_KEY]
+            val username = preferences[PreferencesKeys.USER_USERNAME_KEY]
+            val lastName = preferences[PreferencesKeys.USER_LAST_NAME_KEY]
+            val firstName = preferences[PreferencesKeys.USER_FIRST_NAME_KEY]
+            val middleName = preferences[PreferencesKeys.USER_MIDDLE_NAME_KEY]
             val phone = preferences[PreferencesKeys.USER_PHONE_KEY]
-            val photo = preferences[PreferencesKeys.USER_PHOTO_KEY]
+            val position = preferences[PreferencesKeys.USER_POSITION_KEY]
             val officeName = preferences[PreferencesKeys.USER_OFFICE_NAME_KEY]
             val officeLocation = preferences[PreferencesKeys.USER_OFFICE_LOCATION_KEY]
-            val department = preferences[PreferencesKeys.USER_DEPARTMENT_KEY]
 
             if (username != null) {
                 User(
                     username = username,
-                    fullName = fullName,
+                    lastName = lastName,
+                    firstName = firstName,
+                    middleName = middleName,
                     phone = phone,
+                    position = position,
                     officeName = officeName,
                     officeLocation = officeLocation,
                 )
@@ -93,9 +117,12 @@ class PreferencesDataStore @Inject constructor(
 
     suspend fun saveUserProfile(user: User) {
         context.dataStore.edit { preferences ->
-            user.username?.let { preferences[PreferencesKeys.USER_NAME_KEY] = it }
-            user.fullName?.let { preferences[PreferencesKeys.USER_FULL_NAME_KEY] = it }
+            user.username?.let { preferences[PreferencesKeys.USER_USERNAME_KEY] = it }
+            user.lastName?.let { preferences[PreferencesKeys.USER_LAST_NAME_KEY] = it }
+            user.firstName?.let { preferences[PreferencesKeys.USER_FIRST_NAME_KEY] = it }
+            user.middleName?.let { preferences[PreferencesKeys.USER_MIDDLE_NAME_KEY] = it }
             user.phone?.let { preferences[PreferencesKeys.USER_PHONE_KEY] = it }
+            user.position?.let { preferences[PreferencesKeys.USER_POSITION_KEY] = it }
             user.officeName?.let { preferences[PreferencesKeys.USER_OFFICE_NAME_KEY] = it }
             user.officeLocation?.let { preferences[PreferencesKeys.USER_OFFICE_LOCATION_KEY] = it }
         }
@@ -103,14 +130,14 @@ class PreferencesDataStore @Inject constructor(
 
     suspend fun clearUserProfile() {
         context.dataStore.edit { preferences ->
-            preferences.remove(PreferencesKeys.USER_NAME_KEY)
-            preferences.remove(PreferencesKeys.USER_FULL_NAME_KEY)
-            preferences.remove(PreferencesKeys.USER_EMAIL_KEY)
+            preferences.remove(PreferencesKeys.USER_USERNAME_KEY)
+            preferences.remove(PreferencesKeys.USER_LAST_NAME_KEY)
+            preferences.remove(PreferencesKeys.USER_FIRST_NAME_KEY)
+            preferences.remove(PreferencesKeys.USER_MIDDLE_NAME_KEY)
             preferences.remove(PreferencesKeys.USER_PHONE_KEY)
-            preferences.remove(PreferencesKeys.USER_PHOTO_KEY)
+            preferences.remove(PreferencesKeys.USER_POSITION_KEY)
             preferences.remove(PreferencesKeys.USER_OFFICE_NAME_KEY)
             preferences.remove(PreferencesKeys.USER_OFFICE_LOCATION_KEY)
-            preferences.remove(PreferencesKeys.USER_DEPARTMENT_KEY)
         }
     }
 }

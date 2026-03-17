@@ -3,6 +3,7 @@ package com.whitelynxteam.hwwach.data.repositories
 import com.whitelynxteam.hwwach.data.local.PreferencesDataStore
 import com.whitelynxteam.hwwach.data.mappers.RegResponseDtoToUserDomainMapper
 import com.whitelynxteam.hwwach.data.mappers.RegStatusResponseDtoToRegStatusDomainMapper
+import com.whitelynxteam.hwwach.data.mappers.ResponseErrorMapper
 import com.whitelynxteam.hwwach.data.mappers.UserDomainToAuthUserRequestMapper
 import com.whitelynxteam.hwwach.data.mappers.UserDomainToRegUserRequestMapper
 import com.whitelynxteam.hwwach.data.remote.api.UserApi
@@ -18,7 +19,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -28,6 +28,7 @@ class UserRepositoryImpl @Inject constructor(
     private val userDomainToRegUserRequestMapper: UserDomainToRegUserRequestMapper,
     private val regResponseDtoToUserDomainMapper: RegResponseDtoToUserDomainMapper,
     private val regStatusResponseDtoToRegStatusDomainMapper: RegStatusResponseDtoToRegStatusDomainMapper,
+    private val responseErrorMapper: ResponseErrorMapper,
     private val preferencesDataStore: PreferencesDataStore,
 ) : IUserRepository {
 
@@ -67,7 +68,7 @@ class UserRepositoryImpl @Inject constructor(
         val response = userApi.reg(userRegRequest)
 
         return when {
-            !response.isSuccessful -> mapResponseError(response)
+            !response.isSuccessful -> responseErrorMapper.map(response)
             else -> {
                 val regResponseDto = response.body() ?: return DomainResult.ValidationError("Registration response not found")
 
@@ -94,7 +95,7 @@ class UserRepositoryImpl @Inject constructor(
         val response = userApi.auth(userAuthRequest)
 
         return when {
-            !response.isSuccessful -> mapResponseError(response)
+            !response.isSuccessful -> responseErrorMapper.map(response)
             else -> {
                 val token = response.body()?.accessToken ?: return DomainResult.ValidationError("Token not found")
                 
@@ -113,7 +114,7 @@ class UserRepositoryImpl @Inject constructor(
         val response = userApi.statusReg(tempUuid)
 
         return when {
-            !response.isSuccessful -> mapResponseError(response)
+            !response.isSuccessful -> responseErrorMapper.map(response)
             else -> {
                 val status = response.body() ?: return DomainResult.ValidationError("RegStatus not found")
                 val mappedStatus = regStatusResponseDtoToRegStatusDomainMapper.map(status)
@@ -121,11 +122,4 @@ class UserRepositoryImpl @Inject constructor(
             }
         }
     }
-
-    private  fun <T> mapResponseError(response: Response<*>): DomainResult<T> =
-        when (response.code()) {
-            in 400..499 -> DomainResult.UnauthorizedError
-            500 -> DomainResult.ServerError(500)
-            else -> DomainResult.NetworkError(response.message() ?: "Unknown error")
-        }
 }

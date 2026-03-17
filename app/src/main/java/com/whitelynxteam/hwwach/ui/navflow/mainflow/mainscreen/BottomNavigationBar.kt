@@ -15,7 +15,7 @@ import com.whitelynxteam.hwwach.ui.theme.Gray250
 @Composable
 fun BottomNavigationBar(
     modifier: Modifier = Modifier,
-    menuItems: List<InnerMainFlowNavigation.Routes> = InnerMainFlowNavigation.Routes.allRoutes,
+    menuItems: List<InnerMainFlowNavigation.Routes.BottomMenuDestination> = InnerMainFlowNavigation.Routes.menuRoutes,
     onTabSelected: (Int) -> Unit = {},
     selectedTabIndex: Int = 0
 ) {

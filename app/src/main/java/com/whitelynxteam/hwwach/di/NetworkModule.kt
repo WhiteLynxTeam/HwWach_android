@@ -1,6 +1,7 @@
 package com.whitelynxteam.hwwach.di
 
 import com.whitelynxteam.hwwach.BuildConfig
+import com.whitelynxteam.hwwach.data.remote.api.PhotosApi
 import com.whitelynxteam.hwwach.data.remote.api.UserApi
 import com.whitelynxteam.hwwach.data.remote.interceptor.TokenInterceptor
 import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
@@ -28,10 +29,10 @@ object NetworkModule {
     @Provides
     @Singleton
     @AuthOkHttpClient
-    fun provideAuthOkHttpClient(): OkHttpClient = 
+    fun provideAuthOkHttpClient(): OkHttpClient =
         OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().apply { 
-                level = HttpLoggingInterceptor.Level.BODY 
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
             })
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -55,7 +56,7 @@ object NetworkModule {
     @Provides
     @Singleton
     @Named("auth")
-    fun provideAuthRetrofit(@AuthOkHttpClient okHttpClient: OkHttpClient): Retrofit = 
+    fun provideAuthRetrofit(@AuthOkHttpClient okHttpClient: OkHttpClient): Retrofit =
         Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL)
             .client(okHttpClient)
@@ -65,7 +66,7 @@ object NetworkModule {
     @Provides
     @Singleton
     @Named("api")
-    fun provideApiRetrofit(@ApiOkHttpClient okHttpClient: OkHttpClient): Retrofit = 
+    fun provideApiRetrofit(@ApiOkHttpClient okHttpClient: OkHttpClient): Retrofit =
         Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL)
             .client(okHttpClient)
@@ -77,10 +78,10 @@ object NetworkModule {
     @Named("auth")
     fun provideUserApi(@Named("auth") retrofit: Retrofit): UserApi =
         retrofit.create(UserApi::class.java)
-//
-//    @Provides
-//    @Singleton
-//    @Named("api")
-//    fun provideSecureUserApi(@Named("api") retrofit: Retrofit): SecureUserApi =
-//        retrofit.create(SecureUserApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("api")
+    fun providePhotosApi(@Named("api") retrofit: Retrofit): PhotosApi =
+        retrofit.create(PhotosApi::class.java)
 }

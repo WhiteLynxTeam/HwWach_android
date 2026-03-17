@@ -16,3 +16,21 @@ sealed class AddScreenAction {
 
     data object OnSubmitClicked : AddScreenAction()
 }
+
+sealed class AddScreenEvent {
+    data object ShowSuccessMessage : AddScreenEvent()
+    data class ShowErrorMessage(val message: String) : AddScreenEvent()
+    data object NavigateBack : AddScreenEvent()
+    data object OpenImagePicker : AddScreenEvent()
+}
+
+data class AddScreenState(
+    val currentMode: AddScreenTab = AddScreenTab.Gallery,
+    val name: String = "",
+    val category: Categories? = null,
+    val inventoryNumber: String = "",
+    val address: String = "",
+    val comment: String = "",
+    val images: List<String> = emptyList(),
+    val errorMessage: String = ""
+)

@@ -23,6 +23,7 @@ class InnerMainFlowNavigation(
     override fun addFlow(builder: NavGraphBuilder) {
         with(builder) {
             composable(Routes.LoadingScreen.route) {
+
                 LoadingScreen(
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -47,11 +48,10 @@ class InnerMainFlowNavigation(
 
     fun navigateToRoute(route: String) {
         navController.navigate(route) {
-            popUpTo(navController.graph.findStartDestination().id) {
-                saveState = true
+            popUpTo(navController.graph.id) {
+                inclusive = true
             }
             launchSingleTop = true
-            restoreState = true
         }
     }
 

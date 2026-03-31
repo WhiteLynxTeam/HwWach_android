@@ -42,7 +42,16 @@ class AddScreenViewModel @Inject constructor() : ViewModel() {
                 _uiState.update { it.copy(comment = action.value) }
             }
             is AddScreenAction.AddImage -> {
-                _uiState.update { it.copy(images = it.images + action.uri) }
+                _uiState.update { state ->
+                    // Добавляем фото только если текущее количество меньше 10
+                    if (state.images.size < 10) {
+                        state.copy(images = state.images + action.uri)
+                    } else {
+                        // Опционально: можно вывести ошибку "Максимум 10 фото"
+                        state.copy(errorMessage = "Нельзя добавить больше 10 изображений")
+                    }
+                }
+               // _uiState.update { it.copy(images = it.images + action.uri) }
             }
             is AddScreenAction.RemoveImage -> {
                 _uiState.update { it.copy(images = it.images.filterIndexed { i, _ -> i != action.index }) }
@@ -51,7 +60,11 @@ class AddScreenViewModel @Inject constructor() : ViewModel() {
                 validateAndSubmit()
             }
 
-            AddScreenAction.OpenImagePicker -> {}
+            AddScreenAction.OpenImagePicker -> {
+                viewModelScope.launch {
+                    _events.emit(AddScreenEvent.OpenImagePicker)
+                }
+            }
         }
     }
 

@@ -64,10 +64,21 @@ fun ImageGallery(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(4.dp)
-                            .size(24.dp)
-                            .background(Color.White, CircleShape)
+                            .size(20.dp)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Remove")
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.White, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Remove",
+                                tint = Color.Black,
+                                modifier = Modifier.size(12.dp)
+                            )
+                        }
                     }
                 }
             } else {
@@ -80,7 +91,10 @@ fun ImageGallery(
                         .clickable { onAction(AddScreenAction.OpenImagePicker) }, // Предполагаем, что это действие будет добавлено
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(painter = painterResource(id = R.drawable.ic_add_photo), contentDescription = "Add Photo")
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_add_photo),
+                        contentDescription = "Add Photo"
+                    )
                 }
             }
         }

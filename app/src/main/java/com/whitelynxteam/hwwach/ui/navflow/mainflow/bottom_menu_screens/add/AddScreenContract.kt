@@ -13,6 +13,7 @@ sealed class AddScreenAction {
     data class RemoveImage(val index: Int) : AddScreenAction()
 
     data object OpenImagePicker : AddScreenAction()
+    data object OpenCamera : AddScreenAction()
 
     data object OnSubmitClicked : AddScreenAction()
 }
@@ -22,6 +23,7 @@ sealed class AddScreenEvent {
     data class ShowErrorMessage(val message: String) : AddScreenEvent()
     data object NavigateBack : AddScreenEvent()
     data object OpenImagePicker : AddScreenEvent()
+    data object OpenCamera : AddScreenEvent()
 }
 
 data class AddScreenState(

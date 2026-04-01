@@ -65,6 +65,12 @@ class AddScreenViewModel @Inject constructor() : ViewModel() {
                     _events.emit(AddScreenEvent.OpenImagePicker)
                 }
             }
+
+            AddScreenAction.OpenCamera -> {
+                viewModelScope.launch {
+                    _events.emit(AddScreenEvent.OpenCamera)
+                }
+            }
         }
     }
 

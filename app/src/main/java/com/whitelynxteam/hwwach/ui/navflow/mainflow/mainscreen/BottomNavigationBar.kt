@@ -36,7 +36,13 @@ fun BottomNavigationBar(
                 label = { Text(text = item.label) },
                 selected = index == selectedTabIndex,
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = Color.Transparent,
+                    indicatorColor = if (index == selectedTabIndex) {
+                        Color(0xFFE3F2FD)
+                    } else {
+                        Color.Transparent
+                    },
+                    selectedIconColor = Color(0xFF1976D2),
+                    unselectedIconColor = Color(0xFF757575),
                 ),
                 onClick = {
                     onTabSelected(index)

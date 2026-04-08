@@ -26,8 +26,9 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://149.154.65.57:3033/\"")
-//            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3033/\"")
+            buildConfigField("String", "BASE_AUTH_URL", "\"http://149.154.65.57:3033/\"")
+            buildConfigField("String", "BASE_MAIN_URL", "\"http://149.154.65.57:8080/\"")
+//            buildConfigField("String", "BASE_AUTH_URL", "\"http://10.0.2.2:3033/\"")
 
         }
         release {
@@ -36,7 +37,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "BASE_URL", "\"http://149.154.65.57:3033/\"")
+            buildConfigField("String", "BASE_AUTH_URL", "\"http://149.154.65.57:3033/\"")
+            buildConfigField("String", "BASE_MAIN_URL", "\"http://149.154.65.57:8080/\"")
         }
     }
     compileOptions {

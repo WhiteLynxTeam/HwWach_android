@@ -18,7 +18,7 @@ import androidx.room.Index
             entity = PhotoEntity::class,
             parentColumns = ["clientId"],
             childColumns = ["photoClientId"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.NO_ACTION
         )
     ],
     indices = [

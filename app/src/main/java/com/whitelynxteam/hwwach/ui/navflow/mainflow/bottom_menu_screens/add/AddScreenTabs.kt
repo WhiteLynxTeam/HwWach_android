@@ -2,8 +2,8 @@ package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -30,14 +30,20 @@ fun AddScreenTabs(
     TabRow(
         selectedTabIndex = selectedTabIndex,
         containerColor = Color.Transparent,
-        divider = {},
+        divider = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Color(0xFFE0E0E0))
+            )
+        },
         indicator = { tabPositions ->
             if (selectedTabIndex < tabPositions.size) {
                 Box(
                     modifier = Modifier
                         .tabIndicatorOffset(tabPositions[selectedTabIndex])
                         .height(2.dp)
-                        .width(tabPositions[selectedTabIndex].width)
                         .background(Gray800)
                 )
             }
@@ -50,6 +56,11 @@ fun AddScreenTabs(
                 text = { Text(label) },
                 unselectedContentColor = Gray700,
                 selectedContentColor = Gray800,
+                modifier = if (selectedMode == mode) {
+                    Modifier.background(Color(0xFFE3F2FD))
+                } else {
+                    Modifier
+                }
             )
         }
     }

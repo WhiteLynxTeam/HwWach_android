@@ -8,7 +8,11 @@ import com.whitelynxteam.hwwach.domain.irepositories.IUserRepository
 import com.whitelynxteam.hwwach.domain.usecases.AuthApiUseCase
 import com.whitelynxteam.hwwach.domain.usecases.CheckRegistrationUseCase
 import com.whitelynxteam.hwwach.domain.usecases.GetDevicesUseCase
+import com.whitelynxteam.hwwach.domain.usecases.DeletePhotoUseCase
+import com.whitelynxteam.hwwach.domain.usecases.GetOrphanPhotosUseCase
 import com.whitelynxteam.hwwach.domain.usecases.GetPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.SavePhotoUseCase
+import com.whitelynxteam.hwwach.domain.usecases.SyncPendingPhotosUseCase
 import com.whitelynxteam.hwwach.domain.usecases.GetStartMainScreenDestinationUseCase
 import com.whitelynxteam.hwwach.domain.usecases.GetUserInfoUseCase
 import com.whitelynxteam.hwwach.domain.usecases.LoginWithProfileUseCase
@@ -75,6 +79,35 @@ object UseCaseModule {
         photoRepository: IPhotoRepository
     ): GetPhotosUseCase {
         return GetPhotosUseCase(photoRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetOrphanPhotosUseCase(
+        photoRepository: IPhotoRepository
+    ): GetOrphanPhotosUseCase {
+        return GetOrphanPhotosUseCase(photoRepository)
+    }
+
+    @Provides
+    fun provideSavePhotoUseCase(
+        photoRepository: IPhotoRepository
+    ): SavePhotoUseCase {
+        return SavePhotoUseCase(photoRepository)
+    }
+
+    @Provides
+    fun provideDeletePhotoUseCase(
+        photoRepository: IPhotoRepository
+    ): DeletePhotoUseCase {
+        return DeletePhotoUseCase(photoRepository)
+    }
+
+    @Provides
+    fun provideSyncPendingPhotosUseCase(
+        photoRepository: IPhotoRepository
+    ): SyncPendingPhotosUseCase {
+        return SyncPendingPhotosUseCase(photoRepository)
     }
 
     @Provides

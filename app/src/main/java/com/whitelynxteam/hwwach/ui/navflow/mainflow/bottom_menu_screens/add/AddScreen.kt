@@ -8,21 +8,27 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.whitelynxteam.hwwach.domain.models.PhotoUploadStatusEnum
 import com.whitelynxteam.hwwach.ui.theme.Gray250
 import java.io.File
 
@@ -76,9 +83,53 @@ fun AddScreen(
             }
 
             if (state.currentMode is AddScreenTab.Gallery) {
+                val hasPendingPhotos = state.photos.any { it.status == PhotoUploadStatusEnum.PENDING }
+                if (hasPendingPhotos || state.isSyncing) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { onAction(AddScreenAction.SyncPendingPhotos) },
+                            enabled = !state.isSyncing,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                            )
+                        ) {
+                            if (state.isSyncing) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp,
+                                    color = Color.White
+                                )
+                            }
+                            Text(if (state.isSyncing) "Отправка..." else "Отправить фото")
+                        }
+
+                        if (state.isSyncing) {
+                            TextButton(
+                                onClick = { onAction(AddScreenAction.CancelSync) },
+                            ) {
+                                Text("Отмена", color = MaterialTheme.colorScheme.error)
+                            }
+                        }
+                    }
+                }
+
+                if (state.syncError.isNotEmpty()) {
+                    Text(
+                        text = state.syncError,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
                 ImageGallery(
-                    images = state.images,
-                    onAction = onAction
+                    photos = state.photos,
+                    onAction = onAction,
+                    enabled = !state.isSyncing
                 )
             }
 

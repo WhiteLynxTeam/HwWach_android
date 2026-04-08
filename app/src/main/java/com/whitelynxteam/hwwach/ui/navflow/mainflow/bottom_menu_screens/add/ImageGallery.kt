@@ -23,61 +23,72 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.whitelynxteam.hwwach.R
+import com.whitelynxteam.hwwach.domain.models.Photo
 
 @Composable
 fun ImageGallery(
     modifier: Modifier = Modifier,
-    images: List<String>,
-    onAction: (AddScreenAction) -> Unit
+    photos: List<Photo>,
+    onAction: (AddScreenAction) -> Unit,
+    enabled: Boolean = true
 ) {
-
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(images.size + 1) { index ->
-            if (index < images.size) {
+        items(photos.size + 1) { index ->
+            if (index < photos.size) {
+                val photo = photos[index]
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { /* можно добавить просмотр */ },
+                        .clickable(enabled = enabled) { /* просмотр */ },
                     contentAlignment = Alignment.Center
                 ) {
+                    if (!enabled) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.3f))
+                        )
+                    }
                     AsyncImage(
-                        model = images[index],
+                        model = photo.localPath,
                         contentDescription = "Image",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
-                    IconButton(
-                        onClick = { onAction(AddScreenAction.RemoveImage(index)) },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(4.dp)
-                            .size(20.dp)
-                    ) {
-                        Box(
+                    if (enabled) {
+                        IconButton(
+                            onClick = { onAction(AddScreenAction.RemovePhoto(photo)) },
                             modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.White, CircleShape),
-                            contentAlignment = Alignment.Center
+                                .align(Alignment.TopEnd)
+                                .padding(4.dp)
+                                .size(20.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Remove",
-                                tint = Color.Black,
-                                modifier = Modifier.size(12.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.White, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Remove",
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -88,7 +99,7 @@ fun ImageGallery(
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(12.dp))
                         .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
-                        .clickable { onAction(AddScreenAction.OpenImagePicker) }, // Предполагаем, что это действие будет добавлено
+                        .clickable(enabled = enabled) { onAction(AddScreenAction.OpenImagePicker) },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -99,10 +110,4 @@ fun ImageGallery(
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun ImageGalleryPreview() {
-    ImageGallery(images = emptyList(), onAction = {})
 }

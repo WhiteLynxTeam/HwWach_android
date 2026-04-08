@@ -1,5 +1,7 @@
 package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add
 
+import com.whitelynxteam.hwwach.domain.models.Photo
+
 sealed class AddScreenAction {
     data class SwitchMode(val mode: AddScreenTab) : AddScreenAction()
 
@@ -10,10 +12,12 @@ sealed class AddScreenAction {
     data class InputComment(val value: String) : AddScreenAction()
 
     data class AddImage(val uri: String) : AddScreenAction()
-    data class RemoveImage(val index: Int) : AddScreenAction()
+    data class RemovePhoto(val photo: Photo) : AddScreenAction()
 
     data object OpenImagePicker : AddScreenAction()
     data object OpenCamera : AddScreenAction()
+    data object SyncPendingPhotos : AddScreenAction()
+    data object CancelSync : AddScreenAction()
 
     data object OnSubmitClicked : AddScreenAction()
 }
@@ -33,6 +37,8 @@ data class AddScreenState(
     val inventoryNumber: String = "",
     val address: String = "",
     val comment: String = "",
-    val images: List<String> = emptyList(),
-    val errorMessage: String = ""
+    val photos: List<Photo> = emptyList(),
+    val errorMessage: String = "",
+    val isSyncing: Boolean = false,
+    val syncError: String = ""
 )

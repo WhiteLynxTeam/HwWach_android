@@ -3,6 +3,7 @@ package com.whitelynxteam.hwwach.di
 import com.whitelynxteam.hwwach.BuildConfig
 import com.whitelynxteam.hwwach.data.remote.api.PhotosApi
 import com.whitelynxteam.hwwach.data.remote.api.UserApi
+import com.whitelynxteam.hwwach.data.remote.api.UserTokensApi
 import com.whitelynxteam.hwwach.data.remote.interceptor.TokenInterceptor
 import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
 import dagger.Module
@@ -20,16 +21,19 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
     @Provides
     @Singleton
     fun provideTokenInterceptor(
-        tokensRepository: ITokensRepository  // DI внедряет имплементацию
+        tokensRepository: ITokensRepository
     ): TokenInterceptor = TokenInterceptor(tokensRepository)
 
+    // --- OkHttp Clients ---
+
     @Provides
     @Singleton
-    @AuthOkHttpClient
-    fun provideAuthOkHttpClient(): OkHttpClient =
+    @UploadOkHttpClient
+    fun provideUploadOkHttpClient(): OkHttpClient =
         OkHttpClient.Builder()
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
@@ -39,12 +43,12 @@ object NetworkModule {
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()
 
+    /** Клиент без токена — для запросов, где авторизация не нужна (login, register) */
     @Provides
     @Singleton
-    @ApiOkHttpClient
-    fun provideApiOkHttpClient(tokenInterceptor: TokenInterceptor): OkHttpClient =
+    @NoTokenOkHttpClient
+    fun provideNoTokenOkHttpClient(): OkHttpClient =
         OkHttpClient.Builder()
-            .addInterceptor (tokenInterceptor)
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })
@@ -53,31 +57,69 @@ object NetworkModule {
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()
 
+    /** Клиент с токеном — для запросов, где нужна авторизация */
+    @Provides
+    @Singleton
+    @TokenOkHttpClient
+    fun provideTokenOkHttpClient(tokenInterceptor: TokenInterceptor): OkHttpClient =
+        OkHttpClient.Builder()
+            .addInterceptor(tokenInterceptor)
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+
+    // --- Retrofit instances ---
+
+    /** TS-сервис, порт :3033, без токена — регистрация, логин */
     @Provides
     @Singleton
     @Named("auth")
-    fun provideAuthRetrofit(@AuthOkHttpClient okHttpClient: OkHttpClient): Retrofit =
+    fun provideAuthRetrofit(@NoTokenOkHttpClient okHttpClient: OkHttpClient): Retrofit =
         Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL)
+            .baseUrl(BuildConfig.BASE_AUTH_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
+    /** TS-сервис, порт :3033, с токеном — профиль, logout и т.д. */
     @Provides
     @Singleton
-    @Named("api")
-    fun provideApiRetrofit(@ApiOkHttpClient okHttpClient: OkHttpClient): Retrofit =
+    @Named("user_token")
+    fun provideUserTokensRetrofit(@TokenOkHttpClient okHttpClient: OkHttpClient): Retrofit =
         Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL)
+            .baseUrl(BuildConfig.BASE_AUTH_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+
+    /** Go-сервис, порт :8080, с токеном — фото, устройства, карточки */
+    @Provides
+    @Singleton
+    @Named("api")
+    fun provideApiRetrofit(@TokenOkHttpClient okHttpClient: OkHttpClient): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(BuildConfig.BASE_MAIN_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    // --- API interfaces ---
 
     @Provides
     @Singleton
     @Named("auth")
     fun provideUserApi(@Named("auth") retrofit: Retrofit): UserApi =
         retrofit.create(UserApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("user_token")
+    fun provideUserTokensApi(@Named("user_token") retrofit: Retrofit): UserTokensApi =
+        retrofit.create(UserTokensApi::class.java)
 
     @Provides
     @Singleton

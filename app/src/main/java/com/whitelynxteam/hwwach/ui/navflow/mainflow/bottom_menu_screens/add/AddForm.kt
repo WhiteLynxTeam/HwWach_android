@@ -1,6 +1,5 @@
 package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -38,13 +37,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.whitelynxteam.hwwach.R
+import coil3.compose.AsyncImage
+import com.whitelynxteam.hwwach.domain.models.Photo
 import com.whitelynxteam.hwwach.ui.theme.Gray300
 import com.whitelynxteam.hwwach.ui.theme.Gray500
 import com.whitelynxteam.hwwach.ui.theme.Gray800
@@ -93,27 +92,16 @@ fun AddForm(
             )
             Spacer(modifier = Modifier.height(16.dp))
             LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp)
             ) {
-                items(
-                    listOf(
-                        R.drawable.image,
-                        R.drawable.image,
-                        R.drawable.image,
-                        R.drawable.image,
-                        R.drawable.image,
-                        R.drawable.image,
-                        R.drawable.image
-                    )
-                ) { imageId ->
+                items(state.photos) { photo ->
                     ImageCard(
                         modifier = Modifier
                             .widthIn(max = 68.dp)
                             .heightIn(max = 92.dp),
-                        imageResId = imageId
+                        photo = photo
                     )
                 }
             }
@@ -199,12 +187,14 @@ fun AddFormTextField(
 @Composable
 private fun ImageCard(
     modifier: Modifier = Modifier,
-    imageResId: Int
+    photo: Photo
 ) {
-    Image(
-        modifier = modifier,
-        painter = painterResource(id = imageResId),
+    val model = photo.localPath ?: photo.remoteUrl
+
+    AsyncImage(
+        model = model,
         contentDescription = "Image",
+        modifier = modifier.clip(RoundedCornerShape(16.dp)),
         contentScale = ContentScale.Crop
     )
 }

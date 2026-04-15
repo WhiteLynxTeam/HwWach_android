@@ -22,7 +22,7 @@ fun AddScreenTabs(
 ) {
     val tabs = listOf(
         "Галерея" to AddScreenTab.Gallery,
-        "Список" to AddScreenTab.List
+        "Инв.карта" to AddScreenTab.List
     )
 
     val selectedTabIndex = if (selectedMode is AddScreenTab.Gallery) 0 else 1

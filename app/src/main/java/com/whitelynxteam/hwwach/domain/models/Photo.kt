@@ -8,7 +8,9 @@ data class Photo(
     val status: PhotoUploadStatusEnum,
 
     val localPath: String?,
-    val remoteUrl: String?
+    val remoteUrl: String?,
+
+    val errorMessage: String? = null
 ) {
     // Бизнес-свойство: синхронизировано ли фото?
     val isSyncedToServer: Boolean get() = serverUuid != null

@@ -6,4 +6,10 @@ interface IFileStorage {
 
     /** Копирует content:// URI в cacheDir, возвращает file:// URI */
     fun copyToCache(uri: String): String
+
+    /** Удаляет файл по URI */
+    fun deleteFile(uri: String)
+
+    /** Проверяет существование файла по URI (file://) */
+    fun fileExists(uri: String): Boolean
 }

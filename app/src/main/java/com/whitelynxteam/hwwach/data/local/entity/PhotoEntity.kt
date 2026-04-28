@@ -14,5 +14,7 @@ data class PhotoEntity(
 
     val localCreatedAt: Long,
     val remoteCreatedAt: Long? = null,
-    val status: PhotoUploadStatusEnum = PhotoUploadStatusEnum.PENDING
+    val status: PhotoUploadStatusEnum = PhotoUploadStatusEnum.PENDING,
+
+    val errorMessage: String? = null
 )

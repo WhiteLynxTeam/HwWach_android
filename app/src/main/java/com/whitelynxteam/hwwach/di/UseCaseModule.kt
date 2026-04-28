@@ -9,8 +9,11 @@ import com.whitelynxteam.hwwach.domain.usecases.AuthApiUseCase
 import com.whitelynxteam.hwwach.domain.usecases.CheckRegistrationUseCase
 import com.whitelynxteam.hwwach.domain.usecases.GetDevicesUseCase
 import com.whitelynxteam.hwwach.domain.usecases.DeletePhotoUseCase
-import com.whitelynxteam.hwwach.domain.usecases.GetOrphanPhotosUseCase
-import com.whitelynxteam.hwwach.domain.usecases.GetPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.GetAllPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.SyncPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.ResetStuckUploadsUseCase
+import com.whitelynxteam.hwwach.domain.usecases.ResumeUploadedPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.RetrySyncFailedPhotosUseCase
 import com.whitelynxteam.hwwach.domain.usecases.SavePhotoUseCase
 import com.whitelynxteam.hwwach.domain.usecases.SyncPendingPhotosUseCase
 import com.whitelynxteam.hwwach.domain.usecases.GetStartMainScreenDestinationUseCase
@@ -75,18 +78,18 @@ object UseCaseModule {
 
     @Provides
     @Singleton
-    fun provideGetPhotosUseCase(
+    fun provideSyncPhotosUseCase(
         photoRepository: IPhotoRepository
-    ): GetPhotosUseCase {
-        return GetPhotosUseCase(photoRepository)
+    ): SyncPhotosUseCase {
+        return SyncPhotosUseCase(photoRepository)
     }
 
     @Provides
     @Singleton
-    fun provideGetOrphanPhotosUseCase(
+    fun provideGetAllPhotosUseCase(
         photoRepository: IPhotoRepository
-    ): GetOrphanPhotosUseCase {
-        return GetOrphanPhotosUseCase(photoRepository)
+    ): GetAllPhotosUseCase {
+        return GetAllPhotosUseCase(photoRepository)
     }
 
     @Provides
@@ -108,6 +111,27 @@ object UseCaseModule {
         photoRepository: IPhotoRepository
     ): SyncPendingPhotosUseCase {
         return SyncPendingPhotosUseCase(photoRepository)
+    }
+
+    @Provides
+    fun provideResetStuckUploadsUseCase(
+        photoRepository: IPhotoRepository
+    ): ResetStuckUploadsUseCase {
+        return ResetStuckUploadsUseCase(photoRepository)
+    }
+
+    @Provides
+    fun provideResumeUploadedPhotosUseCase(
+        photoRepository: IPhotoRepository
+    ): ResumeUploadedPhotosUseCase {
+        return ResumeUploadedPhotosUseCase(photoRepository)
+    }
+
+    @Provides
+    fun provideRetrySyncFailedPhotosUseCase(
+        photoRepository: IPhotoRepository
+    ): RetrySyncFailedPhotosUseCase {
+        return RetrySyncFailedPhotosUseCase(photoRepository)
     }
 
     @Provides

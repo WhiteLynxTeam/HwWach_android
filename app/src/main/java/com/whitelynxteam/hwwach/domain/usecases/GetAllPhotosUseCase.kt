@@ -5,10 +5,10 @@ import com.whitelynxteam.hwwach.domain.models.Photo
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetOrphanPhotosUseCase @Inject constructor(
+class GetAllPhotosUseCase @Inject constructor(
     private val photoRepository: IPhotoRepository
 ) {
     operator fun invoke(): Flow<List<Photo>> {
-        return photoRepository.getOrphanPhotosFlow()
+        return photoRepository.getAllPhotosFlow()
     }
 }

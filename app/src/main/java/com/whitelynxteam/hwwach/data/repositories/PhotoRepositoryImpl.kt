@@ -7,6 +7,7 @@ import com.whitelynxteam.hwwach.data.mappers.PhotoDtoToDomainMapper
 import com.whitelynxteam.hwwach.data.mappers.PhotoEntityToDomainMapper
 import com.whitelynxteam.hwwach.data.mappers.ResponseErrorMapper
 import com.whitelynxteam.hwwach.data.remote.api.PhotosApi
+import com.whitelynxteam.hwwach.data.remote.model.photo.CompleteUploadRequest
 import com.whitelynxteam.hwwach.data.remote.model.photo.UploadUrlRequest
 import com.whitelynxteam.hwwach.data.remote.model.photo.UploadUrlResponse
 import com.whitelynxteam.hwwach.di.UploadOkHttpClient
@@ -39,7 +40,16 @@ class PhotoRepositoryImpl @Inject constructor(
     private val fileStorage: IFileStorage,
 ) : IPhotoRepository {
 
-    override suspend fun getPhotos(clientId: String): DomainResult<List<Photo>> {
+    /**
+     * Синхронизация фото с сервером (SSOT через Flow из БД).
+     * Не возвращает данные — UI получает их через getAllPhotosFlow().
+     *
+     * Логика синхронизации:
+     * 1. Получает список фото с сервера
+     * 2. Удаляет из БД SYNCED фото, которых нет на сервере
+     * 3. Обновляет/вставляет фото с сервера, сохраняя localFilePath
+     */
+    override suspend fun syncPhotos(): DomainResult<Unit> {
         val response = photosApi.photos()
 
         return when {
@@ -48,27 +58,74 @@ class PhotoRepositoryImpl @Inject constructor(
                 val photosResponseDto = response.body()
                     ?: return DomainResult.ValidationError("Photos response not found")
 
-                val photos = photosResponseDto.photos.map { photoDto ->
-                    photoDtoToDomainMapper.map(photoDto)
+                // ЛОГ 1: Сырые данные с сервера
+                println("[SYNC_PHOTOS] Raw data from server: ${photosResponseDto.photos.size} photos")
+                photosResponseDto.photos.forEachIndexed { index, dto ->
+                    println("[SYNC_PHOTOS] Photo[$index]: clientId=${dto.clientId}, uuid=${dto.uuid}")
+                    println("[SYNC_PHOTOS] Photo[$index] URL: ${dto.url}")
                 }
 
-                val entities = photos.map { photoDomainToEntityMapper.map(it) }
-                photoDao.insertPhotos(entities)
+                // Фиксим фото без clientId — используем serverUuid как fallback
+                val fixedPhotos = photosResponseDto.photos.map { dto ->
+                    if (dto.clientId == null) {
+                        println("[SYNC_PHOTOS] WARNING: Photo has null clientId, using uuid as fallback! uuid=${dto.uuid}")
+                        // Создаём копию DTO с clientId = uuid
+                        dto.copy(clientId = dto.uuid)
+                    } else {
+                        dto
+                    }
+                }
 
-                DomainResult.Success(photos)
+                val nullClientIdCount = photosResponseDto.photos.count { it.clientId == null }
+                if (nullClientIdCount > 0) {
+                    println("[SYNC_PHOTOS] Fixed $nullClientIdCount photos with null clientId (used uuid as fallback)")
+                }
+
+                // Маппинг через Domain-слой (DTO → Domain → Entity) изолирует
+                // структуру локальной БД от сетевых ответов и переиспользует готовые мапперы.
+                val serverEntities = fixedPhotos.map { photoDto ->
+                    val domainPhoto = photoDtoToDomainMapper.map(photoDto)
+                    val entityPhoto = photoDomainToEntityMapper.map(domainPhoto)
+                    // ЛОГ 2: После двух маппингов
+                    println("[SYNC_PHOTOS] After mapping: clientId=${entityPhoto.clientId}, serverUuid=${entityPhoto.serverUuid}, localPath=${entityPhoto.localFilePath}")
+                    entityPhoto
+                }
+
+                println("[SYNC_PHOTOS] Total entities to sync: ${serverEntities.size}")
+
+                // Умная синхронизация: удаляет лишние SYNCED, сохраняет localFilePath
+                photoDao.smartSyncPhotos(serverEntities)
+
+                // Успех — данные уже в БД, Flow их доставит в UI
+                DomainResult.Success(Unit)
             }
         }
     }
 
     override fun getPhotosFlow(clientId: String): Flow<List<Photo>> {
         return photoDao.getPhotosByClientId(clientId).map { entities ->
-            entities.map { photoEntityToDomainMapper.map(it) }
+            entities.map { entity ->
+                val actualLocalPath = entity.localFilePath?.takeIf { fileStorage.fileExists(it) }
+                photoEntityToDomainMapper.map(entity.copy(localFilePath = actualLocalPath))
+            }
         }
     }
 
-    override fun getOrphanPhotosFlow(): Flow<List<Photo>> {
-        return photoDao.getOrphanPhotos().map { entities ->
-            entities.map { photoEntityToDomainMapper.map(it) }
+    override fun getAllPhotosFlow(): Flow<List<Photo>> {
+        return photoDao.getAllPhotos().map { entities ->
+            entities.map { entity ->
+                val actualLocalPath = entity.localFilePath?.takeIf { fileStorage.fileExists(it) }
+                photoEntityToDomainMapper.map(entity.copy(localFilePath = actualLocalPath))
+            }
+        }
+    }
+
+    override fun getPhotosByStatusFlow(status: String): Flow<List<Photo>> {
+        return photoDao.getPhotosByStatus(status).map { entities ->
+            entities.map { entity ->
+                val actualLocalPath = entity.localFilePath?.takeIf { fileStorage.fileExists(it) }
+                photoEntityToDomainMapper.map(entity.copy(localFilePath = actualLocalPath))
+            }
         }
     }
 
@@ -79,6 +136,8 @@ class PhotoRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deletePhoto(clientId: String) {
+        val photo = photoDao.getPhotoByClientId(clientId)
+        photo?.localFilePath?.let { fileStorage.deleteFile(it) }
         photoDao.deletePhotoByClientId(clientId)
     }
 
@@ -101,9 +160,81 @@ class PhotoRepositoryImpl @Inject constructor(
                 photoDao.completeUpload(
                     entity.clientId,
                     result.data,
-                    PhotoUploadStatusEnum.SYNCED.name
+                    PhotoUploadStatusEnum.UPLOADED.name
                 )
+
+                // Подтверждаем получение файла бэкендом
+                confirmUploadToBackend(entity.clientId, result.data)
             }
+        }
+    }
+
+    override suspend fun resumeUploadedPhotos() = withContext(Dispatchers.IO) {
+        val uploadedPhotos = photoDao.getUploadedPhotos()
+        for (entity in uploadedPhotos) {
+            val serverUuid = entity.serverUuid ?: continue
+            confirmUploadToBackend(entity.clientId, serverUuid)
+        }
+    }
+
+    override suspend fun resetStuckUploads() = withContext(Dispatchers.IO) {
+        val stuckPhotos = photoDao.getStuckUploadingPhotos()
+        for (entity in stuckPhotos) {
+            // Если локальный файл есть — сбрасываем в FAILED для повторной отправки
+            // Если локального файла нет — возможно он был удалён до краша, помечаем как FAILED
+            photoDao.updateStatusWithError(
+                entity.clientId,
+                PhotoUploadStatusEnum.FAILED.name,
+                "Загрузка прервана (UPLOADING при старте приложения)"
+            )
+        }
+    }
+
+    override suspend fun retrySyncFailedPhotos() = withContext(Dispatchers.IO) {
+        val retryablePhotos = photoDao.getRetryablePhotos()
+        for (entity in retryablePhotos) {
+            currentCoroutineContext().ensureActive()
+
+            val localPath = entity.localFilePath ?: continue
+            val bytes = fileStorage.readBytes(localPath) ?: continue
+
+            // Сбрасываем статус на PENDING для повторной отправки через uploadSinglePhoto
+            photoDao.updatePhotoStatus(entity.clientId, PhotoUploadStatusEnum.PENDING.name)
+            val result = uploadSinglePhoto(entity, bytes)
+            if (result is DomainResult.Success) {
+                photoDao.completeUpload(
+                    entity.clientId,
+                    result.data,
+                    PhotoUploadStatusEnum.UPLOADED.name
+                )
+                confirmUploadToBackend(entity.clientId, result.data)
+            }
+        }
+    }
+
+    private suspend fun confirmUploadToBackend(clientId: String, photoUuid: String): Boolean {
+        return try {
+            val response = photosApi.completeUpload(CompleteUploadRequest(photoUuid = photoUuid))
+            if (response.isSuccessful) {
+                val photoDto = response.body()
+                if (photoDto != null) {
+                    photoDao.completeUploadWithUrl(
+                        clientId = clientId,
+                        serverUuid = photoDto.uuid,
+                        remoteUrl = photoDto.url,
+                        status = PhotoUploadStatusEnum.SYNCED.name
+                    )
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+            // Если не удалось — фото остаётся в UPLOADED, resumeUploadedPhotos() повторит попытку при следующем открытии
+        } catch (_: Exception) {
+            // Сеть недоступна — остаёмся в UPLOADED, повторим при следующем открытии
+            false
         }
     }
 
@@ -121,14 +252,23 @@ class PhotoRepositoryImpl @Inject constructor(
                 )
             )
         } catch (e: Exception) {
+            photoDao.updateStatusWithError(
+                entity.clientId,
+                PhotoUploadStatusEnum.FAILED.name,
+                e.message ?: "Failed to get upload URL"
+            )
             return DomainResult.NetworkError(e.message ?: "Failed to get upload URL")
         }
 
         if (!urlResponse.isSuccessful || urlResponse.body() == null) {
-            return DomainResult.ValidationError("Failed to get upload URL")
+            val errorMsg = "Failed to get upload URL"
+            photoDao.updateStatusWithError(entity.clientId, PhotoUploadStatusEnum.FAILED.name, errorMsg)
+            return DomainResult.ValidationError(errorMsg)
         }
 
         val uploadUrl = urlResponse.body()!!.uploadUrl
+
+        photoDao.updatePhotoStatus(entity.clientId, PhotoUploadStatusEnum.UPLOADING.name)
 
         val uploadResponse = try {
             val mediaType = contentType.toMediaType()
@@ -139,11 +279,18 @@ class PhotoRepositoryImpl @Inject constructor(
 
             uploadClient.newCall(request).execute()
         } catch (e: Exception) {
+            photoDao.updateStatusWithError(
+                entity.clientId,
+                PhotoUploadStatusEnum.FAILED.name,
+                e.message ?: "Upload failed"
+            )
             return DomainResult.NetworkError(e.message ?: "Upload failed")
         }
 
         if (!uploadResponse.isSuccessful) {
-            return DomainResult.NetworkError("Upload failed: ${uploadResponse.code}")
+            val errorMsg = "Upload failed: ${uploadResponse.code}"
+            photoDao.updateStatusWithError(entity.clientId, PhotoUploadStatusEnum.FAILED.name, errorMsg)
+            return DomainResult.NetworkError(errorMsg)
         }
 
         return DomainResult.Success(urlResponse.body()!!.photoUuid)

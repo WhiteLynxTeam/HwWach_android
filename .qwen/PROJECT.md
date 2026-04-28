@@ -102,15 +102,22 @@ com.whitelynxteam.hwwach
 │   │   ├── Token.kt
 │   │   └── User.kt
 │   │
-│   └── usecases/                 # Use Case'ы (8 файлов)
+│   └── usecases/                 # Use Case'ы (9 файлов)
 │       ├── AuthApiUseCase.kt
 │       ├── CheckRegistrationUseCase.kt
+│       ├── DeletePhotoUseCase.kt
+│       ├── GetAllPhotosUseCase.kt
 │       ├── GetDevicesUseCase.kt
-│       ├── GetPhotosUseCase.kt
 │       ├── GetStartMainScreenDestinationUseCase.kt
 │       ├── GetUserInfoUseCase.kt
 │       ├── LoginWithProfileUseCase.kt
-│       └── RegApiUseCase.kt
+│       ├── RegApiUseCase.kt
+│       ├── ResetStuckUploadsUseCase.kt
+│       ├── ResumeUploadedPhotosUseCase.kt
+│       ├── RetrySyncFailedPhotosUseCase.kt
+│       ├── SavePhotoUseCase.kt
+│       ├── SyncPendingPhotosUseCase.kt
+│       └── SyncPhotosUseCase.kt
 │
 ├── 📦 DI LAYER (Hilt)
 │   ├── DatabaseModule.kt         # Провайды Room, DAO
@@ -223,3 +230,42 @@ UI → Domain → Data
 - **UserApi**: аутентификация, регистрация, получение информации о пользователе
 - **PhotosApi**: загрузка и получение фото
 - **TokenInterceptor**: автоматическая подстановка токена в заголовки
+
+## Принцип SSOT (Single Source of Truth)
+
+> **Локальная база данных (Room) — единственный источник правды для UI.**
+> Подробнее: см. `PHOTO_SYNC.md`
+
+### Правила
+- ✅ UI получает данные **только через Flow** из локальной БД
+- ✅ `syncPhotos()` — разовая синхронизация сервер → БД, возвращает `Unit`
+- ❌ Нельзя возвращать данные API напрямую в UI
+
+```
+API → Room (SSOT) → Flow → UI
+         ↑
+   syncPhotos()
+```
+
+### Ключевые методы
+
+| Операция | Метод | Возвращает |
+|----------|-------|------------|
+| Синхронизация | `syncPhotos()` | `DomainResult<Unit>` |
+| Получение данных | `getAllPhotosFlow()` | `Flow<List<Photo>>` |
+| Отправка на сервер | `syncPendingPhotos()` | - |
+
+## Фото-синхронизация (кратко)
+
+> Полная документация: `PHOTO_SYNC.md`
+
+### Умная синхронизация (`smartSyncPhotos`)
+1. Удаляет SYNCED фото, которых нет на сервере
+2. Сохраняет существующие `localFilePath` (JOIN-оптимизация)
+3. INSERT OR REPLACE с мержем данных
+
+### Статусы фото
+`PENDING` → `UPLOADING` → `UPLOADED` → `SYNCED`
+
+### Загрузка изображений
+`PriorityAsyncImage` — приоритет: `localPath > remoteUrl`

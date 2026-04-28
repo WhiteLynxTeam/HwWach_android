@@ -14,6 +14,7 @@ class PhotoDtoToDomainMapper @Inject constructor() {
             status = PhotoUploadStatusEnum.SYNCED,
             localPath = null,
             remoteUrl = photoDto.url,
+            errorMessage = null
         )
     }
 }

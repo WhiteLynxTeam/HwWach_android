@@ -84,28 +84,34 @@ fun AddScreen(
 
             if (state.currentMode is AddScreenTab.Gallery) {
                 val hasPendingPhotos = state.photos.any { it.status == PhotoUploadStatusEnum.PENDING }
-                if (hasPendingPhotos || state.isSyncing) {
+                if (hasPendingPhotos || state.isSyncing || state.isInitializing) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Button(
                             onClick = { onAction(AddScreenAction.SyncPendingPhotos) },
-                            enabled = !state.isSyncing,
+                            enabled = !state.isSyncing && !state.isInitializing,
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                             )
                         ) {
-                            if (state.isSyncing) {
+                            if (state.isSyncing || state.isInitializing) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(16.dp),
                                     strokeWidth = 2.dp,
                                     color = Color.White
                                 )
                             }
-                            Text(if (state.isSyncing) "Отправка..." else "Отправить фото")
+                            Text(
+                                when {
+                                    state.isInitializing -> "Синхронизация..."
+                                    state.isSyncing -> "Отправка..."
+                                    else -> "Отправить фото"
+                                }
+                            )
                         }
 
                         if (state.isSyncing) {
@@ -129,7 +135,7 @@ fun AddScreen(
                 ImageGallery(
                     photos = state.photos,
                     onAction = onAction,
-                    enabled = !state.isSyncing
+                    enabled = !state.isSyncing && !state.isInitializing
                 )
             }
 
@@ -154,6 +160,11 @@ fun AddScreen(
     val viewModel = hiltViewModel<AddScreenViewModel>()
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    // Синхронизация с сервером при каждом открытии экрана
+    LaunchedEffect(Unit) {
+        viewModel.syncWithServer()
+    }
 
     // Сохраняем Uri для камеры, чтобы знать, куда она сохранила фото после возврата
     var tempCameraUri by remember { mutableStateOf<Uri?>(null) }

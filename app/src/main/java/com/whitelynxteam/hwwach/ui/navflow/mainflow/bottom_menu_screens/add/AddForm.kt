@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
+import com.whitelynxteam.hwwach.common.extensions.PriorityAsyncImage
 import com.whitelynxteam.hwwach.domain.models.Photo
 import com.whitelynxteam.hwwach.ui.theme.Gray300
 import com.whitelynxteam.hwwach.ui.theme.Gray500
@@ -189,10 +189,8 @@ private fun ImageCard(
     modifier: Modifier = Modifier,
     photo: Photo
 ) {
-    val model = photo.localPath ?: photo.remoteUrl
-
-    AsyncImage(
-        model = model,
+    PriorityAsyncImage(
+        photo = photo,
         contentDescription = "Image",
         modifier = modifier.clip(RoundedCornerShape(16.dp)),
         contentScale = ContentScale.Crop

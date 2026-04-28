@@ -13,6 +13,7 @@ class PhotoEntityToDomainMapper @Inject constructor() {
             status = entity.status,
             localPath = entity.localFilePath,
             remoteUrl = entity.remoteUrl,
+            errorMessage = entity.errorMessage
         )
     }
 }

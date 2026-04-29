@@ -2,10 +2,13 @@ package com.whitelynxteam.hwwach.ui.navflow.startflow
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -16,7 +19,6 @@ import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenViewMo
 import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreen
 import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreenEvent
 import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreenViewModel
-import kotlinx.coroutines.flow.collectLatest
 
 class StartFlowNavigation(
     val navController: NavHostController,
@@ -32,25 +34,29 @@ class StartFlowNavigation(
             composable(Routes.AuthScreen.route) {
 
                 val viewModel = hiltViewModel<AuthScreenViewModel>()
-                val state by viewModel.state.collectAsState()
+                val state by viewModel.state.collectAsStateWithLifecycle()
 
-                LaunchedEffect(Unit) {
-                    viewModel.events.collectLatest { event ->
-                        when (event) {
-                            is AuthScreenEvent.NavigateToMain -> {
-                                finishFlow()
-                            }
+                val lifecycleOwner = LocalLifecycleOwner.current
 
-                            AuthScreenEvent.NavigateToReg -> {
-                                navController.navigate(Routes.RegScreen.route) {
-                                    popUpTo(Routes.AuthScreen.route) {
-                                        inclusive = true
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                is AuthScreenEvent.NavigateToMain -> {
+                                    finishFlow()
+                                }
+
+                                AuthScreenEvent.NavigateToReg -> {
+                                    navController.navigate(Routes.RegScreen.route) {
+                                        popUpTo(Routes.AuthScreen.route) {
+                                            inclusive = true
+                                        }
                                     }
                                 }
-                            }
 
-                            is AuthScreenEvent.Exit -> {
-                                navController.popBackStack()
+                                is AuthScreenEvent.Exit -> {
+                                    navController.popBackStack()
+                                }
                             }
                         }
                     }
@@ -66,25 +72,29 @@ class StartFlowNavigation(
             composable(Routes.RegScreen.route) {
 
                 val viewModel = hiltViewModel<RegScreenViewModel>()
-                val state by viewModel.state.collectAsState()
+                val state by viewModel.state.collectAsStateWithLifecycle()
 
-                LaunchedEffect(Unit) {
-                    viewModel.events.collectLatest { event ->
-                        when (event) {
-                            is RegScreenEvent.NavigateToMain -> {
-                                finishFlow()
-                            }
+                val lifecycleOwner = LocalLifecycleOwner.current
 
-                            RegScreenEvent.NavigateToAuth -> {
-                                navController.navigate(Routes.AuthScreen.route) {
-                                    popUpTo(Routes.RegScreen.route) {
-                                        inclusive = true
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                is RegScreenEvent.NavigateToMain -> {
+                                    finishFlow()
+                                }
+
+                                RegScreenEvent.NavigateToAuth -> {
+                                    navController.navigate(Routes.AuthScreen.route) {
+                                        popUpTo(Routes.RegScreen.route) {
+                                            inclusive = true
+                                        }
                                     }
                                 }
-                            }
 
-                            is RegScreenEvent.Exit -> {
-                                navController.popBackStack()
+                                is RegScreenEvent.Exit -> {
+                                    navController.popBackStack()
+                                }
                             }
                         }
                     }

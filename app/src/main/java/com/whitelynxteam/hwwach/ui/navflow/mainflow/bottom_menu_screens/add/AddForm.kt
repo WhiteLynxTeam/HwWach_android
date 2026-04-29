@@ -279,7 +279,7 @@ fun CategoryDropdown(
 @Composable
 private fun AddFormPreview() {
     val viewModel = hiltViewModel<AddScreenViewModel>()
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState = viewModel.state.collectAsStateWithLifecycle()
 
     AddForm(
         state = uiState.value,

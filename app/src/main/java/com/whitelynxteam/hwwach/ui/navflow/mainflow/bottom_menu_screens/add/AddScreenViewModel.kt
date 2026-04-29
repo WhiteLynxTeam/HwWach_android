@@ -41,8 +41,8 @@ class AddScreenViewModel @Inject constructor(
     private val retrySyncFailedPhotosUseCase: RetrySyncFailedPhotosUseCase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AddScreenState())
-    val uiState: StateFlow<AddScreenState> = _uiState.asStateFlow()
+    private val _state = MutableStateFlow(AddScreenState())
+    val state: StateFlow<AddScreenState> = _state.asStateFlow()
 
     private var syncJob: Job? = null
 
@@ -56,15 +56,13 @@ class AddScreenViewModel @Inject constructor(
     init {
         getAllPhotosUseCase()
             .onEach { photos ->
-                _uiState.update { it.copy(photos = photos, errorMessage = "") }
+                val hasPending = photos.any { it.status == PhotoUploadStatusEnum.PENDING }
+                _state.update { it.copy(photos = photos, errorMessage = "", canSync = hasPending) }
             }
             .catch { e ->
-                _uiState.update { it.copy(errorMessage = "Ошибка загрузки фото: ${e.message}") }
+                _state.update { it.copy(errorMessage = "Ошибка загрузки фото: ${e.message}") }
             }
             .launchIn(viewModelScope)
-
-        // Первичная синхронизация при создании ViewModel
-        syncWithServer()
     }
 
     /**
@@ -84,12 +82,12 @@ class AddScreenViewModel @Inject constructor(
             }
 
             // Проверка, чтобы не запускать несколько синхронизаций одновременно
-            if (_uiState.value.isInitializing) {
+            if (_state.value.isInitializing) {
                 println("[SYNC] Skipped: another sync is already in progress")
                 return@launch
             }
 
-            _uiState.update { it.copy(isInitializing = true) }
+            _state.update { it.copy(isInitializing = true) }
             try {
                 // 1. Синхронизируем фотографии с бэкенда (которые были добавлены с других устройств)
                 syncPhotosUseCase()
@@ -107,9 +105,9 @@ class AddScreenViewModel @Inject constructor(
                 e.printStackTrace()
                 println("[SYNC_ERROR] ${e.javaClass.simpleName}: ${e.message}")
                 e.cause?.let { println("[SYNC_ERROR] Caused by: ${it.javaClass.simpleName}: ${it.message}") }
-                _uiState.update { it.copy(errorMessage = "Ошибка синхронизации: ${e.message}") }
+                _state.update { it.copy(errorMessage = "Ошибка синхронизации: ${e.message}") }
             } finally {
-                _uiState.update { it.copy(isInitializing = false) }
+                _state.update { it.copy(isInitializing = false) }
             }
         }
     }
@@ -117,22 +115,22 @@ class AddScreenViewModel @Inject constructor(
     fun handleAction(action: AddScreenAction) {
         when (action) {
             is AddScreenAction.SwitchMode -> {
-                _uiState.update { it.copy(currentMode = action.mode) }
+                _state.update { it.copy(currentMode = action.mode) }
             }
             is AddScreenAction.InputName -> {
-                _uiState.update { it.copy(name = action.value) }
+                _state.update { it.copy(name = action.value) }
             }
             is AddScreenAction.InputCategory -> {
-                _uiState.update { it.copy(category = action.value) }
+                _state.update { it.copy(category = action.value) }
             }
             is AddScreenAction.InputInventoryNumber -> {
-                _uiState.update { it.copy(inventoryNumber = action.value) }
+                _state.update { it.copy(inventoryNumber = action.value) }
             }
             is AddScreenAction.InputAddress -> {
-                _uiState.update { it.copy(address = action.value) }
+                _state.update { it.copy(address = action.value) }
             }
             is AddScreenAction.InputComment -> {
-                _uiState.update { it.copy(comment = action.value) }
+                _state.update { it.copy(comment = action.value) }
             }
             is AddScreenAction.AddImage -> {
                 viewModelScope.launch {
@@ -170,39 +168,39 @@ class AddScreenViewModel @Inject constructor(
 
             AddScreenAction.SyncPendingPhotos -> {
                 syncJob = viewModelScope.launch {
-                    _uiState.update { it.copy(isSyncing = true, syncError = "") }
+                    _state.update { it.copy(isSyncing = true, syncError = "") }
                     try {
                         syncPendingPhotosUseCase()
                     } catch (_: CancellationException) {
                         // Cancelled by user
                     } catch (e: Exception) {
-                        _uiState.update { it.copy(syncError = "Ошибка синхронизации: ${e.message}") }
+                        _state.update { it.copy(syncError = "Ошибка синхронизации: ${e.message}") }
                     }
-                    _uiState.update { it.copy(isSyncing = false) }
+                    _state.update { it.copy(isSyncing = false) }
                 }
             }
 
             AddScreenAction.CancelSync -> {
                 syncJob?.cancel()
                 syncJob = null
-                _uiState.update { it.copy(isSyncing = false) }
+                _state.update { it.copy(isSyncing = false) }
             }
 
             is AddScreenAction.FilterByStatus -> {
-                _uiState.update { it.copy(statusFilter = action.status) }
+                _state.update { it.copy(statusFilter = action.status) }
             }
         }
     }
 
     private fun validateAndSubmit() {
         viewModelScope.launch {
-            val currentState = _uiState.value
+            val currentState = _state.value
             if (currentState.name.isBlank()) {
-                _uiState.update { it.copy(errorMessage = "Название обязательно") }
+                _state.update { it.copy(errorMessage = "Название обязательно") }
                 return@launch
             }
             if (currentState.photos.isEmpty()) {
-                _uiState.update { it.copy(errorMessage = "Добавьте хотя бы одно фото") }
+                _state.update { it.copy(errorMessage = "Добавьте хотя бы одно фото") }
                 return@launch
             }
 

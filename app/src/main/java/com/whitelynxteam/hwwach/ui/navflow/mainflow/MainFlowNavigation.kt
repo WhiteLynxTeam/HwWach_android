@@ -2,10 +2,13 @@ package com.whitelynxteam.hwwach.ui.navflow.mainflow
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -15,7 +18,6 @@ import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.InnerMainFlowNavi
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreenEvent
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreenViewModel
-import kotlinx.coroutines.flow.collectLatest
 
 class MainFlowNavigation(
     val navController: NavHostController,
@@ -32,13 +34,17 @@ class MainFlowNavigation(
                     InnerMainFlowNavigation(innerMainNavController) { }
 
                 val viewModel = hiltViewModel<MainScreenViewModel>()
-                val state by viewModel.state.collectAsState()
+                val state by viewModel.state.collectAsStateWithLifecycle()
 
-                LaunchedEffect(Unit) {
-                    viewModel.events.collectLatest { event ->
-                        when (event) {
-                            is MainScreenEvent.NavigateToBottomMenuItem -> {
-                                innerMainFlowNavigation.navigateToIndex(event.index)
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                is MainScreenEvent.NavigateToBottomMenuItem -> {
+                                    innerMainFlowNavigation.navigateToIndex(event.index)
+                                }
                             }
                         }
                     }

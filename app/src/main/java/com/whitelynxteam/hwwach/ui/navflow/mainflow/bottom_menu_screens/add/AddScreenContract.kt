@@ -41,9 +41,15 @@ data class AddScreenState(
     val address: String = "",
     val comment: String = "",
     val photos: List<Photo> = emptyList(),
+
     val errorMessage: String = "",
+
     val isInitializing: Boolean = true, // Сервисные операции при старте (reset/resume/retry)
+
     val isSyncing: Boolean = false,
     val syncError: String = "",
+
     val statusFilter: PhotoUploadStatusEnum? = null,
+
+    val canSync: Boolean = false, // Есть PENDING фото — показать кнопку синхронизации
 )

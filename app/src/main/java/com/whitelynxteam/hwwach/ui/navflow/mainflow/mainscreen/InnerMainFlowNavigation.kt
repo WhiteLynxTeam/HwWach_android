@@ -9,7 +9,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -62,9 +61,6 @@ class InnerMainFlowNavigation(
                                 AddScreenEvent.ShowSuccessMessage -> {
                                     // Обработка успеха
                                 }
-
-                                AddScreenEvent.OpenImagePicker -> {}
-                                AddScreenEvent.OpenCamera -> {}
                             }
                         }
                     }

@@ -1,10 +1,10 @@
 package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add
 
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,18 +24,17 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,18 +43,65 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.whitelynxteam.hwwach.domain.models.PhotoUploadStatusEnum
+import com.whitelynxteam.hwwach.BuildConfig
 import com.whitelynxteam.hwwach.ui.theme.Gray250
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddScreen(
-    modifier: Modifier = Modifier,
     state: AddScreenState,
-    onAction: (AddScreenAction) -> Unit
+    onAction: (AddScreenAction) -> Unit,
+    modifier: Modifier = Modifier
 ) {
+    var showSourceSheet by rememberSaveable { mutableStateOf(false) }
+    var tempCameraUriString by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
+    ) { uris ->
+        uris.forEach { uri -> onAction(AddScreenAction.AddImage(uri.toString())) }
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            tempCameraUriString?.let { onAction(AddScreenAction.AddImage(it)) }
+        }
+    }
+
+    val context = LocalContext.current
+    val sheetState = rememberModalBottomSheetState()
+
+    val localOnAction = remember(onAction) {
+        { action: AddScreenAction ->
+            when (action) {
+                AddScreenAction.ShowSourceSelector -> showSourceSheet = true
+                AddScreenAction.OpenGallery -> {
+                    photoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                }
+                AddScreenAction.OpenCamera -> {
+                    val photoFile = File(
+                        context.externalCacheDir,
+                        "HW_watch_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(System.currentTimeMillis())}.jpg"
+                    )
+                    val uri = FileProvider.getUriForFile(
+                        context,
+                        "${BuildConfig.APPLICATION_ID}.fileprovider",
+                        photoFile
+                    )
+                    tempCameraUriString = uri.toString()
+                    cameraLauncher.launch(uri)
+                }
+                else -> onAction(action)
+            }
+        }
+    }
 
     Box(
         modifier = modifier
@@ -71,9 +117,7 @@ fun AddScreen(
         ) {
             AddScreenTabs(
                 selectedMode = state.currentMode,
-                onTabSelected = { mode ->
-                    onAction(AddScreenAction.SwitchMode(mode))
-                }
+                onTabSelected = { mode -> onAction(AddScreenAction.SwitchMode(mode)) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -83,22 +127,21 @@ fun AddScreen(
             }
 
             if (state.currentMode is AddScreenTab.Gallery) {
-                val hasPendingPhotos = state.photos.any { it.status == PhotoUploadStatusEnum.PENDING }
-                if (hasPendingPhotos || state.isSyncing || state.isInitializing) {
+                if (state.canUpload || state.isUploading || state.isServerSyncing) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Button(
                             onClick = { onAction(AddScreenAction.SyncPendingPhotos) },
-                            enabled = !state.isSyncing && !state.isInitializing,
+                            enabled = !state.isUploading && !state.isServerSyncing,
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                             )
                         ) {
-                            if (state.isSyncing || state.isInitializing) {
+                            if (state.isUploading || state.isServerSyncing) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(16.dp),
                                     strokeWidth = 2.dp,
@@ -107,14 +150,14 @@ fun AddScreen(
                             }
                             Text(
                                 when {
-                                    state.isInitializing -> "Синхронизация..."
-                                    state.isSyncing -> "Отправка..."
+                                    state.isServerSyncing -> "Синхронизация..."
+                                    state.isUploading -> "Отправка..."
                                     else -> "Отправить фото"
                                 }
                             )
                         }
 
-                        if (state.isSyncing) {
+                        if (state.isUploading) {
                             TextButton(
                                 onClick = { onAction(AddScreenAction.CancelSync) },
                             ) {
@@ -124,9 +167,9 @@ fun AddScreen(
                     }
                 }
 
-                if (state.syncError.isNotEmpty()) {
+                if (state.uploadError.isNotEmpty()) {
                     Text(
-                        text = state.syncError,
+                        text = state.uploadError,
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -134,8 +177,8 @@ fun AddScreen(
 
                 ImageGallery(
                     photos = state.photos,
-                    onAction = onAction,
-                    enabled = !state.isSyncing && !state.isInitializing
+                    onAction = localOnAction,
+                    enabled = !state.isUploading && !state.isServerSyncing
                 )
             }
 
@@ -150,86 +193,18 @@ fun AddScreen(
             }
         }
     }
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AddScreen(
-    modifier: Modifier = Modifier
-) {
-    val viewModel = hiltViewModel<AddScreenViewModel>()
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-
-    // Синхронизация с сервером при каждом открытии экрана
-    LaunchedEffect(Unit) {
-        viewModel.syncWithServer()
-    }
-
-    // Сохраняем Uri для камеры, чтобы знать, куда она сохранила фото после возврата
-    var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
-
-    var showSourceDialog by remember { mutableStateOf(false) }
-
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
-
-    val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10),
-        onResult = { uris ->
-            uris.forEach { uri ->
-                viewModel.handleAction(AddScreenAction.AddImage(uri.toString()))
-            }
-        }
-    )
-
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture(),
-        onResult = { success ->
-            if (success) {
-                // Если фото успешно сделано, добавляем сохраненный Uri в стейт
-                tempCameraUri?.let { uri ->
-                    viewModel.handleAction(AddScreenAction.AddImage(uri.toString()))
-                }
-            }
-        }
-    )
-
-    LaunchedEffect(Unit) {
-        viewModel.events.collect { event ->
-            when (event) {
-                is AddScreenEvent.OpenImagePicker -> {
-                    // 1. Теперь только показываем диалог выбора
-                    showSourceDialog = true
-                }
-                is AddScreenEvent.OpenCamera -> {
-                    val tempFile = File.createTempFile("IMG_", ".jpg", context.cacheDir)
-                    val uri = FileProvider.getUriForFile(
-                        context,
-                        "${context.packageName}.provider",
-                        tempFile
-                    )
-                    tempCameraUri = uri
-                    cameraLauncher.launch(uri)
-                }
-                AddScreenEvent.NavigateBack -> TODO()
-                is AddScreenEvent.ShowErrorMessage -> TODO()
-                AddScreenEvent.ShowSuccessMessage -> TODO()
-            }
-        }
-    }
-
-    if (showSourceDialog) {
+    if (showSourceSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showSourceDialog = false },
+            onDismissRequest = { showSourceSheet = false },
             sheetState = sheetState,
-            dragHandle = { BottomSheetDefaults.DragHandle() }, // Полоска сверху шторки
+            dragHandle = { BottomSheetDefaults.DragHandle() },
             containerColor = Color.White
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 32.dp) // Отступ снизу для красоты
+                    .padding(bottom = 32.dp)
             ) {
                 Text(
                     text = "Добавить фото",
@@ -237,64 +212,30 @@ fun AddScreen(
                     modifier = Modifier.padding(16.dp)
                 )
 
-                NavigationDrawerItem(
-                    label = { Text("Сделать снимок") },
-                    selected = false,
-                    onClick = {
-                        showSourceDialog = false
-                        viewModel.handleAction(AddScreenAction.OpenCamera)
-                    },
-                    icon = { Icon(Icons.Default.PhotoCamera, contentDescription = null) },
-                    modifier = Modifier.padding(horizontal = 12.dp)
+                ListItem(
+                    headlineContent = { Text("Сделать снимок") },
+                    leadingContent = { Icon(Icons.Default.PhotoCamera, contentDescription = "Камера") },
+                    modifier = Modifier
+                        .clickable {
+                            showSourceSheet = false
+                            localOnAction(AddScreenAction.OpenCamera)
+                        }
+                        .padding(horizontal = 12.dp)
                 )
 
-                NavigationDrawerItem(
-                    label = { Text("Выбрать из галереи") },
-                    selected = false,
-                    onClick = {
-                        showSourceDialog = false
-                        photoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    },
-                    icon = { Icon(Icons.Default.Image, contentDescription = null) },
-                    modifier = Modifier.padding(horizontal = 12.dp)
+                ListItem(
+                    headlineContent = { Text("Выбрать из галереи") },
+                    leadingContent = { Icon(Icons.Default.Image, contentDescription = "Галерея") },
+                    modifier = Modifier
+                        .clickable {
+                            showSourceSheet = false
+                            localOnAction(AddScreenAction.OpenGallery)
+                        }
+                        .padding(horizontal = 12.dp)
                 )
             }
         }
     }
-
-//    if (showSourceDialog) {
-//        AlertDialog(
-//            onDismissRequest = { showSourceDialog = false },
-//            title = { Text("Добавить фото") },
-//            text = { Text("Откуда вы хотите добавить фотографию?") },
-//            confirmButton = {
-//                TextButton(onClick = {
-//                    showSourceDialog = false
-//                    viewModel.handleAction(AddScreenAction.OpenCamera)
-//                }) {
-//                    Text("Камера")
-//                }
-//            },
-//            dismissButton = {
-//                TextButton(onClick = {
-//                    showSourceDialog = false
-//                    photoPickerLauncher.launch(
-//                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-//                    )
-//                }) {
-//                    Text("Галерея")
-//                }
-//            }
-//        )
-//    }
-
-    AddScreen(
-        modifier = modifier,
-        state = uiState.value,
-        onAction = viewModel::handleAction
-    )
 }
 
 @Preview(showBackground = true)

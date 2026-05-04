@@ -1,14 +1,22 @@
 package com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.whitelynxteam.hwwach.R
 import com.whitelynxteam.hwwach.ui.FlowNavigation
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddScreenEvent
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddScreenViewModel
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.appliances.AppliancesScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.loading.LoadingScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.profile.ProfileScreen
@@ -29,8 +37,39 @@ class InnerMainFlowNavigation(
                 )
             }
             composable(Routes.AddScreen.route) {
+                val viewModel = hiltViewModel<AddScreenViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+
+                LaunchedEffect(Unit) {
+                    viewModel.syncWithServer()
+                }
+
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                AddScreenEvent.NavigateBack -> {
+                                    navController.popBackStack()
+                                }
+
+                                is AddScreenEvent.ShowErrorMessage -> {
+                                    // Обработка ошибки
+                                }
+
+                                AddScreenEvent.ShowSuccessMessage -> {
+                                    // Обработка успеха
+                                }
+                            }
+                        }
+                    }
+                }
+
                 AddScreen(
                     modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    onAction = viewModel::handleAction
                 )
             }
             composable(Routes.AppliancesScreen.route) {

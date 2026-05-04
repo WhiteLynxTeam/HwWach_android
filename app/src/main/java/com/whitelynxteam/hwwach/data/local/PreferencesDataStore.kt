@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.whitelynxteam.hwwach.domain.models.User
@@ -37,6 +38,9 @@ class PreferencesDataStore @Inject constructor(
         val USER_POSITION_KEY = stringPreferencesKey("user_position")
         val USER_OFFICE_NAME_KEY = stringPreferencesKey("user_office_name")
         val USER_OFFICE_LOCATION_KEY = stringPreferencesKey("user_office_location")
+
+        // Ключ для времени последней синхронизации (rate limiting)
+        val LAST_SYNC_TIME_KEY = longPreferencesKey("last_sync_time")
     }
 
     // Методы для работы с uuid временной регистрации
@@ -138,6 +142,18 @@ class PreferencesDataStore @Inject constructor(
             preferences.remove(PreferencesKeys.USER_POSITION_KEY)
             preferences.remove(PreferencesKeys.USER_OFFICE_NAME_KEY)
             preferences.remove(PreferencesKeys.USER_OFFICE_LOCATION_KEY)
+        }
+    }
+
+    // Методы для работы с временем последней синхронизации
+    val lastSyncTime: Flow<Long> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.LAST_SYNC_TIME_KEY] ?: 0L
+        }
+
+    suspend fun saveLastSyncTime(timestamp: Long) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LAST_SYNC_TIME_KEY] = timestamp
         }
     }
 }

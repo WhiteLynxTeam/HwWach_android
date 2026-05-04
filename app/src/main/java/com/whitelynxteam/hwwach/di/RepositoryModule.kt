@@ -2,11 +2,13 @@ package com.whitelynxteam.hwwach.di
 
 import com.whitelynxteam.hwwach.data.repositories.DeviceRepositoryImpl
 import com.whitelynxteam.hwwach.data.repositories.PhotoRepositoryImpl
+import com.whitelynxteam.hwwach.data.repositories.SettingsRepositoryImpl
 import com.whitelynxteam.hwwach.data.repositories.TokenRepositoryImpl
 import com.whitelynxteam.hwwach.data.repositories.UserProfileRepositoryImpl
 import com.whitelynxteam.hwwach.data.repositories.UserRepositoryImpl
 import com.whitelynxteam.hwwach.domain.irepositories.IDeviceRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IPhotoRepository
+import com.whitelynxteam.hwwach.domain.irepositories.ISettingsRepository
 import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IUserProfileRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IUserRepository
@@ -49,4 +51,10 @@ abstract class RepositoryModule {
     abstract fun bindDeviceRepository(
         deviceRepositoryImpl: DeviceRepositoryImpl
     ): IDeviceRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSettingsRepository(
+        settingsRepositoryImpl: SettingsRepositoryImpl
+    ): ISettingsRepository
 }

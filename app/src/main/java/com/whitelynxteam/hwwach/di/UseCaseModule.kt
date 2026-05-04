@@ -2,6 +2,7 @@ package com.whitelynxteam.hwwach.di
 
 import com.whitelynxteam.hwwach.domain.irepositories.IDeviceRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IPhotoRepository
+import com.whitelynxteam.hwwach.domain.irepositories.ISettingsRepository
 import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IUserProfileRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IUserRepository
@@ -15,7 +16,9 @@ import com.whitelynxteam.hwwach.domain.usecases.ResetStuckUploadsUseCase
 import com.whitelynxteam.hwwach.domain.usecases.ResumeUploadedPhotosUseCase
 import com.whitelynxteam.hwwach.domain.usecases.RetrySyncFailedPhotosUseCase
 import com.whitelynxteam.hwwach.domain.usecases.SavePhotoUseCase
+import com.whitelynxteam.hwwach.domain.usecases.SaveLastSyncTimeUseCase
 import com.whitelynxteam.hwwach.domain.usecases.SyncPendingPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.GetLastSyncTimeUseCase
 import com.whitelynxteam.hwwach.domain.usecases.GetStartMainScreenDestinationUseCase
 import com.whitelynxteam.hwwach.domain.usecases.GetUserInfoUseCase
 import com.whitelynxteam.hwwach.domain.usecases.LoginWithProfileUseCase
@@ -148,5 +151,21 @@ object UseCaseModule {
         deviceRepository: IDeviceRepository
     ): GetStartMainScreenDestinationUseCase {
         return GetStartMainScreenDestinationUseCase(deviceRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetLastSyncTimeUseCase(
+        settingsRepository: ISettingsRepository
+    ): GetLastSyncTimeUseCase {
+        return GetLastSyncTimeUseCase(settingsRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSaveLastSyncTimeUseCase(
+        settingsRepository: ISettingsRepository
+    ): SaveLastSyncTimeUseCase {
+        return SaveLastSyncTimeUseCase(settingsRepository)
     }
 }

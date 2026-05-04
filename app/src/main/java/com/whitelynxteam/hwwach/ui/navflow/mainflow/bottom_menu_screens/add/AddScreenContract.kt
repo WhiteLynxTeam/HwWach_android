@@ -15,7 +15,8 @@ sealed class AddScreenAction {
     data class AddImage(val uri: String) : AddScreenAction()
     data class RemovePhoto(val photo: Photo) : AddScreenAction()
 
-    data object OpenImagePicker : AddScreenAction()
+    data object ShowSourceSelector : AddScreenAction()
+    data object OpenGallery : AddScreenAction()
     data object OpenCamera : AddScreenAction()
     data object SyncPendingPhotos : AddScreenAction()
     data object CancelSync : AddScreenAction()
@@ -29,8 +30,6 @@ sealed class AddScreenEvent {
     data object ShowSuccessMessage : AddScreenEvent()
     data class ShowErrorMessage(val message: String) : AddScreenEvent()
     data object NavigateBack : AddScreenEvent()
-    data object OpenImagePicker : AddScreenEvent()
-    data object OpenCamera : AddScreenEvent()
 }
 
 data class AddScreenState(
@@ -41,9 +40,15 @@ data class AddScreenState(
     val address: String = "",
     val comment: String = "",
     val photos: List<Photo> = emptyList(),
+
     val errorMessage: String = "",
-    val isInitializing: Boolean = true, // Сервисные операции при старте (reset/resume/retry)
-    val isSyncing: Boolean = false,
-    val syncError: String = "",
+
+    val isServerSyncing: Boolean = false, // Синхронизация с сервером при старте (reset/resume/retry)
+
+    val isUploading: Boolean = false, // Загрузка фото на сервер (upload)
+    val uploadError: String = "",
+
     val statusFilter: PhotoUploadStatusEnum? = null,
+
+    val canUpload: Boolean = false, // Есть PENDING фото — показать кнопку загрузки
 )

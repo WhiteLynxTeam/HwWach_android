@@ -17,7 +17,7 @@ interface IUserRepository {
 
 
     suspend fun reg(user: User): DomainResult<User>
-    suspend fun auth(user: User): DomainResult<String>
+    suspend fun auth(user: User): DomainResult<Token>
 
     suspend fun getRegStatus(): DomainResult<RegStatus>
 }

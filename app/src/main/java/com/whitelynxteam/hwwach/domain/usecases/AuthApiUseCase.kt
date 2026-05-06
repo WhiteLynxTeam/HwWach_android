@@ -16,8 +16,11 @@ class AuthApiUseCase(
     // чтобы обработать и выдать сообщение согласно ошибки.
 
     suspend operator fun invoke(user: User): DomainResult<Unit> {
-        return userRepository.auth(user).mapSuccess {  token ->
-            tokensRepository.saveToken(token)
+        return userRepository.auth(user).mapSuccess { token ->
+            tokensRepository.saveTokens(
+                accessToken = token.accessToken,
+                refreshToken = token.refreshToken
+            )
             // Unit - Оставим, чтобы было видно что возвращаем Unit. А так
             // результат возврата предыдущей функции Unit
         }

@@ -10,6 +10,7 @@ import com.whitelynxteam.hwwach.data.remote.api.UserApi
 import com.whitelynxteam.hwwach.domain.DomainResult
 import com.whitelynxteam.hwwach.domain.irepositories.IUserRepository
 import com.whitelynxteam.hwwach.domain.models.RegStatus
+import com.whitelynxteam.hwwach.domain.models.Token
 import com.whitelynxteam.hwwach.domain.models.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -82,7 +83,7 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun auth(user: User): DomainResult<String> {
+    override suspend fun auth(user: User): DomainResult<Token> {
         val userAuthRequest = userDomainToAuthUserRequestMapper.map(user)
             ?: return DomainResult.ValidationError(
                 when {
@@ -97,11 +98,16 @@ class UserRepositoryImpl @Inject constructor(
         return when {
             !response.isSuccessful -> responseErrorMapper.map(response)
             else -> {
-                val token = response.body()?.accessToken ?: return DomainResult.ValidationError("Token not found")
-                
+                val authResponse = response.body()
+                    ?: return DomainResult.ValidationError("Auth response not found")
+
                 // Очищаем временный uuid после успешной аутентификации
                 clearUUIDTemp()
-                
+
+                val token = Token(
+                    accessToken = authResponse.accessToken,
+                    refreshToken = authResponse.refreshToken
+                )
                 DomainResult.Success(token)
             }
         }

@@ -4,6 +4,7 @@ import com.whitelynxteam.hwwach.BuildConfig
 import com.whitelynxteam.hwwach.data.remote.api.PhotosApi
 import com.whitelynxteam.hwwach.data.remote.api.UserApi
 import com.whitelynxteam.hwwach.data.remote.api.UserTokensApi
+import com.whitelynxteam.hwwach.data.remote.interceptor.TokenAuthenticator
 import com.whitelynxteam.hwwach.data.remote.interceptor.TokenInterceptor
 import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
 import dagger.Module
@@ -27,6 +28,13 @@ object NetworkModule {
     fun provideTokenInterceptor(
         tokensRepository: ITokensRepository
     ): TokenInterceptor = TokenInterceptor(tokensRepository)
+
+    @Provides
+    @Singleton
+    fun provideTokenAuthenticator(
+        tokensRepository: ITokensRepository,
+        @Named("auth") userApi: UserApi
+    ): TokenAuthenticator = TokenAuthenticator(tokensRepository, userApi)
 
     // --- OkHttp Clients ---
 
@@ -61,9 +69,13 @@ object NetworkModule {
     @Provides
     @Singleton
     @TokenOkHttpClient
-    fun provideTokenOkHttpClient(tokenInterceptor: TokenInterceptor): OkHttpClient =
+    fun provideTokenOkHttpClient(
+        tokenInterceptor: TokenInterceptor,
+        tokenAuthenticator: TokenAuthenticator
+    ): OkHttpClient =
         OkHttpClient.Builder()
             .addInterceptor(tokenInterceptor)
+            .authenticator(tokenAuthenticator)
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })

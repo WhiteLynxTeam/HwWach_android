@@ -2,6 +2,8 @@ package com.whitelynxteam.hwwach.data.remote.api
 
 import com.whitelynxteam.hwwach.data.remote.model.auth.AuthResponseDto
 import com.whitelynxteam.hwwach.data.remote.model.auth.AuthUserRequest
+import com.whitelynxteam.hwwach.data.remote.model.auth.RefreshTokenRequest
+import com.whitelynxteam.hwwach.data.remote.model.auth.RefreshTokenResponse
 import com.whitelynxteam.hwwach.data.remote.model.reg.RegResponseDto
 import com.whitelynxteam.hwwach.data.remote.model.reg.RegStatusResponseDto
 import com.whitelynxteam.hwwach.data.remote.model.reg.RegUserRequest
@@ -26,4 +28,9 @@ interface UserApi {
     suspend fun statusReg(
         @Path("id") uuid: String
     ): Response<RegStatusResponseDto>
+
+    @POST("/auth/refresh/")
+    suspend fun refreshToken(
+        @Body request: RefreshTokenRequest
+    ): Response<RefreshTokenResponse>
 }

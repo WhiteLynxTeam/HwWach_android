@@ -16,31 +16,48 @@ import javax.inject.Inject
 class TokenRepositoryImpl @Inject constructor(
     private val tokenDataStore: PreferencesDataStore
 ) : ITokensRepository {
-    private val _tokenCache = MutableStateFlow<String?>(null)
-    override val tokenCache: StateFlow<String?> = _tokenCache.asStateFlow()
+    private val _accessTokenCache = MutableStateFlow<String?>(null)
+    override val accessTokenCache: StateFlow<String?> = _accessTokenCache.asStateFlow()
+
+    private val _refreshTokenCache = MutableStateFlow<String?>(null)
+    override val refreshTokenCache: StateFlow<String?> = _refreshTokenCache.asStateFlow()
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
             tokenDataStore.accessToken.collect {
-                _tokenCache.value = it
+                _accessTokenCache.value = it
+            }
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            tokenDataStore.refreshToken.collect {
+                _refreshTokenCache.value = it
             }
         }
     }
 
-    override val token: Flow<Token?> = tokenDataStore.accessToken.map { tokenString ->
-        tokenString?.let {
-            Token(
-                accessToken = it,
-                refreshToken = it,
-            )
-        }
+    override val token: Flow<Token?> = kotlinx.coroutines.flow.combine(
+        tokenDataStore.accessToken,
+        tokenDataStore.refreshToken
+    ) { access, refresh ->
+        if (access != null && refresh != null) {
+            Token(accessToken = access, refreshToken = refresh)
+        } else null
     }
 
-    override suspend fun saveToken(token: String) {
-        tokenDataStore.saveAccessToken(token)
+    override suspend fun saveTokens(accessToken: String, refreshToken: String) {
+        tokenDataStore.saveAccessToken(accessToken)
+        tokenDataStore.saveRefreshToken(refreshToken)
     }
 
-    override suspend fun clearToken() {
+    override suspend fun saveAccessToken(accessToken: String) {
+        tokenDataStore.saveAccessToken(accessToken)
+    }
+
+    override suspend fun clearTokens() {
         tokenDataStore.clearToken()
+    }
+
+    override fun hasRefreshToken(): Boolean {
+        return _refreshTokenCache.value != null
     }
 }

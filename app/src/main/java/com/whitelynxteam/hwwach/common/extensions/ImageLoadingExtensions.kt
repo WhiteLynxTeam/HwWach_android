@@ -51,3 +51,29 @@ fun PriorityAsyncImage(
         contentScale = contentScale,
     )
 }
+
+@Composable
+fun PriorityZoomableAsyncImage(
+    photo: Photo,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    @DrawableRes placeholderResId: Int = R.drawable.ic_add_photo,
+) {
+    val context = LocalContext.current
+
+    val model = remember(photo.localPath, photo.remoteUrl, placeholderResId) {
+        ImageRequest.Builder(context)
+            .data(photo.localPath ?: photo.remoteUrl)
+            .crossfade(300)
+            .placeholder(placeholderResId)
+            .error(placeholderResId)
+            .fallback(placeholderResId)
+            .build()
+    }
+
+    me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage(
+        model = model,
+        contentDescription = contentDescription,
+        modifier = modifier,
+    )
+}

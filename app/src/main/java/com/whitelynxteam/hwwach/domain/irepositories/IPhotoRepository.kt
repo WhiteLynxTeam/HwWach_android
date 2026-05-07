@@ -12,6 +12,7 @@ interface IPhotoRepository {
     suspend fun syncPhotos(): DomainResult<Unit>
 
     fun getPhotosFlow(clientId: String): Flow<List<Photo>>
+    suspend fun getPhotoByClientId(clientId: String): Photo?
     fun getAllPhotosFlow(): Flow<List<Photo>>
 
     fun getPhotosByStatusFlow(status: String): Flow<List<Photo>>

@@ -57,7 +57,9 @@ fun ImageGallery(
                         .fillMaxWidth()
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable(enabled = enabled) { /* просмотр */ },
+                        .clickable(enabled = enabled) {
+                        onAction(AddScreenAction.OpenFullImage(photo.clientId))
+                    },
                     contentAlignment = Alignment.Center
                 ) {
                     if (!enabled) {

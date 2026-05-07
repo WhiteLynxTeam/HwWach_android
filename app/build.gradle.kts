@@ -77,6 +77,7 @@ dependencies {
     /** Coil */
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    implementation(libs.telephoto.zoomable.coil)
 
     /** Retrofit */
     implementation(libs.retrofit)

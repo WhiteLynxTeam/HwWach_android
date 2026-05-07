@@ -11,7 +11,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.whitelynxteam.hwwach.R
 import com.whitelynxteam.hwwach.ui.FlowNavigation
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddScreen
@@ -20,11 +22,15 @@ import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddS
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.appliances.AppliancesScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.loading.LoadingScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.profile.ProfileScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.fullimage.FullImageScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.fullimage.FullImageScreenViewModel
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.fullimage.FullImageScreenAction
 
 class InnerMainFlowNavigation(
     val navController: NavHostController,
+    private val onNavigateToFullImage: (String) -> Unit,
     onFinished: (routeName: String) -> Unit
-) : FlowNavigation(onFinished) {
+): FlowNavigation(onFinished) {
     override val startRoute: String
         get() = Routes.LoadingScreen.route
 
@@ -61,10 +67,15 @@ class InnerMainFlowNavigation(
                                 AddScreenEvent.ShowSuccessMessage -> {
                                     // Обработка успеха
                                 }
+                                is AddScreenEvent.NavigateToFullImage -> {
+                                    onNavigateToFullImage(event.clientId)
+                                }
                             }
                         }
                     }
                 }
+
+                val nav = this@InnerMainFlowNavigation
 
                 AddScreen(
                     modifier = Modifier.fillMaxSize(),
@@ -82,7 +93,7 @@ class InnerMainFlowNavigation(
                     modifier = Modifier.fillMaxSize(),
                 )
             }
-        }
+                    }
     }
 
     fun navigateToRoute(route: String) {
@@ -92,6 +103,10 @@ class InnerMainFlowNavigation(
             }
             launchSingleTop = true
         }
+    }
+
+    fun navigateToFullImage(clientId: String) {
+        onNavigateToFullImage(clientId)
     }
 
     fun navigateToIndex(index: Int) {
@@ -141,6 +156,7 @@ class InnerMainFlowNavigation(
             override val label = "Кабинет"
         }
 
+        
         companion object {
             //Использовать val с ленивой инициализацией (by lazy),
             // чтобы доступ к объектам в списке происходил после полной инициализации всех объектов.

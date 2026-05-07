@@ -11,9 +11,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.whitelynxteam.hwwach.ui.FlowNavigation
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.fullimage.FullImageScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.fullimage.FullImageScreenEvent
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.fullimage.FullImageScreenViewModel
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.InnerMainFlowNavigation
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreenEvent
@@ -30,8 +35,13 @@ class MainFlowNavigation(
         with(builder) {
             composable(Routes.MainScreen.route) {
                 val innerMainNavController = rememberNavController()
-                val innerMainFlowNavigation =
-                    InnerMainFlowNavigation(innerMainNavController) { }
+                val innerMainFlowNavigation = InnerMainFlowNavigation(
+                    navController = innerMainNavController,
+                    onNavigateToFullImage = { clientId ->
+                        navController.navigate("MainFlowNavigator.FullImageScreen/$clientId")
+                    },
+                    onFinished = {}
+                )
 
                 val viewModel = hiltViewModel<MainScreenViewModel>()
                 val state by viewModel.state.collectAsStateWithLifecycle()
@@ -57,10 +67,40 @@ class MainFlowNavigation(
                     innerMainFlowNavigation = innerMainFlowNavigation
                 )
             }
+
+            // Добавляем новый маршрут для FullImageScreen
+            composable(
+                route = Routes.FullImageScreen.route,
+                arguments = listOf(navArgument("clientId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val viewModel = hiltViewModel<FullImageScreenViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                is FullImageScreenEvent.NavigateBack -> {
+                                    navController.popBackStack()
+                                }
+                            }
+                        }
+                    }
+                }
+
+                FullImageScreen(
+                    state = state,
+                    onAction = viewModel::handleAction,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
     }
 
     sealed class Routes(val route: String) {
         data object MainScreen : Routes(route = "MainFlowNavigator.MainScreen")
+        data object FullImageScreen : Routes(route = "MainFlowNavigator.FullImageScreen/{clientId}")
     }
 }

@@ -23,6 +23,8 @@ sealed class AddScreenAction {
 
     data class FilterByStatus(val status: PhotoUploadStatusEnum?) : AddScreenAction()
 
+    data class OpenFullImage(val clientId: String) : AddScreenAction()
+
     data object OnSubmitClicked : AddScreenAction()
 }
 
@@ -30,6 +32,7 @@ sealed class AddScreenEvent {
     data object ShowSuccessMessage : AddScreenEvent()
     data class ShowErrorMessage(val message: String) : AddScreenEvent()
     data object NavigateBack : AddScreenEvent()
+    data class NavigateToFullImage(val clientId: String) : AddScreenEvent()
 }
 
 data class AddScreenState(

@@ -2,6 +2,7 @@ package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -101,7 +102,9 @@ fun AddForm(
                         modifier = Modifier
                             .widthIn(max = 68.dp)
                             .heightIn(max = 92.dp),
-                        photo = photo
+                        photo = photo,
+                        enabled = !state.isUploading && !state.isServerSyncing,
+                        onClick = { onAction(AddScreenAction.OpenFullImage(photo.clientId)) }
                     )
                 }
             }
@@ -187,12 +190,16 @@ fun AddFormTextField(
 @Composable
 private fun ImageCard(
     modifier: Modifier = Modifier,
-    photo: Photo
+    photo: Photo,
+    enabled: Boolean,
+    onClick: () -> Unit
 ) {
     PriorityAsyncImage(
         photo = photo,
         contentDescription = "Image",
-        modifier = modifier.clip(RoundedCornerShape(16.dp)),
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(enabled = enabled, onClick = onClick),
         contentScale = ContentScale.Crop
     )
 }

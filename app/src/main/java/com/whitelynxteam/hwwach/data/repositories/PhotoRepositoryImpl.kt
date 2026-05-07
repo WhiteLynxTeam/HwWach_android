@@ -129,6 +129,12 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getPhotoByClientId(clientId: String): Photo? {
+        val entity = photoDao.getPhotoByClientId(clientId) ?: return null
+        val actualLocalPath = entity.localFilePath?.takeIf { fileStorage.fileExists(it) }
+        return photoEntityToDomainMapper.map(entity.copy(localFilePath = actualLocalPath))
+    }
+
     override suspend fun savePhoto(photo: Photo) {
         val localPath = fileStorage.copyToCache(photo.localPath ?: "")
         val entity = photoDomainToEntityMapper.map(photo.copy(localPath = localPath))

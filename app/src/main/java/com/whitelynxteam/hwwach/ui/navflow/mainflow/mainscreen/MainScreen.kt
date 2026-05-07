@@ -41,6 +41,7 @@ fun MainScreen(
     }
 }
 
+/*
 @Preview
 @Composable
 fun MainScreenPreview() {
@@ -53,4 +54,4 @@ fun MainScreenPreview() {
         onAction = {},
         innerMainFlowNavigation = innerMainFlowNavigation
     )
-}
+}*/

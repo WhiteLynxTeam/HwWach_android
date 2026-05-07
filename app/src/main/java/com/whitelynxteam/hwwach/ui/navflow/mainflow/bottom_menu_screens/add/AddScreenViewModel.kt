@@ -162,6 +162,11 @@ class AddScreenViewModel @Inject constructor(
                     deletePhotoUseCase(action.photo.clientId)
                 }
             }
+            is AddScreenAction.OpenFullImage -> {
+                viewModelScope.launch {
+                    _events.emit(AddScreenEvent.NavigateToFullImage(action.clientId))
+                }
+            }
             is AddScreenAction.OnSubmitClicked -> {
                 validateAndSubmit()
             }

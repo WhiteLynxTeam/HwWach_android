@@ -23,6 +23,7 @@ import com.whitelynxteam.hwwach.domain.usecases.GetStartMainScreenDestinationUse
 import com.whitelynxteam.hwwach.domain.usecases.GetUserInfoUseCase
 import com.whitelynxteam.hwwach.domain.usecases.LoginWithProfileUseCase
 import com.whitelynxteam.hwwach.domain.usecases.RegApiUseCase
+import com.whitelynxteam.hwwach.domain.usecases.CheckAuthTokenUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -62,13 +63,10 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun provideLoginWithProfileUseCase(
-        userRepository: IUserRepository,
-        tokensRepository: ITokensRepository,
         userProfileRepository: IUserProfileRepository,
-        authApiUseCase: AuthApiUseCase,
-        getUserInfoUseCase: GetUserInfoUseCase
+        authApiUseCase: AuthApiUseCase
     ): LoginWithProfileUseCase {
-        return LoginWithProfileUseCase(userRepository, tokensRepository, userProfileRepository, authApiUseCase, getUserInfoUseCase)
+        return LoginWithProfileUseCase(userProfileRepository, authApiUseCase)
     }
 
     @Provides
@@ -167,5 +165,13 @@ object UseCaseModule {
         settingsRepository: ISettingsRepository
     ): SaveLastSyncTimeUseCase {
         return SaveLastSyncTimeUseCase(settingsRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCheckAuthTokenUseCase(
+        tokensRepository: ITokensRepository
+    ): CheckAuthTokenUseCase {
+        return CheckAuthTokenUseCase(tokensRepository)
     }
 }

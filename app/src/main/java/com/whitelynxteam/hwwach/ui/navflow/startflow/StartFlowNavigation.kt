@@ -19,16 +19,54 @@ import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenViewMo
 import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreen
 import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreenEvent
 import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreenViewModel
+import com.whitelynxteam.hwwach.ui.navflow.startflow.splashscreen.SplashScreen
+import com.whitelynxteam.hwwach.ui.navflow.startflow.splashscreen.SplashScreenEvent
+import com.whitelynxteam.hwwach.ui.navflow.startflow.splashscreen.SplashScreenViewModel
 
 class StartFlowNavigation(
     val navController: NavHostController,
     onFinished: (routeName: String) -> Unit
 ) : FlowNavigation(onFinished) {
     override val startRoute: String
-        get() = Routes.AuthScreen.route
+        get() = Routes.SplashScreen.route
 
     override fun addFlow(builder: NavGraphBuilder) {
         with(builder) {
+
+            // ===== SPLASH =====
+            composable(Routes.SplashScreen.route) {
+
+                val viewModel = hiltViewModel<SplashScreenViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                is SplashScreenEvent.NavigateToMain -> {
+                                    finishFlow()
+                                }
+
+                                SplashScreenEvent.NavigateToAuth -> {
+                                    navController.navigate(Routes.AuthScreen.route) {
+                                        popUpTo(Routes.SplashScreen.route) {
+                                            inclusive = true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                SplashScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    onAction = viewModel::handleAction
+                )
+            }
 
             // ===== AUTH =====
             composable(Routes.AuthScreen.route) {
@@ -110,6 +148,7 @@ class StartFlowNavigation(
     }
 
     sealed class Routes(val route: String) {
+        data object SplashScreen : Routes("StartFlowNavigator.SplashScreen")
         data object AuthScreen : Routes("StartFlowNavigator.AuthScreen")
         data object RegScreen : Routes("StartFlowNavigator.RegScreen")
     }

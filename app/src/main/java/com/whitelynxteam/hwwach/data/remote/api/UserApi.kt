@@ -7,6 +7,7 @@ import com.whitelynxteam.hwwach.data.remote.model.auth.RefreshTokenResponse
 import com.whitelynxteam.hwwach.data.remote.model.reg.RegResponseDto
 import com.whitelynxteam.hwwach.data.remote.model.reg.RegStatusResponseDto
 import com.whitelynxteam.hwwach.data.remote.model.reg.RegUserRequest
+import com.whitelynxteam.hwwach.data.remote.model.user.UserResponseDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -28,6 +29,11 @@ interface UserApi {
     suspend fun statusReg(
         @Path("id") uuid: String
     ): Response<RegStatusResponseDto>
+
+    @GET("/users/{id}")
+    suspend fun getUserInfo(
+        @Path("id") id: String
+    ): Response<UserResponseDto>
 
     @POST("/auth/refresh/")
     suspend fun refreshToken(

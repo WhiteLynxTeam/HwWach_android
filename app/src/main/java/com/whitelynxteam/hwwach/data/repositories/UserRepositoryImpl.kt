@@ -12,6 +12,7 @@ import com.whitelynxteam.hwwach.domain.irepositories.IUserRepository
 import com.whitelynxteam.hwwach.domain.models.RegStatus
 import com.whitelynxteam.hwwach.domain.models.Token
 import com.whitelynxteam.hwwach.domain.models.User
+import com.whitelynxteam.hwwach.data.mappers.UserResponseDtoToUserDomainMapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +30,7 @@ class UserRepositoryImpl @Inject constructor(
     private val userDomainToRegUserRequestMapper: UserDomainToRegUserRequestMapper,
     private val regResponseDtoToUserDomainMapper: RegResponseDtoToUserDomainMapper,
     private val regStatusResponseDtoToRegStatusDomainMapper: RegStatusResponseDtoToRegStatusDomainMapper,
+    private val userResponseDtoToUserDomainMapper: UserResponseDtoToUserDomainMapper,
     private val responseErrorMapper: ResponseErrorMapper,
     private val preferencesDataStore: PreferencesDataStore,
 ) : IUserRepository {
@@ -83,7 +85,7 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun auth(user: User): DomainResult<Token> {
+    override suspend fun auth(user: User): DomainResult<Pair<Token, User>> {
         val userAuthRequest = userDomainToAuthUserRequestMapper.map(user)
             ?: return DomainResult.ValidationError(
                 when {
@@ -108,7 +110,10 @@ class UserRepositoryImpl @Inject constructor(
                     accessToken = authResponse.accessToken,
                     refreshToken = authResponse.refreshToken
                 )
-                DomainResult.Success(token)
+                
+                val mappedUser = userResponseDtoToUserDomainMapper.map(authResponse.user)
+                
+                DomainResult.Success(Pair(token, mappedUser))
             }
         }
     }
@@ -125,6 +130,19 @@ class UserRepositoryImpl @Inject constructor(
                 val status = response.body() ?: return DomainResult.ValidationError("RegStatus not found")
                 val mappedStatus = regStatusResponseDtoToRegStatusDomainMapper.map(status)
                 DomainResult.Success(mappedStatus)
+            }
+        }
+    }
+
+    override suspend fun getUserInfo(id: String): DomainResult<User> {
+        val response = userApi.getUserInfo(id)
+
+        return when {
+            !response.isSuccessful -> responseErrorMapper.map(response)
+            else -> {
+                val userInfoResponseDto = response.body() ?: return DomainResult.ValidationError("UserInfo response not found")
+                val mappedUser = userResponseDtoToUserDomainMapper.map(userInfoResponseDto)
+                DomainResult.Success(mappedUser)
             }
         }
     }

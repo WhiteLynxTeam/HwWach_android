@@ -21,8 +21,10 @@ class App @Inject constructor() {
         val startFlowNavigation =
             StartFlowNavigation(navController) {
                 navController.navigate(mainFlowNavigation.startRoute) {
-                    popUpTo(StartFlowNavigation.Routes.AuthScreen.route) {
-                        inclusive = true
+                    navController.currentDestination?.route?.let { currentRoute ->
+                        popUpTo(currentRoute) {
+                            inclusive = true
+                        }
                     }
                 }
             }

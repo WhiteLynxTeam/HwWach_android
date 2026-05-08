@@ -12,4 +12,9 @@ data class RegResponseDto(
     val phone: String,
     val position: String,
     val status: RegStatusEnumDto,
+    val approvedByUser: String? = null,
+    val adminComment: String? = null,
+    val processedAt: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null
 )

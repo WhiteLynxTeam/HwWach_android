@@ -1,42 +1,24 @@
 package com.whitelynxteam.hwwach.domain.usecases
 
 import com.whitelynxteam.hwwach.domain.DomainResult
-import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IUserProfileRepository
-import com.whitelynxteam.hwwach.domain.irepositories.IUserRepository
+import com.whitelynxteam.hwwach.domain.mapSuccess
 import com.whitelynxteam.hwwach.domain.models.User
-import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenAction
 import javax.inject.Inject
 
 class LoginWithProfileUseCase @Inject constructor(
-    private val userRepository: IUserRepository,
-    private val tokensRepository: ITokensRepository,
     private val userProfileRepository: IUserProfileRepository,
-    private val authApiUseCase: AuthApiUseCase,
-    private val getUserInfoUseCase: GetUserInfoUseCase
+    private val authApiUseCase: AuthApiUseCase
 ) {
     suspend operator fun invoke(login: String, password: String): DomainResult<Unit> {
-        // Сначала аутентифицируем пользователя
-        return when (val authResult = authApiUseCase(User(
-            username = login,
-            password = password,
-        ))) {
-            is DomainResult.Success<*> -> {
-                return authResult
-                // Если аутентификация успешна, получаем информацию о пользователе
-                when (val userInfoResult = getUserInfoUseCase()) {
-                    is DomainResult.Success<*> -> {
-                        // Сохраняем профиль пользователя в локальное хранилище
-                        userProfileRepository.saveUserProfile(userInfoResult.data as User)
-                        DomainResult.Success(Unit)
-                    }
-                    else -> userInfoResult as DomainResult<Unit>
-                }
-            }
-            else -> {
-                // Если аутентификация не удалась, возвращаем ошибку
-                authResult
-            }
+        return authApiUseCase(
+            User(
+                username = login,
+                password = password,
+            )
+        ).mapSuccess { user ->
+            // Сохраняем профиль пользователя в локальное хранилище
+            userProfileRepository.saveUserProfile(user)
         }
     }
 }

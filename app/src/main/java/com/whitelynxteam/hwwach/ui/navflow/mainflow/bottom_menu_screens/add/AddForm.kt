@@ -45,6 +45,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.whitelynxteam.hwwach.common.extensions.PriorityAsyncImage
 import com.whitelynxteam.hwwach.domain.models.Photo
+import com.whitelynxteam.hwwach.ui.models.Categories
 import com.whitelynxteam.hwwach.ui.theme.Gray300
 import com.whitelynxteam.hwwach.ui.theme.Gray500
 import com.whitelynxteam.hwwach.ui.theme.Gray800

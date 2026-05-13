@@ -1,4 +1,4 @@
-package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add
+package com.whitelynxteam.hwwach.ui.models
 
 enum class Categories(val displayName: String) {
     SYSTEM_UNIT("Системные блоки"),

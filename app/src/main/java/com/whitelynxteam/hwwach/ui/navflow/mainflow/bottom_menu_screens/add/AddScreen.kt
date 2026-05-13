@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.whitelynxteam.hwwach.BuildConfig
+import com.whitelynxteam.hwwach.ui.components.ImageGallery
 import com.whitelynxteam.hwwach.ui.theme.Gray250
 import java.io.File
 import java.text.SimpleDateFormat

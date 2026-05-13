@@ -57,6 +57,13 @@ class AuthScreenViewModel @Inject constructor(
 
             AuthScreenAction.OnAuthClicked -> onAuthClicked()
             AuthScreenAction.OnRegClicked -> onRegClicked()
+            AuthScreenAction.OnForgotPasswordClicked -> onForgotPasswordClicked()
+        }
+    }
+
+    private fun onForgotPasswordClicked() {
+        viewModelScope.launch {
+            _events.emit(AuthScreenEvent.NavigateToForgotPassword)
         }
     }
 

@@ -22,6 +22,9 @@ import com.whitelynxteam.hwwach.ui.navflow.startflow.regscreen.RegScreenViewMode
 import com.whitelynxteam.hwwach.ui.navflow.startflow.splashscreen.SplashScreen
 import com.whitelynxteam.hwwach.ui.navflow.startflow.splashscreen.SplashScreenEvent
 import com.whitelynxteam.hwwach.ui.navflow.startflow.splashscreen.SplashScreenViewModel
+import com.whitelynxteam.hwwach.ui.navflow.startflow.forgotpasswordscreen.ForgotPasswordScreen
+import com.whitelynxteam.hwwach.ui.navflow.startflow.forgotpasswordscreen.ForgotPasswordEvent
+import com.whitelynxteam.hwwach.ui.navflow.startflow.forgotpasswordscreen.ForgotPasswordViewModel
 
 class StartFlowNavigation(
     val navController: NavHostController,
@@ -91,6 +94,10 @@ class StartFlowNavigation(
                                         }
                                     }
                                 }
+                                
+                                AuthScreenEvent.NavigateToForgotPassword -> {
+                                    navController.navigate(Routes.ForgotPasswordScreen.route)
+                                }
 
                                 is AuthScreenEvent.Exit -> {
                                     navController.popBackStack()
@@ -144,6 +151,31 @@ class StartFlowNavigation(
                     onAction = viewModel::handleAction
                 )
             }
+            
+            // ===== FORGOT PASSWORD =====
+            composable(Routes.ForgotPasswordScreen.route) {
+                val viewModel = hiltViewModel<ForgotPasswordViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                is ForgotPasswordEvent.Exit -> {
+                                    navController.popBackStack()
+                                }
+                            }
+                        }
+                    }
+                }
+
+                ForgotPasswordScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    onAction = viewModel::handleAction
+                )
+            }
         }
     }
 
@@ -151,5 +183,6 @@ class StartFlowNavigation(
         data object SplashScreen : Routes("StartFlowNavigator.SplashScreen")
         data object AuthScreen : Routes("StartFlowNavigator.AuthScreen")
         data object RegScreen : Routes("StartFlowNavigator.RegScreen")
+        data object ForgotPasswordScreen : Routes("StartFlowNavigator.ForgotPasswordScreen")
     }
 }

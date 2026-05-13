@@ -7,17 +7,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,7 +25,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.whitelynxteam.hwwach.domain.models.User
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -34,22 +33,9 @@ import java.util.Locale
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
-    viewModel: ProfileViewModel = hiltViewModel()
+    state: ProfileState,
+    onAction: (ProfileAction) -> Unit
 ) {
-    val state by viewModel.state.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.events.collect { event ->
-            when (event) {
-                is ProfileEvent.NavigateToChangePassword -> {
-                    // Navigate to change password screen
-                }
-                is ProfileEvent.NavigateToLogin -> {
-                    // Navigate to login
-                }
-            }
-        }
-    }
 
     if (state.isLoading) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -60,7 +46,7 @@ fun ProfileScreen(
             ProfileContent(
                 user = user,
                 modifier = modifier,
-                onAction = viewModel::handleAction
+                onAction = onAction
             )
         } ?: run {
             Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -136,7 +122,8 @@ fun ProfileContent(
                     value = user.username ?: "-",
                     isReadOnly = true
                 )
-                
+
+                //HorizontalDivider поменять
                 Divider(modifier = Modifier.padding(vertical = 12.dp))
                 
                 ProfileInfoRow(
@@ -165,7 +152,6 @@ fun ProfileContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Change Password Button
         Button(
             onClick = { onAction(ProfileAction.OnChangePasswordClicked) },
             modifier = Modifier
@@ -176,6 +162,22 @@ fun ProfileContent(
             Icon(imageVector = Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = "Сменить пароль", fontSize = 16.sp)
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Logout Button
+        Button(
+            onClick = { onAction(ProfileAction.OnLogoutClicked) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+        ) {
+            Icon(imageVector = Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "Выход из аккаунта", fontSize = 16.sp)
         }
         
         Spacer(modifier = Modifier.height(16.dp))

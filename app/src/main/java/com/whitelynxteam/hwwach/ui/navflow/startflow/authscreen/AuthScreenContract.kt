@@ -5,12 +5,14 @@ sealed class AuthScreenAction {
     data class InputPassword(val password: String) : AuthScreenAction()
     data object OnAuthClicked : AuthScreenAction()
     data object OnRegClicked : AuthScreenAction()
+    data object OnForgotPasswordClicked : AuthScreenAction()
     data object OnBackClicked : AuthScreenAction()
 }
 
 sealed class AuthScreenEvent {
     data object NavigateToMain : AuthScreenEvent()
     data object NavigateToReg : AuthScreenEvent()
+    data object NavigateToForgotPassword : AuthScreenEvent()
     data object Exit : AuthScreenEvent()
 }
 

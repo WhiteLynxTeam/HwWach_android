@@ -40,6 +40,11 @@ class MainFlowNavigation(
                     onNavigateToFullImage = { clientId ->
                         navController.navigate("MainFlowNavigator.FullImageScreen/$clientId")
                     },
+                    onLogout = {
+                        navController.navigate("StartFlowNavigator.AuthScreen") {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
                     onFinished = {}
                 )
 

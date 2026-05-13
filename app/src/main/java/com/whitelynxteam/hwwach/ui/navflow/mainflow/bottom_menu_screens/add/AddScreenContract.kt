@@ -2,6 +2,7 @@ package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add
 
 import com.whitelynxteam.hwwach.domain.models.Photo
 import com.whitelynxteam.hwwach.domain.models.PhotoUploadStatusEnum
+import com.whitelynxteam.hwwach.ui.models.Categories
 
 sealed class AddScreenAction {
     data class SwitchMode(val mode: AddScreenTab) : AddScreenAction()

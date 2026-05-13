@@ -11,24 +11,24 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.whitelynxteam.hwwach.R
 import com.whitelynxteam.hwwach.ui.FlowNavigation
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddScreenEvent
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddScreenViewModel
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.appliances.AppliancesScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.assets.AssetsScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.assets.AssetsScreenEvent
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.assets.AssetsScreenViewModel
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.loading.LoadingScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.profile.ProfileEvent
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.profile.ProfileScreen
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.fullimage.FullImageScreen
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.fullimage.FullImageScreenViewModel
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.fullimage.FullImageScreenAction
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.profile.ProfileViewModel
 
 class InnerMainFlowNavigation(
     val navController: NavHostController,
     private val onNavigateToFullImage: (String) -> Unit,
+    private val onLogout: () -> Unit,
     onFinished: (routeName: String) -> Unit
 ): FlowNavigation(onFinished) {
     override val startRoute: String
@@ -75,22 +75,60 @@ class InnerMainFlowNavigation(
                     }
                 }
 
-                val nav = this@InnerMainFlowNavigation
-
                 AddScreen(
                     modifier = Modifier.fillMaxSize(),
                     state = state,
                     onAction = viewModel::handleAction
                 )
             }
-            composable(Routes.AppliancesScreen.route) {
-                AppliancesScreen(
+
+            composable(Routes.AssetsScreen.route) {
+                val viewModel = hiltViewModel<AssetsScreenViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                AssetsScreenEvent.NavigateBack -> TODO()
+                                is AssetsScreenEvent.ShowErrorMessage -> TODO()
+                                AssetsScreenEvent.ShowSuccessMessage -> TODO()
+                            }
+                        }
+                    }
+                }
+
+                AssetsScreen(
                     modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    onAction = viewModel::handleAction
                 )
             }
             composable(Routes.ProfileScreen.route) {
+                val viewModel = hiltViewModel<ProfileViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                is ProfileEvent.NavigateToChangePassword -> {
+                                    // Navigate to change password screen
+                                }
+                                is ProfileEvent.NavigateToLogin -> {
+                                    onLogout()
+                                }
+                            }
+                        }
+                    }
+                }
+
                 ProfileScreen(
                     modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    onAction = viewModel::handleAction
                 )
             }
                     }
@@ -103,10 +141,6 @@ class InnerMainFlowNavigation(
             }
             launchSingleTop = true
         }
-    }
-
-    fun navigateToFullImage(clientId: String) {
-        onNavigateToFullImage(clientId)
     }
 
     fun navigateToIndex(index: Int) {
@@ -137,15 +171,15 @@ class InnerMainFlowNavigation(
         ), BottomMenuDestination {
             override val iconActive = R.drawable.ic_add_selected
             override val iconInactive = R.drawable.ic_add_unselected
-            override val label = "Добавить"
+            override val label = "Галерея"
         }
 
-        data object AppliancesScreen : Routes(
-            route = "InnerMainFlowNavigation.AppliancesScreen"
+        data object AssetsScreen : Routes(
+            route = "InnerMainFlowNavigation.AssetsScreen"
         ), BottomMenuDestination {
             override val iconActive = R.drawable.ic_appliances_selected
             override val iconInactive = R.drawable.ic_appliances_unselected
-            override val label = "Техника"
+            override val label = "Реестр"
         }
 
         data object ProfileScreen : Routes(
@@ -170,7 +204,7 @@ class InnerMainFlowNavigation(
             // Тип списка — List<BottomMenuDestination>, и у них иконки НЕ nullable.
             val menuRoutes: List<BottomMenuDestination> by lazy {
                 listOf(
-                    AppliancesScreen,
+                    AssetsScreen,
                     AddScreen,
                     ProfileScreen,
                 )

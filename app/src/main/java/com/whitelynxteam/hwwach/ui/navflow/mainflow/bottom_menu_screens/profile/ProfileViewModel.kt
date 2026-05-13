@@ -2,6 +2,7 @@ package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IUserProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val userProfileRepository: IUserProfileRepository
+    private val userProfileRepository: IUserProfileRepository,
+    private val tokensRepository: ITokensRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileState())
@@ -45,8 +47,8 @@ class ProfileViewModel @Inject constructor(
             }
             is ProfileAction.OnLogoutClicked -> {
                 viewModelScope.launch {
-                    // Typical logout flow triggers navigation or clearing tokens
-                    // This is a placeholder event navigation
+                    tokensRepository.clearTokens()
+                    userProfileRepository.clearUserProfile()
                     _events.emit(ProfileEvent.NavigateToLogin)
                 }
             }

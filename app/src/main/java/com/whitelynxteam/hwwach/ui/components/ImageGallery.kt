@@ -1,4 +1,4 @@
-package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add
+package com.whitelynxteam.hwwach.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.whitelynxteam.hwwach.common.extensions.PriorityAsyncImage
 import com.whitelynxteam.hwwach.domain.models.Photo
 import com.whitelynxteam.hwwach.domain.models.PhotoUploadStatusEnum
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddScreenAction
 
 @Composable
 fun ImageGallery(

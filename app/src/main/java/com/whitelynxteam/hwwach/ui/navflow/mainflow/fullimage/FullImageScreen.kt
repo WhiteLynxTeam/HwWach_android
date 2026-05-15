@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import com.whitelynxteam.hwwach.common.extensions.PriorityZoomableAsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,17 +40,18 @@ fun FullImageScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
+                    containerColor = Color.Black.copy(alpha = 0.5f),
                     navigationIconContentColor = Color.White,
                     titleContentColor = Color.White
                 )
             )
         },
         containerColor = Color.Black
-    ) { _ ->
+    ) { paddingValues ->
         Box(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(paddingValues),
             contentAlignment = Alignment.Center
         ) {
             if (state.photo != null) {

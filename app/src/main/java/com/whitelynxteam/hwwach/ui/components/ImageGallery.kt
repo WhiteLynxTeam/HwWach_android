@@ -35,13 +35,14 @@ import androidx.compose.ui.unit.dp
 import com.whitelynxteam.hwwach.common.extensions.PriorityAsyncImage
 import com.whitelynxteam.hwwach.domain.models.Photo
 import com.whitelynxteam.hwwach.domain.models.PhotoUploadStatusEnum
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddScreenAction
 
 @Composable
 fun ImageGallery(
     modifier: Modifier = Modifier,
     photos: List<Photo>,
-    onAction: (AddScreenAction) -> Unit,
+    onImageClick: (String) -> Unit,
+    onDeleteClick: (Photo) -> Unit,
+    showSourceSelector: () -> Unit,
     enabled: Boolean = true
 ) {
     LazyVerticalGrid(
@@ -59,8 +60,8 @@ fun ImageGallery(
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(8.dp))
                         .clickable(enabled = enabled) {
-                        onAction(AddScreenAction.OpenFullImage(photo.clientId))
-                    },
+                            onImageClick(photo.clientId)
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     if (!enabled) {
@@ -77,8 +78,9 @@ fun ImageGallery(
                         contentScale = ContentScale.Crop
                     )
                     if (enabled) {
-                        val isSent = photo.status == PhotoUploadStatusEnum.UPLOADED || photo.status == PhotoUploadStatusEnum.SYNCED
-                        
+                        val isSent =
+                            photo.status == PhotoUploadStatusEnum.UPLOADED || photo.status == PhotoUploadStatusEnum.SYNCED
+
                         if (isSent) {
                             Box(
                                 modifier = Modifier
@@ -97,7 +99,7 @@ fun ImageGallery(
                             }
                         } else {
                             IconButton(
-                                onClick = { onAction(AddScreenAction.RemovePhoto(photo)) },
+                                onClick = { onDeleteClick(photo) },
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
                                     .padding(4.dp)
@@ -138,6 +140,7 @@ fun ImageGallery(
                                     modifier = Modifier.size(14.dp)
                                 )
                             }
+
                             PhotoUploadStatusEnum.UPLOADING -> {
                                 CircularProgressIndicator(
                                     color = Color.White,
@@ -145,6 +148,7 @@ fun ImageGallery(
                                     modifier = Modifier.size(14.dp)
                                 )
                             }
+
                             PhotoUploadStatusEnum.UPLOADED,
                             PhotoUploadStatusEnum.SYNCED -> {
                                 Icon(
@@ -154,6 +158,7 @@ fun ImageGallery(
                                     modifier = Modifier.size(14.dp)
                                 )
                             }
+
                             PhotoUploadStatusEnum.FAILED -> {
                                 Icon(
                                     imageVector = Icons.Default.Warning,
@@ -177,7 +182,7 @@ fun ImageGallery(
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                             shape = RoundedCornerShape(12.dp)
                         )
-                        .clickable(enabled = enabled) { onAction(AddScreenAction.ShowSourceSelector) },
+                        .clickable(enabled = enabled) { showSourceSelector() },
                     contentAlignment = Alignment.Center
                 ) {
                     Box(

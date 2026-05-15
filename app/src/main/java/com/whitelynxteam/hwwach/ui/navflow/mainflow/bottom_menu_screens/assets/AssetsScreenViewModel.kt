@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,28 +24,8 @@ class AssetsScreenViewModel @Inject constructor() : ViewModel() {
     fun handleAction(action: AssetsScreenAction) {
         when (action) {
             is AssetsScreenAction.AddAssetClicked -> {
-                // TODO: Implement add asset logic
-                _state.update { it.copy(
-                    isAdding = true,
-                    errorMessage = ""
-                ) }
-                // Simulate async work
                 viewModelScope.launch {
-                    // TODO: Replace with actual use case
-                    try {
-                        // Simulate delay
-                        Thread.sleep(1000)
-                        _state.update { it.copy(
-                            isAdding = false,
-                            errorMessage = ""
-                        )}
-                        // TODO: Emit success event if needed
-                    } catch (e: Exception) {
-                        _state.update { it.copy(
-                            isAdding = false,
-                            addError = "Ошибка: ${e.message}"
-                        )}
-                    }
+                    _events.emit(AssetsScreenEvent.NavigateToAddAsset)
                 }
             }
         }

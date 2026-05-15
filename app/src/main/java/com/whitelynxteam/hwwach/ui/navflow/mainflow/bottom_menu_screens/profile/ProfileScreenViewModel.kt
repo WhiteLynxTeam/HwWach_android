@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ProfileViewModel @Inject constructor(
+class ProfileScreenViewModel @Inject constructor(
     private val userProfileRepository: IUserProfileRepository,
     private val tokensRepository: ITokensRepository
 ) : ViewModel() {

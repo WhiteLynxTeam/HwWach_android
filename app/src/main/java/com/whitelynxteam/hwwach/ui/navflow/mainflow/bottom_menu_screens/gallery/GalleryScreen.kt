@@ -1,4 +1,4 @@
-package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add
+package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.gallery
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -52,9 +52,9 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddScreen(
-    state: AddScreenState,
-    onAction: (AddScreenAction) -> Unit,
+fun GalleryScreen(
+    state: GalleryScreenState,
+    onAction: (GalleryScreenAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showSourceSheet by rememberSaveable { mutableStateOf(false) }
@@ -63,14 +63,14 @@ fun AddScreen(
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
     ) { uris ->
-        uris.forEach { uri -> onAction(AddScreenAction.AddImage(uri.toString())) }
+        uris.forEach { uri -> onAction(GalleryScreenAction.AddImage(uri.toString())) }
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
-            tempCameraUriString?.let { onAction(AddScreenAction.AddImage(it)) }
+            tempCameraUriString?.let { onAction(GalleryScreenAction.AddImage(it)) }
         }
     }
 
@@ -78,15 +78,15 @@ fun AddScreen(
     val sheetState = rememberModalBottomSheetState()
 
     val localOnAction = remember(onAction) {
-        { action: AddScreenAction ->
+        { action: GalleryScreenAction ->
             when (action) {
-                AddScreenAction.ShowSourceSelector -> showSourceSheet = true
-                AddScreenAction.OpenGallery -> {
+                GalleryScreenAction.ShowSourceSelector -> showSourceSheet = true
+                GalleryScreenAction.OpenGallery -> {
                     photoPickerLauncher.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
                 }
-                AddScreenAction.OpenCamera -> {
+                GalleryScreenAction.OpenCamera -> {
                     val photoFile = File(
                         context.externalCacheDir,
                         "HW_watch_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(System.currentTimeMillis())}.jpg"
@@ -116,72 +116,61 @@ fun AddScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            AddScreenTabs(
-                selectedMode = state.currentMode,
-                onTabSelected = { mode -> onAction(AddScreenAction.SwitchMode(mode)) }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (state.currentMode is AddScreenTab.List) {
-                AddForm(state = state, onAction = onAction)
-            }
-
-            if (state.currentMode is AddScreenTab.Gallery) {
-                if (state.canUpload || state.isUploading || state.isServerSyncing) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            if (state.canUpload || state.isUploading || state.isServerSyncing) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = { onAction(GalleryScreenAction.SyncPendingPhotos) },
+                        enabled = !state.isUploading && !state.isServerSyncing,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        )
                     ) {
-                        Button(
-                            onClick = { onAction(AddScreenAction.SyncPendingPhotos) },
-                            enabled = !state.isUploading && !state.isServerSyncing,
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                            )
-                        ) {
-                            if (state.isUploading || state.isServerSyncing) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    strokeWidth = 2.dp,
-                                    color = Color.White
-                                )
-                            }
-                            Text(
-                                when {
-                                    state.isServerSyncing -> "Синхронизация..."
-                                    state.isUploading -> "Отправка..."
-                                    else -> "Отправить фото"
-                                }
+                        if (state.isUploading || state.isServerSyncing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = Color.White
                             )
                         }
-
-                        if (state.isUploading) {
-                            TextButton(
-                                onClick = { onAction(AddScreenAction.CancelSync) },
-                            ) {
-                                Text("Отмена", color = MaterialTheme.colorScheme.error)
+                        Text(
+                            when {
+                                state.isServerSyncing -> "Синхронизация..."
+                                state.isUploading -> "Отправка..."
+                                else -> "Отправить фото"
                             }
+                        )
+                    }
+
+                    if (state.isUploading) {
+                        TextButton(
+                            onClick = { onAction(GalleryScreenAction.CancelSync) },
+                        ) {
+                            Text("Отмена", color = MaterialTheme.colorScheme.error)
                         }
                     }
                 }
+            }
 
-                if (state.uploadError.isNotEmpty()) {
-                    Text(
-                        text = state.uploadError,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-
-                ImageGallery(
-                    photos = state.photos,
-                    onAction = localOnAction,
-                    enabled = !state.isUploading && !state.isServerSyncing
+            if (state.uploadError.isNotEmpty()) {
+                Text(
+                    text = state.uploadError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
+
+            ImageGallery(
+                photos = state.photos,
+                onImageClick = {id -> localOnAction(GalleryScreenAction.OpenFullImage(id))},
+                onDeleteClick = {photo -> localOnAction(GalleryScreenAction.RemovePhoto(photo))},
+                showSourceSelector = { localOnAction(GalleryScreenAction.ShowSourceSelector)},
+                enabled = !state.isUploading && !state.isServerSyncing
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -219,7 +208,7 @@ fun AddScreen(
                     modifier = Modifier
                         .clickable {
                             showSourceSheet = false
-                            localOnAction(AddScreenAction.OpenCamera)
+                            localOnAction(GalleryScreenAction.OpenCamera)
                         }
                         .padding(horizontal = 12.dp)
                 )
@@ -230,7 +219,7 @@ fun AddScreen(
                     modifier = Modifier
                         .clickable {
                             showSourceSheet = false
-                            localOnAction(AddScreenAction.OpenGallery)
+                            localOnAction(GalleryScreenAction.OpenGallery)
                         }
                         .padding(horizontal = 12.dp)
                 )
@@ -242,8 +231,8 @@ fun AddScreen(
 @Preview(showBackground = true)
 @Composable
 private fun AddScreenPreview() {
-    AddScreen(
-        state = AddScreenState(),
+    GalleryScreen(
+        state = GalleryScreenState(),
         onAction = {}
     )
 }

@@ -16,6 +16,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.whitelynxteam.hwwach.ui.FlowNavigation
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.addasset.AddAssetScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.addasset.AddAssetScreenEvent
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.addasset.AddAssetScreenViewModel
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.fullimage.FullImageScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.fullimage.FullImageScreenEvent
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.fullimage.FullImageScreenViewModel
@@ -33,12 +36,17 @@ class MainFlowNavigation(
 
     override fun addFlow(builder: NavGraphBuilder) {
         with(builder) {
+
+            // ===== MAIN =====
             composable(Routes.MainScreen.route) {
                 val innerMainNavController = rememberNavController()
                 val innerMainFlowNavigation = InnerMainFlowNavigation(
                     navController = innerMainNavController,
                     onNavigateToFullImage = { clientId ->
                         navController.navigate("MainFlowNavigator.FullImageScreen/$clientId")
+                    },
+                    onNavigateToAddAsset = {
+                        navController.navigate("MainFlowNavigator.AddAssetScreen")
                     },
                     onLogout = {
                         navController.navigate("StartFlowNavigator.AuthScreen") {
@@ -73,7 +81,37 @@ class MainFlowNavigation(
                 )
             }
 
-            // Добавляем новый маршрут для FullImageScreen
+            // ===== Добавление нового актива в инвентаризацию =====
+            composable(Routes.AddAssetScreen.route) {
+                val viewModel = hiltViewModel<AddAssetScreenViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                AddAssetScreenEvent.NavigateBack -> {
+                                    navController.popBackStack()
+                                }
+                                is AddAssetScreenEvent.NavigateToFullImage -> {
+                                    navController.navigate("MainFlowNavigator.FullImageScreen/${event.clientId}")
+                                }
+                                else -> {}
+                            }
+                        }
+                    }
+                }
+
+                AddAssetScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    onAction = viewModel::handleAction,
+                )
+            }
+
+            // ===== Полноэкранный показ картинки =====
             composable(
                 route = Routes.FullImageScreen.route,
                 arguments = listOf(navArgument("clientId") { type = NavType.StringType })
@@ -106,6 +144,7 @@ class MainFlowNavigation(
 
     sealed class Routes(val route: String) {
         data object MainScreen : Routes(route = "MainFlowNavigator.MainScreen")
+        data object AddAssetScreen : Routes(route = "MainFlowNavigator.AddAssetScreen")
         data object FullImageScreen : Routes(route = "MainFlowNavigator.FullImageScreen/{clientId}")
     }
 }

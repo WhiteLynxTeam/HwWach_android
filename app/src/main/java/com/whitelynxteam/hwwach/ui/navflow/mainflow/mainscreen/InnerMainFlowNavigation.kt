@@ -14,23 +14,24 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.whitelynxteam.hwwach.R
 import com.whitelynxteam.hwwach.ui.FlowNavigation
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddScreen
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddScreenEvent
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add.AddScreenViewModel
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.assets.AssetsScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.assets.AssetsScreenEvent
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.assets.AssetsScreenViewModel
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.gallery.GalleryScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.gallery.GalleryScreenEvent
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.gallery.GalleryScreenViewModel
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.loading.LoadingScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.profile.ProfileEvent
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.profile.ProfileScreen
-import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.profile.ProfileViewModel
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.profile.ProfileScreenViewModel
 
 class InnerMainFlowNavigation(
     val navController: NavHostController,
     private val onNavigateToFullImage: (String) -> Unit,
+    private val onNavigateToAddAsset: () -> Unit,
     private val onLogout: () -> Unit,
     onFinished: (routeName: String) -> Unit
-): FlowNavigation(onFinished) {
+) : FlowNavigation(onFinished) {
     override val startRoute: String
         get() = Routes.LoadingScreen.route
 
@@ -42,8 +43,8 @@ class InnerMainFlowNavigation(
                     modifier = Modifier.fillMaxSize(),
                 )
             }
-            composable(Routes.AddScreen.route) {
-                val viewModel = hiltViewModel<AddScreenViewModel>()
+            composable(Routes.GalleryScreen.route) {
+                val viewModel = hiltViewModel<GalleryScreenViewModel>()
                 val state by viewModel.state.collectAsStateWithLifecycle()
 
                 LaunchedEffect(Unit) {
@@ -56,18 +57,15 @@ class InnerMainFlowNavigation(
                     lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                         viewModel.events.collect { event ->
                             when (event) {
-                                AddScreenEvent.NavigateBack -> {
-                                    navController.popBackStack()
-                                }
-
-                                is AddScreenEvent.ShowErrorMessage -> {
+                                is GalleryScreenEvent.ShowErrorMessage -> {
                                     // Обработка ошибки
                                 }
 
-                                AddScreenEvent.ShowSuccessMessage -> {
+                                GalleryScreenEvent.ShowSuccessMessage -> {
                                     // Обработка успеха
                                 }
-                                is AddScreenEvent.NavigateToFullImage -> {
+
+                                is GalleryScreenEvent.NavigateToFullImage -> {
                                     onNavigateToFullImage(event.clientId)
                                 }
                             }
@@ -75,7 +73,7 @@ class InnerMainFlowNavigation(
                     }
                 }
 
-                AddScreen(
+                GalleryScreen(
                     modifier = Modifier.fillMaxSize(),
                     state = state,
                     onAction = viewModel::handleAction
@@ -91,9 +89,11 @@ class InnerMainFlowNavigation(
                     lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                         viewModel.events.collect { event ->
                             when (event) {
-                                AssetsScreenEvent.NavigateBack -> TODO()
                                 is AssetsScreenEvent.ShowErrorMessage -> TODO()
                                 AssetsScreenEvent.ShowSuccessMessage -> TODO()
+                                AssetsScreenEvent.NavigateToAddAsset -> {
+                                    onNavigateToAddAsset()
+                                }
                             }
                         }
                     }
@@ -105,8 +105,9 @@ class InnerMainFlowNavigation(
                     onAction = viewModel::handleAction
                 )
             }
+
             composable(Routes.ProfileScreen.route) {
-                val viewModel = hiltViewModel<ProfileViewModel>()
+                val viewModel = hiltViewModel<ProfileScreenViewModel>()
                 val state by viewModel.state.collectAsStateWithLifecycle()
                 val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -117,6 +118,7 @@ class InnerMainFlowNavigation(
                                 is ProfileEvent.NavigateToChangePassword -> {
                                     // Navigate to change password screen
                                 }
+
                                 is ProfileEvent.NavigateToLogin -> {
                                     onLogout()
                                 }
@@ -131,7 +133,7 @@ class InnerMainFlowNavigation(
                     onAction = viewModel::handleAction
                 )
             }
-                    }
+        }
     }
 
     fun navigateToRoute(route: String) {
@@ -166,8 +168,8 @@ class InnerMainFlowNavigation(
         )
 
         // 3. Остальные — и Route, и BottomMenuDestination
-        data object AddScreen : Routes(
-            route = "InnerMainFlowNavigation.AddScreen"
+        data object GalleryScreen : Routes(
+            route = "InnerMainFlowNavigation.GalleryScreen"
         ), BottomMenuDestination {
             override val iconActive = R.drawable.ic_add_selected
             override val iconInactive = R.drawable.ic_add_unselected
@@ -190,7 +192,7 @@ class InnerMainFlowNavigation(
             override val label = "Кабинет"
         }
 
-        
+
         companion object {
             //Использовать val с ленивой инициализацией (by lazy),
             // чтобы доступ к объектам в списке происходил после полной инициализации всех объектов.
@@ -205,7 +207,7 @@ class InnerMainFlowNavigation(
             val menuRoutes: List<BottomMenuDestination> by lazy {
                 listOf(
                     AssetsScreen,
-                    AddScreen,
+                    GalleryScreen,
                     ProfileScreen,
                 )
             }

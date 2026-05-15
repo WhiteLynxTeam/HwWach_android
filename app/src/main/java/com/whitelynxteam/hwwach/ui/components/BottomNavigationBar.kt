@@ -1,4 +1,4 @@
-package com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen
+package com.whitelynxteam.hwwach.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Icon
@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.InnerMainFlowNavigation
 import com.whitelynxteam.hwwach.ui.theme.Gray250
 
 @Composable

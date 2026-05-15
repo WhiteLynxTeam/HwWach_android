@@ -7,11 +7,10 @@ sealed class AssetsScreenAction {
 sealed class AssetsScreenEvent {
     data object ShowSuccessMessage : AssetsScreenEvent()
     data class ShowErrorMessage(val message: String) : AssetsScreenEvent()
-    data object NavigateBack : AssetsScreenEvent()
+    data object NavigateToAddAsset : AssetsScreenEvent()
+
 }
 
 data class AssetsScreenState(
     val errorMessage: String = "",
-    val isAdding: Boolean = false,
-    val addError: String = ""
 )

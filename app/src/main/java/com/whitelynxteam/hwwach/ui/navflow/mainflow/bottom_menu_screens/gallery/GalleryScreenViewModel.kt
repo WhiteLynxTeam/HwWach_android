@@ -1,21 +1,21 @@
-package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.add
+package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.gallery
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.whitelynxteam.hwwach.domain.models.Photo
 import com.whitelynxteam.hwwach.domain.models.PhotoUploadStatusEnum
 import com.whitelynxteam.hwwach.domain.usecases.DeletePhotoUseCase
 import com.whitelynxteam.hwwach.domain.usecases.GetAllPhotosUseCase
-import com.whitelynxteam.hwwach.domain.usecases.SyncPhotosUseCase
-import com.whitelynxteam.hwwach.domain.usecases.SavePhotoUseCase
-import com.whitelynxteam.hwwach.domain.usecases.SyncPendingPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.GetLastSyncTimeUseCase
 import com.whitelynxteam.hwwach.domain.usecases.ResetStuckUploadsUseCase
 import com.whitelynxteam.hwwach.domain.usecases.ResumeUploadedPhotosUseCase
 import com.whitelynxteam.hwwach.domain.usecases.RetrySyncFailedPhotosUseCase
-import com.whitelynxteam.hwwach.domain.usecases.GetLastSyncTimeUseCase
 import com.whitelynxteam.hwwach.domain.usecases.SaveLastSyncTimeUseCase
+import com.whitelynxteam.hwwach.domain.usecases.SavePhotoUseCase
+import com.whitelynxteam.hwwach.domain.usecases.SyncPendingPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.SyncPhotosUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -23,18 +23,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
-class AddScreenViewModel @Inject constructor(
+class GalleryScreenViewModel @Inject constructor(
     private val getAllPhotosUseCase: GetAllPhotosUseCase,
     private val getLastSyncTimeUseCase: GetLastSyncTimeUseCase,
     private val saveLastSyncTimeUseCase: SaveLastSyncTimeUseCase,
@@ -47,15 +46,15 @@ class AddScreenViewModel @Inject constructor(
     private val retrySyncFailedPhotosUseCase: RetrySyncFailedPhotosUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(AddScreenState())
-    val state: StateFlow<AddScreenState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(GalleryScreenState())
+    val state: StateFlow<GalleryScreenState> = _state.asStateFlow()
 
     private var syncJob: Job? = null
 
     private val MIN_SYNC_INTERVAL_MS = 5 * 60 * 1000L // 5 минут
 
-    private val _events = MutableSharedFlow<AddScreenEvent>()
-    val events: SharedFlow<AddScreenEvent> = _events.asSharedFlow()
+    private val _events = MutableSharedFlow<GalleryScreenEvent>()
+    val events: SharedFlow<GalleryScreenEvent> = _events.asSharedFlow()
 
     init {
         getAllPhotosUseCase()
@@ -124,27 +123,9 @@ class AddScreenViewModel @Inject constructor(
         }
     }
 
-    fun handleAction(action: AddScreenAction) {
+    fun handleAction(action: GalleryScreenAction) {
         when (action) {
-            is AddScreenAction.SwitchMode -> {
-                _state.update { it.copy(currentMode = action.mode) }
-            }
-            is AddScreenAction.InputName -> {
-                _state.update { it.copy(name = action.value) }
-            }
-            is AddScreenAction.InputCategory -> {
-                _state.update { it.copy(category = action.value) }
-            }
-            is AddScreenAction.InputInventoryNumber -> {
-                _state.update { it.copy(inventoryNumber = action.value) }
-            }
-            is AddScreenAction.InputAddress -> {
-                _state.update { it.copy(address = action.value) }
-            }
-            is AddScreenAction.InputComment -> {
-                _state.update { it.copy(comment = action.value) }
-            }
-            is AddScreenAction.AddImage -> {
+            is GalleryScreenAction.AddImage -> {
                 viewModelScope.launch {
                     val photo = Photo(
                         clientId = UUID.randomUUID().toString(),
@@ -157,21 +138,21 @@ class AddScreenViewModel @Inject constructor(
                     savePhotoUseCase(photo)
                 }
             }
-            is AddScreenAction.RemovePhoto -> {
+            is GalleryScreenAction.RemovePhoto -> {
                 viewModelScope.launch {
                     deletePhotoUseCase(action.photo.clientId)
                 }
             }
-            is AddScreenAction.OpenFullImage -> {
+            is GalleryScreenAction.OpenFullImage -> {
                 viewModelScope.launch {
-                    _events.emit(AddScreenEvent.NavigateToFullImage(action.clientId))
+                    _events.emit(GalleryScreenEvent.NavigateToFullImage(action.clientId))
                 }
             }
-            is AddScreenAction.OnSubmitClicked -> {
+            is GalleryScreenAction.OnSubmitClicked -> {
                 validateAndSubmit()
             }
 
-            AddScreenAction.SyncPendingPhotos -> {
+            GalleryScreenAction.SyncPendingPhotos -> {
                 syncJob = viewModelScope.launch {
                     _state.update { it.copy(isUploading = true, uploadError = "") }
                     try {
@@ -185,17 +166,17 @@ class AddScreenViewModel @Inject constructor(
                 }
             }
 
-            AddScreenAction.CancelSync -> {
+            GalleryScreenAction.CancelSync -> {
                 syncJob?.cancel()
                 syncJob = null
                 _state.update { it.copy(isUploading = false) }
             }
 
-            is AddScreenAction.FilterByStatus -> {
+            is GalleryScreenAction.FilterByStatus -> {
                 _state.update { it.copy(statusFilter = action.status) }
             }
 
-            // Действия ShowSourceSelector, OpenGallery и OpenCamera перехватываются локально в AddScreen.kt
+            // Действия ShowSourceSelector, OpenGallery и OpenCamera перехватываются локально в GalleryScreen.kt
             // через localOnAction и никогда не доходят до ViewModel (требуют доступа к ActivityResultLaunchers)
             else -> { }
         }
@@ -204,17 +185,13 @@ class AddScreenViewModel @Inject constructor(
     private fun validateAndSubmit() {
         viewModelScope.launch {
             val currentState = _state.value
-            if (currentState.name.isBlank()) {
-                _state.update { it.copy(errorMessage = "Название обязательно") }
-                return@launch
-            }
             if (currentState.photos.isEmpty()) {
                 _state.update { it.copy(errorMessage = "Добавьте хотя бы одно фото") }
                 return@launch
             }
 
-            _events.emit(AddScreenEvent.ShowSuccessMessage)
-            _events.emit(AddScreenEvent.NavigateBack)
+            _events.emit(GalleryScreenEvent.ShowSuccessMessage)
+//            _events.emit(GalleryScreenEvent.NavigateBack)
         }
     }
 }

@@ -27,12 +27,12 @@ com.whitelynxteam.hwwach
 │   │
 │   ├── local/                    # Локальное хранилище (Room + DataStore)
 │   │   ├── dao/
-│   │   │   ├── DeviceDao.kt
-│   │   │   ├── DevicePhotoCrossRefDao.kt
+│   │   │   ├── AssetDao.kt
+│   │   │   ├── AssetPhotoCrossRefDao.kt
 │   │   │   └── PhotoDao.kt
 │   │   ├── entity/
-│   │   │   ├── DeviceEntity.kt
-│   │   │   ├── DevicePhotoCrossRef.kt
+│   │   │   ├── AssetEntity.kt
+│   │   │   ├── AssetPhotoCrossRef.kt
 │   │   │   └── PhotoEntity.kt
 │   │   ├── model/
 │   │   │   └── Token.kt
@@ -61,8 +61,8 @@ com.whitelynxteam.hwwach
 │   │           └── UserResponseDto.kt
 │   │
 │   ├── mappers/                  # Мапперы DTO ↔ Domain ↔ Entity (11 файлов)
-│   │   ├── DeviceDomainToEntityMapper.kt
-│   │   ├── DeviceEntityToDomainMapper.kt
+│   │   ├── AssetDomainToEntityMapper.kt
+│   │   ├── AssetEntityToDomainMapper.kt
 │   │   ├── PhotoDomainToEntityMapper.kt
 │   │   ├── PhotoDtoToDomainMapper.kt
 │   │   ├── PhotoEntityToDomainMapper.kt
@@ -74,7 +74,7 @@ com.whitelynxteam.hwwach
 │   │   └── UserDomainToRegUserRequestMapper.kt
 │   │
 │   └── repositories/             # Реализации репозиториев (5 файлов)
-│       ├── DeviceRepositoryImpl.kt
+│       ├── AssetRepositoryImpl.kt
 │       ├── PhotoRepositoryImpl.kt
 │       ├── TokenRepositoryImpl.kt
 │       ├── UserProfileRepositoryImpl.kt
@@ -85,15 +85,15 @@ com.whitelynxteam.hwwach
 │   ├── DomainResult.kt           # Обёртка результата операций
 │   │
 │   ├── irepositories/            # Интерфейсы репозиториев (5 файлов)
-│   │   ├── IDeviceRepository.kt
+│   │   ├── IAssetRepository.kt
 │   │   ├── IPhotoRepository.kt
 │   │   ├── ITokensRepository.kt
 │   │   ├── IUserProfileRepository.kt
 │   │   └── IUserRepository.kt
 │   │
 │   ├── models/                   # Доменные модели (9 файлов)
-│   │   ├── Device.kt
-│   │   ├── DeviceUploadStatusEnum.kt
+│   │   ├── Asset.kt
+│   │   ├── AssetUploadStatusEnum.kt
 │   │   ├── MainDestinationEnum.kt
 │   │   ├── Photo.kt
 │   │   ├── PhotoUploadStatusEnum.kt
@@ -107,7 +107,7 @@ com.whitelynxteam.hwwach
 │       ├── CheckRegistrationUseCase.kt
 │       ├── DeletePhotoUseCase.kt
 │       ├── GetAllPhotosUseCase.kt
-│       ├── GetDevicesUseCase.kt
+│       ├── GetAssetsUseCase.kt
 │       ├── GetStartMainScreenDestinationUseCase.kt
 │       ├── GetUserInfoUseCase.kt
 │       ├── LoginWithProfileUseCase.kt
@@ -159,17 +159,12 @@ com.whitelynxteam.hwwach
 │   │       │   ├── BottomNavigationBar.kt
 │   │       │   └── InnerMainFlowNavigation.kt
 │   │       └── bottom_menu_screens/
-│   │           ├── add/
-│   │           │   ├── AddScreen.kt
-│   │           │   ├── AddScreenContract.kt
-│   │           │   ├── AddScreenViewModel.kt
-│   │           │   ├── AddForm.kt
-│   │           │   ├── AddScreenTab.kt
-│   │           │   ├── AddScreenTabs.kt
-│   │           │   ├── Categories.kt
-│   │           │   └── ImageGallery.kt
-│   │           ├── appliances/
-│   │           │   └── AppliancesScreen.kt
+│   │           ├── assets/
+│   │           │   ├── AssetsScreen.kt
+│   │           │   ├── AssetsScreenContract.kt
+│   │           │   └── AssetsScreenViewModel.kt
+│   │           ├── gallery/
+│   │           │   └── GalleryScreen.kt (и др.)
 │   │           ├── loading/
 │   │           │   └── LoadingScreen.kt
 │   │           └── profile/
@@ -217,13 +212,13 @@ UI → Domain → Data
 ### Навигация
 - **StartFlow** — авторизация и регистрация (AuthScreen, RegScreen)
 - **MainFlow** — главный экран с Bottom Navigation:
-  - **Add** — форма добавления данных с табами, категориями, галереей
-  - **Appliances** — экран устройств
+  - **Assets** — экран реестра активов
+  - **Gallery** — экран галереи фото
   - **Loading** — экран загрузки
   - **Profile** — экран профиля
 
 ### Хранение данных
-- **Room**: устройства (DeviceEntity), фото (PhotoEntity), связь многие-ко-многим (DevicePhotoCrossRef)
+- **Room**: активы (AssetEntity), фото (PhotoEntity), связь многие-ко-многим (AssetPhotoCrossRef)
 - **DataStore**: токены (Token)
 
 ### Сетевые API

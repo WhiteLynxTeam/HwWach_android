@@ -1,12 +1,12 @@
 package com.whitelynxteam.hwwach.di
 
-import com.whitelynxteam.hwwach.data.repositories.DeviceRepositoryImpl
+import com.whitelynxteam.hwwach.data.repositories.AssetRepositoryImpl
 import com.whitelynxteam.hwwach.data.repositories.PhotoRepositoryImpl
 import com.whitelynxteam.hwwach.data.repositories.SettingsRepositoryImpl
 import com.whitelynxteam.hwwach.data.repositories.TokenRepositoryImpl
 import com.whitelynxteam.hwwach.data.repositories.UserProfileRepositoryImpl
 import com.whitelynxteam.hwwach.data.repositories.UserRepositoryImpl
-import com.whitelynxteam.hwwach.domain.irepositories.IDeviceRepository
+import com.whitelynxteam.hwwach.domain.irepositories.IAssetRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IPhotoRepository
 import com.whitelynxteam.hwwach.domain.irepositories.ISettingsRepository
 import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
@@ -48,9 +48,9 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindDeviceRepository(
-        deviceRepositoryImpl: DeviceRepositoryImpl
-    ): IDeviceRepository
+    abstract fun bindAssetRepository(
+        assetRepositoryImpl: AssetRepositoryImpl
+    ): IAssetRepository
 
     @Binds
     @Singleton

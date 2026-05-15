@@ -1,12 +1,12 @@
 package com.whitelynxteam.hwwach.data.mappers
 
-import com.whitelynxteam.hwwach.data.local.entity.DeviceEntity
-import com.whitelynxteam.hwwach.domain.models.Device
+import com.whitelynxteam.hwwach.data.local.entity.AssetEntity
+import com.whitelynxteam.hwwach.domain.models.Asset
 import javax.inject.Inject
 
-class DeviceEntityToDomainMapper @Inject constructor() {
-    fun map(entity: DeviceEntity): Device {
-        return Device(
+class AssetEntityToDomainMapper @Inject constructor() {
+    fun map(entity: AssetEntity): Asset {
+        return Asset(
             clientId = entity.clientId,
             serverUuid = entity.serverUuid,
             name = entity.name,

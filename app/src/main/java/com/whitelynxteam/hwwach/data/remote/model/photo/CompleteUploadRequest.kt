@@ -6,6 +6,6 @@ data class CompleteUploadRequest(
     @SerializedName("photo_uuid")
     val photoUuid: String,
 
-    @SerializedName("device_id")
-    val deviceId: String? = null,
+    @SerializedName("asset_id")
+    val assetId: String? = null,
 )

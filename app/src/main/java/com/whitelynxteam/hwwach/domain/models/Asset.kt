@@ -1,6 +1,6 @@
 package com.whitelynxteam.hwwach.domain.models
 
-data class Device(
+data class Asset(
     val clientId: String, // UUID v7
     val serverUuid: String?,
 
@@ -11,14 +11,14 @@ data class Device(
 
     // Технические поля
     val localCreatedAt: Long,
-    val status: DeviceUploadStatusEnum,
+    val status: AssetUploadStatusEnum,
 
     // Поле для отслеживания локальных изменений
     val lastUpdatedLocally: Long
 ) {
-    // Бизнес-свойство: синхронизировано ли устройство?
+    // Бизнес-свойство: синхронизирован ли актив?
     val isSyncedToServer: Boolean get() = serverUuid != null
 
-    // Бизнес-свойство: можем ли мы работать с этим устройством через API?
+    // Бизнес-свойство: можем ли мы работать с этим активом через API?
     val isRemoteReady: Boolean get() = isSyncedToServer
 }

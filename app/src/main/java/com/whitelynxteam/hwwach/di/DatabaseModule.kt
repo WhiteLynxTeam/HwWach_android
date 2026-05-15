@@ -3,8 +3,8 @@ package com.whitelynxteam.hwwach.di
 import android.content.Context
 import androidx.room.Room
 import com.whitelynxteam.hwwach.data.local.AppDatabase
-import com.whitelynxteam.hwwach.data.local.dao.DeviceDao
-import com.whitelynxteam.hwwach.data.local.dao.DevicePhotoCrossRefDao
+import com.whitelynxteam.hwwach.data.local.dao.AssetDao
+import com.whitelynxteam.hwwach.data.local.dao.AssetPhotoCrossRefDao
 import com.whitelynxteam.hwwach.data.local.dao.PhotoDao
 import dagger.Module
 import dagger.Provides
@@ -26,7 +26,8 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "hwwach_db"
-        ).build()
+        )
+            .build()
     }
 
     @Provides
@@ -37,13 +38,13 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideDeviceDao(database: AppDatabase): DeviceDao {
-        return database.deviceDao()
+    fun provideAssetDao(database: AppDatabase): AssetDao {
+        return database.assetDao()
     }
 
     @Provides
     @Singleton
-    fun provideDevicePhotoCrossRefDao(database: AppDatabase): DevicePhotoCrossRefDao {
-        return database.devicePhotoCrossRefDao()
+    fun provideAssetPhotoCrossRefDao(database: AppDatabase): AssetPhotoCrossRefDao {
+        return database.assetPhotoCrossRefDao()
     }
 }

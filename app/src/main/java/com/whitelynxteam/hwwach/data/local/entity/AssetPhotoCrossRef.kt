@@ -5,13 +5,13 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 
 @Entity(
-    tableName = "device_photo_cross_ref",
-    primaryKeys = ["deviceClientId", "photoClientId"],
+    tableName = "asset_photo_cross_ref",
+    primaryKeys = ["assetClientId", "photoClientId"],
     foreignKeys = [
         ForeignKey(
-            entity = DeviceEntity::class,
+            entity = AssetEntity::class,
             parentColumns = ["clientId"],
-            childColumns = ["deviceClientId"],
+            childColumns = ["assetClientId"],
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
@@ -22,12 +22,12 @@ import androidx.room.Index
         )
     ],
     indices = [
-        Index(value = ["deviceClientId"]),
+        Index(value = ["assetClientId"]),
         Index(value = ["photoClientId"])
     ]
 )
-data class DevicePhotoCrossRef(
-    val deviceClientId: String,
+data class AssetPhotoCrossRef(
+    val assetClientId: String,
     val photoClientId: String,
     val status: String = "PENDING",
 )

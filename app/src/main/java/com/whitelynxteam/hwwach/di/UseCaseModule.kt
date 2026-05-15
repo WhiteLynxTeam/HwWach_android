@@ -1,6 +1,6 @@
 package com.whitelynxteam.hwwach.di
 
-import com.whitelynxteam.hwwach.domain.irepositories.IDeviceRepository
+import com.whitelynxteam.hwwach.domain.irepositories.IAssetRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IPhotoRepository
 import com.whitelynxteam.hwwach.domain.irepositories.ISettingsRepository
 import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
@@ -8,7 +8,7 @@ import com.whitelynxteam.hwwach.domain.irepositories.IUserProfileRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IUserRepository
 import com.whitelynxteam.hwwach.domain.usecases.AuthApiUseCase
 import com.whitelynxteam.hwwach.domain.usecases.CheckRegistrationUseCase
-import com.whitelynxteam.hwwach.domain.usecases.GetDevicesUseCase
+import com.whitelynxteam.hwwach.domain.usecases.GetAssetsUseCase
 import com.whitelynxteam.hwwach.domain.usecases.DeletePhotoUseCase
 import com.whitelynxteam.hwwach.domain.usecases.GetAllPhotosUseCase
 import com.whitelynxteam.hwwach.domain.usecases.SyncPhotosUseCase
@@ -137,18 +137,18 @@ object UseCaseModule {
 
     @Provides
     @Singleton
-    fun provideGetDevicesUseCase(
-        deviceRepository: IDeviceRepository
-    ): GetDevicesUseCase {
-        return GetDevicesUseCase(deviceRepository)
+    fun provideGetAssetsUseCase(
+        assetRepository: IAssetRepository
+    ): GetAssetsUseCase {
+        return GetAssetsUseCase(assetRepository)
     }
 
     @Provides
     @Singleton
     fun provideGetStartMainScreenDestinationUseCase(
-        deviceRepository: IDeviceRepository
+        assetRepository: IAssetRepository
     ): GetStartMainScreenDestinationUseCase {
-        return GetStartMainScreenDestinationUseCase(deviceRepository)
+        return GetStartMainScreenDestinationUseCase(assetRepository)
     }
 
     @Provides

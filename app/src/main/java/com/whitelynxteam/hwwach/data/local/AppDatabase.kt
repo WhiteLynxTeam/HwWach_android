@@ -11,7 +11,7 @@ import com.whitelynxteam.hwwach.data.local.entity.PhotoEntity
 
 @Database(
     entities = [PhotoEntity::class, AssetEntity::class, AssetPhotoCrossRef::class],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

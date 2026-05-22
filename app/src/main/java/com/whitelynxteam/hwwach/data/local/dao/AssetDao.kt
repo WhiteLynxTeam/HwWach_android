@@ -30,4 +30,7 @@ interface AssetDao {
 
     @Query("DELETE FROM assets WHERE clientId = :clientId")
     suspend fun deleteAssetByClientId(clientId: String)
+
+    @Query("UPDATE assets SET status = :status WHERE clientId = :clientId")
+    suspend fun updateAssetStatus(clientId: String, status: String)
 }

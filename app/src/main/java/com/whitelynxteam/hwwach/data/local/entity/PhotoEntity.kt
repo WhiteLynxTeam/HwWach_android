@@ -2,7 +2,7 @@ package com.whitelynxteam.hwwach.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.whitelynxteam.hwwach.domain.models.PhotoUploadStatusEnum
+import com.whitelynxteam.hwwach.domain.models.UploadStatusEnum
 
 @Entity(tableName = "photos")
 data class PhotoEntity(
@@ -14,7 +14,7 @@ data class PhotoEntity(
 
     val localCreatedAt: Long,
     val remoteCreatedAt: Long? = null,
-    val status: PhotoUploadStatusEnum = PhotoUploadStatusEnum.PENDING,
+    val status: UploadStatusEnum = UploadStatusEnum.PENDING,
 
     val errorMessage: String? = null
 )

@@ -19,6 +19,7 @@ sealed class AddAssetScreenAction {
 
     data class OpenFullImage(val clientId: String) : AddAssetScreenAction()
     data object NavigateBack : AddAssetScreenAction()
+    data object Submit : AddAssetScreenAction()
 }
 
 sealed class AddAssetScreenEvent {

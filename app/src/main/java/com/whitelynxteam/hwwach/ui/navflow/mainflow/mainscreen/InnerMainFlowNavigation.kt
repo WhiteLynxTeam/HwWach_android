@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import com.whitelynxteam.hwwach.R
 import com.whitelynxteam.hwwach.ui.FlowNavigation
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.assets.AssetsScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.assets.AssetsScreenAction
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.assets.AssetsScreenEvent
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.assets.AssetsScreenViewModel
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.gallery.GalleryScreen
@@ -29,6 +30,7 @@ class InnerMainFlowNavigation(
     val navController: NavHostController,
     private val onNavigateToFullImage: (String) -> Unit,
     private val onNavigateToAddAsset: () -> Unit,
+    private val onNavigateToAssetDetail: (String) -> Unit,
     private val onLogout: () -> Unit,
     onFinished: (routeName: String) -> Unit
 ) : FlowNavigation(onFinished) {
@@ -83,16 +85,24 @@ class InnerMainFlowNavigation(
             composable(Routes.AssetsScreen.route) {
                 val viewModel = hiltViewModel<AssetsScreenViewModel>()
                 val state by viewModel.state.collectAsStateWithLifecycle()
+                
+                LaunchedEffect(Unit) {
+                    viewModel.handleAction(AssetsScreenAction.LoadAssets)
+                }
+
                 val lifecycleOwner = LocalLifecycleOwner.current
 
                 LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
                     lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                         viewModel.events.collect { event ->
                             when (event) {
-                                is AssetsScreenEvent.ShowErrorMessage -> TODO()
-                                AssetsScreenEvent.ShowSuccessMessage -> TODO()
+                                is AssetsScreenEvent.ShowErrorMessage -> {}
+                                AssetsScreenEvent.ShowSuccessMessage -> {}
                                 AssetsScreenEvent.NavigateToAddAsset -> {
                                     onNavigateToAddAsset()
+                                }
+                                is AssetsScreenEvent.NavigateToAssetDetail -> {
+                                    onNavigateToAssetDetail(event.clientId)
                                 }
                             }
                         }

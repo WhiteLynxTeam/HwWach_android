@@ -2,10 +2,15 @@ package com.whitelynxteam.hwwach.ui.navflow.mainflow.addasset
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.whitelynxteam.hwwach.domain.models.Asset
+import com.whitelynxteam.hwwach.domain.models.AssetStatusEnum
+import com.whitelynxteam.hwwach.domain.models.ModerationStatusEnum
 import com.whitelynxteam.hwwach.domain.models.Photo
-import com.whitelynxteam.hwwach.domain.models.PhotoUploadStatusEnum
-import com.whitelynxteam.hwwach.domain.usecases.DeletePhotoUseCase
-import com.whitelynxteam.hwwach.domain.usecases.SavePhotoUseCase
+import com.whitelynxteam.hwwach.domain.models.UploadStatusEnum
+import com.whitelynxteam.hwwach.domain.usecases.asset.AddAssetUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.DeletePhotoUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.SavePhotoUseCase
+import com.whitelynxteam.hwwach.domain.DomainResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +26,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AddAssetScreenViewModel @Inject constructor(
     private val savePhotoUseCase: SavePhotoUseCase,
-    private val deletePhotoUseCase: DeletePhotoUseCase
+    private val deletePhotoUseCase: DeletePhotoUseCase,
+    private val addAssetUseCase: AddAssetUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddAssetScreenState())
@@ -53,7 +59,7 @@ class AddAssetScreenViewModel @Inject constructor(
                         clientId = UUID.randomUUID().toString(),
                         serverUuid = null,
                         localCreatedAt = System.currentTimeMillis(),
-                        status = PhotoUploadStatusEnum.PENDING,
+                        status = UploadStatusEnum.PENDING,
                         localPath = action.uri,
                         remoteUrl = null,
                     )
@@ -64,8 +70,8 @@ class AddAssetScreenViewModel @Inject constructor(
             is AddAssetScreenAction.RemovePhoto -> {
                 viewModelScope.launch {
                     deletePhotoUseCase(action.photo.clientId)
-                    _state.update { state -> 
-                        state.copy(photos = state.photos.filter { it.clientId != action.photo.clientId }) 
+                    _state.update { state ->
+                        state.copy(photos = state.photos.filter { it.clientId != action.photo.clientId })
                     }
                 }
             }
@@ -78,6 +84,9 @@ class AddAssetScreenViewModel @Inject constructor(
                 viewModelScope.launch {
                     _events.emit(AddAssetScreenEvent.NavigateBack)
                 }
+            }
+            is AddAssetScreenAction.Submit -> {
+                validateAndSubmit()
             }
 
             // Действия ShowSourceSelector, OpenGallery и OpenCamera перехватываются локально в AddAssetScreen.kt
@@ -97,9 +106,40 @@ class AddAssetScreenViewModel @Inject constructor(
                 _state.update { it.copy(errorMessage = "Добавьте хотя бы одно фото") }
                 return@launch
             }
+            val asset = Asset(
+                clientId = UUID.randomUUID().toString(),
+                serverUuid = null,
+                name = currentState.name,
+                category = currentState.category?.displayName,
+                inventoryNum = currentState.inventoryNumber,
+                description = currentState.comment,
+                assetStatus = AssetStatusEnum.ACTIVE,
+                moderationStatus = ModerationStatusEnum.PENDING,
+                status = UploadStatusEnum.UPLOADING,
+                adminComment = null,
+                createdAt = null,
+                updatedAt = null,
+                localCreatedAt = System.currentTimeMillis(),
+                lastUpdatedLocally = System.currentTimeMillis(),
+                photoClientIds = currentState.photos.map { it.clientId }
+            )
 
-            _events.emit(AddAssetScreenEvent.ShowSuccessMessage)
-            _events.emit(AddAssetScreenEvent.NavigateBack)
+            when (val result = addAssetUseCase(asset)) {
+                is DomainResult.Success -> {
+                    _events.emit(AddAssetScreenEvent.ShowSuccessMessage)
+                    kotlinx.coroutines.delay(1000)
+                    _events.emit(AddAssetScreenEvent.NavigateBack)
+                }
+                is DomainResult.NetworkError -> {
+                    _state.update { it.copy(errorMessage = result.message) }
+                }
+                is DomainResult.UnauthorizedError -> {
+                    _state.update { it.copy(errorMessage = "Ошибка авторизации") }
+                }
+                else -> {
+                    _state.update { it.copy(errorMessage = "Неизвестная ошибка") }
+                }
+            }
         }
     }
 }

@@ -2,7 +2,7 @@ package com.whitelynxteam.hwwach.ui.navflow.startflow.splashscreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.whitelynxteam.hwwach.domain.usecases.CheckAuthTokenUseCase
+import com.whitelynxteam.hwwach.domain.usecases.user.CheckAuthTokenUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow

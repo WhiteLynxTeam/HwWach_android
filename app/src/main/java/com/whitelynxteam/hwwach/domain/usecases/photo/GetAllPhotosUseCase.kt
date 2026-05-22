@@ -1,4 +1,4 @@
-package com.whitelynxteam.hwwach.domain.usecases
+package com.whitelynxteam.hwwach.domain.usecases.photo
 
 import com.whitelynxteam.hwwach.domain.irepositories.IPhotoRepository
 import com.whitelynxteam.hwwach.domain.models.Photo

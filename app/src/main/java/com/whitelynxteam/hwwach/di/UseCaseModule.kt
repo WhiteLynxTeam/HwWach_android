@@ -6,24 +6,25 @@ import com.whitelynxteam.hwwach.domain.irepositories.ISettingsRepository
 import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IUserProfileRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IUserRepository
-import com.whitelynxteam.hwwach.domain.usecases.AuthApiUseCase
-import com.whitelynxteam.hwwach.domain.usecases.CheckRegistrationUseCase
-import com.whitelynxteam.hwwach.domain.usecases.GetAssetsUseCase
-import com.whitelynxteam.hwwach.domain.usecases.DeletePhotoUseCase
-import com.whitelynxteam.hwwach.domain.usecases.GetAllPhotosUseCase
-import com.whitelynxteam.hwwach.domain.usecases.SyncPhotosUseCase
-import com.whitelynxteam.hwwach.domain.usecases.ResetStuckUploadsUseCase
-import com.whitelynxteam.hwwach.domain.usecases.ResumeUploadedPhotosUseCase
-import com.whitelynxteam.hwwach.domain.usecases.RetrySyncFailedPhotosUseCase
-import com.whitelynxteam.hwwach.domain.usecases.SavePhotoUseCase
-import com.whitelynxteam.hwwach.domain.usecases.SaveLastSyncTimeUseCase
-import com.whitelynxteam.hwwach.domain.usecases.SyncPendingPhotosUseCase
-import com.whitelynxteam.hwwach.domain.usecases.GetLastSyncTimeUseCase
-import com.whitelynxteam.hwwach.domain.usecases.GetStartMainScreenDestinationUseCase
-import com.whitelynxteam.hwwach.domain.usecases.GetUserInfoUseCase
-import com.whitelynxteam.hwwach.domain.usecases.LoginWithProfileUseCase
-import com.whitelynxteam.hwwach.domain.usecases.RegApiUseCase
-import com.whitelynxteam.hwwach.domain.usecases.CheckAuthTokenUseCase
+import com.whitelynxteam.hwwach.domain.usecases.asset.GetAssetsUseCase
+import com.whitelynxteam.hwwach.domain.usecases.asset.GetStartMainScreenDestinationUseCase
+import com.whitelynxteam.hwwach.domain.usecases.asset.AddAssetUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.DeletePhotoUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.GetAllPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.ResetStuckUploadsUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.ResumeUploadedPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.RetrySyncFailedPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.SavePhotoUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.SyncPendingPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.SyncPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.settings.GetLastSyncTimeUseCase
+import com.whitelynxteam.hwwach.domain.usecases.settings.SaveLastSyncTimeUseCase
+import com.whitelynxteam.hwwach.domain.usecases.user.AuthApiUseCase
+import com.whitelynxteam.hwwach.domain.usecases.user.CheckAuthTokenUseCase
+import com.whitelynxteam.hwwach.domain.usecases.user.CheckRegistrationUseCase
+import com.whitelynxteam.hwwach.domain.usecases.user.GetUserInfoUseCase
+import com.whitelynxteam.hwwach.domain.usecases.user.LoginWithProfileUseCase
+import com.whitelynxteam.hwwach.domain.usecases.user.RegApiUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -141,6 +142,14 @@ object UseCaseModule {
         assetRepository: IAssetRepository
     ): GetAssetsUseCase {
         return GetAssetsUseCase(assetRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddAssetUseCase(
+        assetRepository: IAssetRepository
+    ): AddAssetUseCase {
+        return AddAssetUseCase(assetRepository)
     }
 
     @Provides

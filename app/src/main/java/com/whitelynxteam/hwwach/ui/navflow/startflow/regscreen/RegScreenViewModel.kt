@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.whitelynxteam.hwwach.domain.DomainResult
 import com.whitelynxteam.hwwach.domain.models.User
-import com.whitelynxteam.hwwach.domain.usecases.RegApiUseCase
+import com.whitelynxteam.hwwach.domain.usecases.user.RegApiUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

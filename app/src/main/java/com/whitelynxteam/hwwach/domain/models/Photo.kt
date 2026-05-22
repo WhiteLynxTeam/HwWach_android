@@ -5,7 +5,7 @@ data class Photo(
     val serverUuid: String?,
 
     val localCreatedAt: Long,
-    val status: PhotoUploadStatusEnum,
+    val status: UploadStatusEnum,
 
     val localPath: String?,
     val remoteUrl: String?,

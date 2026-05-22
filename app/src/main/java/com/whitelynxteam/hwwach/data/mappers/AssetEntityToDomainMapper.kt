@@ -10,11 +10,17 @@ class AssetEntityToDomainMapper @Inject constructor() {
             clientId = entity.clientId,
             serverUuid = entity.serverUuid,
             name = entity.name,
-            inventoryNumber = entity.inventoryNumber,
+            category = entity.category,
+            inventoryNum = entity.inventoryNum,
             description = entity.description,
+            assetStatus = entity.assetStatus,
+            moderationStatus = entity.moderationStatus,
+            adminComment = entity.adminComment,
+            createdAt = entity.createdAt,
+            updatedAt = entity.updatedAt,
             localCreatedAt = entity.localCreatedAt,
-            status = entity.status,
             lastUpdatedLocally = entity.lastUpdatedLocally,
+            status = entity.status,
         )
     }
 }

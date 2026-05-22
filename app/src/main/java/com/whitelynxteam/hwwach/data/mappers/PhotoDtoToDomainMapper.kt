@@ -2,7 +2,7 @@ package com.whitelynxteam.hwwach.data.mappers
 
 import com.whitelynxteam.hwwach.data.remote.model.photo.PhotoDto
 import com.whitelynxteam.hwwach.domain.models.Photo
-import com.whitelynxteam.hwwach.domain.models.PhotoUploadStatusEnum
+import com.whitelynxteam.hwwach.domain.models.UploadStatusEnum
 import javax.inject.Inject
 
 class PhotoDtoToDomainMapper @Inject constructor() {
@@ -11,7 +11,7 @@ class PhotoDtoToDomainMapper @Inject constructor() {
             clientId = photoDto.clientId,
             serverUuid = photoDto.uuid,
             localCreatedAt = System.currentTimeMillis(),
-            status = PhotoUploadStatusEnum.SYNCED,
+            status = UploadStatusEnum.SYNCED,
             localPath = null,
             remoteUrl = photoDto.url,
             errorMessage = null

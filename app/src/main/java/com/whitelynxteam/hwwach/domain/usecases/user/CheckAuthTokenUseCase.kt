@@ -1,4 +1,4 @@
-package com.whitelynxteam.hwwach.domain.usecases
+package com.whitelynxteam.hwwach.domain.usecases.user
 
 import com.whitelynxteam.hwwach.domain.irepositories.ITokensRepository
 import javax.inject.Inject

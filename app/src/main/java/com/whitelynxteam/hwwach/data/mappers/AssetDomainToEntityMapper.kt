@@ -10,11 +10,17 @@ class AssetDomainToEntityMapper @Inject constructor() {
             clientId = asset.clientId,
             serverUuid = asset.serverUuid,
             name = asset.name,
-            inventoryNumber = asset.inventoryNumber,
+            category = asset.category,
+            inventoryNum = asset.inventoryNum,
             description = asset.description,
+            assetStatus = asset.assetStatus,
+            moderationStatus = asset.moderationStatus ?: com.whitelynxteam.hwwach.domain.models.ModerationStatusEnum.PENDING,
+            adminComment = asset.adminComment,
+            createdAt = asset.createdAt,
+            updatedAt = asset.updatedAt,
             localCreatedAt = asset.localCreatedAt,
-            status = asset.status,
             lastUpdatedLocally = asset.lastUpdatedLocally,
+            status = asset.status,
         )
     }
 }

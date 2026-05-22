@@ -15,7 +15,7 @@ import com.whitelynxteam.hwwach.domain.DomainResult
 import com.whitelynxteam.hwwach.domain.irepositories.IPhotoRepository
 import com.whitelynxteam.hwwach.domain.istorage.IFileStorage
 import com.whitelynxteam.hwwach.domain.models.Photo
-import com.whitelynxteam.hwwach.domain.models.PhotoUploadStatusEnum
+import com.whitelynxteam.hwwach.domain.models.UploadStatusEnum
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -166,7 +166,7 @@ class PhotoRepositoryImpl @Inject constructor(
                 photoDao.completeUpload(
                     entity.clientId,
                     result.data,
-                    PhotoUploadStatusEnum.UPLOADED.name
+                    UploadStatusEnum.UPLOADED.name
                 )
 
                 // Подтверждаем получение файла бэкендом
@@ -190,7 +190,7 @@ class PhotoRepositoryImpl @Inject constructor(
             // Если локального файла нет — возможно он был удалён до краша, помечаем как FAILED
             photoDao.updateStatusWithError(
                 entity.clientId,
-                PhotoUploadStatusEnum.FAILED.name,
+                UploadStatusEnum.FAILED.name,
                 "Загрузка прервана (UPLOADING при старте приложения)"
             )
         }
@@ -205,13 +205,13 @@ class PhotoRepositoryImpl @Inject constructor(
             val bytes = fileStorage.readBytes(localPath) ?: continue
 
             // Сбрасываем статус на PENDING для повторной отправки через uploadSinglePhoto
-            photoDao.updatePhotoStatus(entity.clientId, PhotoUploadStatusEnum.PENDING.name)
+            photoDao.updatePhotoStatus(entity.clientId, UploadStatusEnum.PENDING.name)
             val result = uploadSinglePhoto(entity, bytes)
             if (result is DomainResult.Success) {
                 photoDao.completeUpload(
                     entity.clientId,
                     result.data,
-                    PhotoUploadStatusEnum.UPLOADED.name
+                    UploadStatusEnum.UPLOADED.name
                 )
                 confirmUploadToBackend(entity.clientId, result.data)
             }
@@ -228,7 +228,7 @@ class PhotoRepositoryImpl @Inject constructor(
                         clientId = clientId,
                         serverUuid = photoDto.uuid,
                         remoteUrl = photoDto.url,
-                        status = PhotoUploadStatusEnum.SYNCED.name
+                        status = UploadStatusEnum.SYNCED.name
                     )
                     true
                 } else {
@@ -260,7 +260,7 @@ class PhotoRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             photoDao.updateStatusWithError(
                 entity.clientId,
-                PhotoUploadStatusEnum.FAILED.name,
+                UploadStatusEnum.FAILED.name,
                 e.message ?: "Failed to get upload URL"
             )
             return DomainResult.NetworkError(e.message ?: "Failed to get upload URL")
@@ -268,13 +268,13 @@ class PhotoRepositoryImpl @Inject constructor(
 
         if (!urlResponse.isSuccessful || urlResponse.body() == null) {
             val errorMsg = "Failed to get upload URL"
-            photoDao.updateStatusWithError(entity.clientId, PhotoUploadStatusEnum.FAILED.name, errorMsg)
+            photoDao.updateStatusWithError(entity.clientId, UploadStatusEnum.FAILED.name, errorMsg)
             return DomainResult.ValidationError(errorMsg)
         }
 
         val uploadUrl = urlResponse.body()!!.uploadUrl
 
-        photoDao.updatePhotoStatus(entity.clientId, PhotoUploadStatusEnum.UPLOADING.name)
+        photoDao.updatePhotoStatus(entity.clientId, UploadStatusEnum.UPLOADING.name)
 
         val uploadResponse = try {
             val mediaType = contentType.toMediaType()
@@ -287,7 +287,7 @@ class PhotoRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             photoDao.updateStatusWithError(
                 entity.clientId,
-                PhotoUploadStatusEnum.FAILED.name,
+                UploadStatusEnum.FAILED.name,
                 e.message ?: "Upload failed"
             )
             return DomainResult.NetworkError(e.message ?: "Upload failed")
@@ -295,7 +295,7 @@ class PhotoRepositoryImpl @Inject constructor(
 
         if (!uploadResponse.isSuccessful) {
             val errorMsg = "Upload failed: ${uploadResponse.code}"
-            photoDao.updateStatusWithError(entity.clientId, PhotoUploadStatusEnum.FAILED.name, errorMsg)
+            photoDao.updateStatusWithError(entity.clientId, UploadStatusEnum.FAILED.name, errorMsg)
             return DomainResult.NetworkError(errorMsg)
         }
 

@@ -1,7 +1,7 @@
 package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.gallery
 
 import com.whitelynxteam.hwwach.domain.models.Photo
-import com.whitelynxteam.hwwach.domain.models.PhotoUploadStatusEnum
+import com.whitelynxteam.hwwach.domain.models.UploadStatusEnum
 
 sealed class GalleryScreenAction {
     data class AddImage(val uri: String) : GalleryScreenAction()
@@ -13,7 +13,7 @@ sealed class GalleryScreenAction {
     data object SyncPendingPhotos : GalleryScreenAction()
     data object CancelSync : GalleryScreenAction()
 
-    data class FilterByStatus(val status: PhotoUploadStatusEnum?) : GalleryScreenAction()
+    data class FilterByStatus(val status: UploadStatusEnum?) : GalleryScreenAction()
 
     data class OpenFullImage(val clientId: String) : GalleryScreenAction()
 
@@ -36,7 +36,7 @@ data class GalleryScreenState(
     val isUploading: Boolean = false, // Загрузка фото на сервер (upload)
     val uploadError: String = "",
 
-    val statusFilter: PhotoUploadStatusEnum? = null,
+    val statusFilter: UploadStatusEnum? = null,
 
     val canUpload: Boolean = false, // Есть PENDING фото — показать кнопку загрузки
 )

@@ -3,17 +3,17 @@ package com.whitelynxteam.hwwach.ui.navflow.mainflow.bottom_menu_screens.gallery
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.whitelynxteam.hwwach.domain.models.Photo
-import com.whitelynxteam.hwwach.domain.models.PhotoUploadStatusEnum
-import com.whitelynxteam.hwwach.domain.usecases.DeletePhotoUseCase
-import com.whitelynxteam.hwwach.domain.usecases.GetAllPhotosUseCase
-import com.whitelynxteam.hwwach.domain.usecases.GetLastSyncTimeUseCase
-import com.whitelynxteam.hwwach.domain.usecases.ResetStuckUploadsUseCase
-import com.whitelynxteam.hwwach.domain.usecases.ResumeUploadedPhotosUseCase
-import com.whitelynxteam.hwwach.domain.usecases.RetrySyncFailedPhotosUseCase
-import com.whitelynxteam.hwwach.domain.usecases.SaveLastSyncTimeUseCase
-import com.whitelynxteam.hwwach.domain.usecases.SavePhotoUseCase
-import com.whitelynxteam.hwwach.domain.usecases.SyncPendingPhotosUseCase
-import com.whitelynxteam.hwwach.domain.usecases.SyncPhotosUseCase
+import com.whitelynxteam.hwwach.domain.models.UploadStatusEnum
+import com.whitelynxteam.hwwach.domain.usecases.photo.DeletePhotoUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.GetAllPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.ResetStuckUploadsUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.ResumeUploadedPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.RetrySyncFailedPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.SavePhotoUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.SyncPendingPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.photo.SyncPhotosUseCase
+import com.whitelynxteam.hwwach.domain.usecases.settings.GetLastSyncTimeUseCase
+import com.whitelynxteam.hwwach.domain.usecases.settings.SaveLastSyncTimeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -59,7 +59,7 @@ class GalleryScreenViewModel @Inject constructor(
     init {
         getAllPhotosUseCase()
             .onEach { photos ->
-                val hasPending = photos.any { it.status == PhotoUploadStatusEnum.PENDING }
+                val hasPending = photos.any { it.status == UploadStatusEnum.PENDING }
                 _state.update { it.copy(photos = photos, errorMessage = "", canUpload = hasPending) }
             }
             .catch { e ->
@@ -131,7 +131,7 @@ class GalleryScreenViewModel @Inject constructor(
                         clientId = UUID.randomUUID().toString(),
                         serverUuid = null,
                         localCreatedAt = System.currentTimeMillis(),
-                        status = PhotoUploadStatusEnum.PENDING,
+                        status = UploadStatusEnum.PENDING,
                         localPath = action.uri,
                         remoteUrl = null,
                     )

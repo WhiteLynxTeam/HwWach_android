@@ -183,7 +183,7 @@ fun AddAssetScreen(
                         .fillMaxWidth()
                         .height(44.dp),
                     onClick = {
-//                        onAction(AddAssetScreenAction.OnSubmitClicked)
+                        onAction(AddAssetScreenAction.Submit)
                     },
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(

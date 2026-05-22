@@ -34,7 +34,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.whitelynxteam.hwwach.common.extensions.PriorityAsyncImage
 import com.whitelynxteam.hwwach.domain.models.Photo
-import com.whitelynxteam.hwwach.domain.models.PhotoUploadStatusEnum
+import com.whitelynxteam.hwwach.domain.models.UploadStatusEnum
 
 @Composable
 fun ImageGallery(
@@ -79,7 +79,7 @@ fun ImageGallery(
                     )
                     if (enabled) {
                         val isSent =
-                            photo.status == PhotoUploadStatusEnum.UPLOADED || photo.status == PhotoUploadStatusEnum.SYNCED
+                            photo.status == UploadStatusEnum.UPLOADED || photo.status == UploadStatusEnum.SYNCED
 
                         if (isSent) {
                             Box(
@@ -132,7 +132,7 @@ fun ImageGallery(
                         contentAlignment = Alignment.Center
                     ) {
                         when (photo.status) {
-                            PhotoUploadStatusEnum.PENDING -> {
+                            UploadStatusEnum.PENDING -> {
                                 Icon(
                                     imageVector = Icons.Default.Refresh,
                                     contentDescription = "Pending",
@@ -141,7 +141,7 @@ fun ImageGallery(
                                 )
                             }
 
-                            PhotoUploadStatusEnum.UPLOADING -> {
+                            UploadStatusEnum.UPLOADING -> {
                                 CircularProgressIndicator(
                                     color = Color.White,
                                     strokeWidth = 2.dp,
@@ -149,8 +149,8 @@ fun ImageGallery(
                                 )
                             }
 
-                            PhotoUploadStatusEnum.UPLOADED,
-                            PhotoUploadStatusEnum.SYNCED -> {
+                            UploadStatusEnum.UPLOADED,
+                            UploadStatusEnum.SYNCED -> {
                                 Icon(
                                     imageVector = Icons.Default.CheckCircle,
                                     contentDescription = "Synced",
@@ -159,7 +159,7 @@ fun ImageGallery(
                                 )
                             }
 
-                            PhotoUploadStatusEnum.FAILED -> {
+                            UploadStatusEnum.FAILED -> {
                                 Icon(
                                     imageVector = Icons.Default.Warning,
                                     contentDescription = "Failed",

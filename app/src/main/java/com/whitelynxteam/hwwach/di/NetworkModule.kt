@@ -3,6 +3,7 @@ package com.whitelynxteam.hwwach.di
 import com.whitelynxteam.hwwach.BuildConfig
 import com.whitelynxteam.hwwach.data.remote.api.PhotosApi
 import com.whitelynxteam.hwwach.data.remote.api.UserApi
+import com.whitelynxteam.hwwach.data.remote.api.AssetApi
 import com.whitelynxteam.hwwach.data.remote.api.UserTokensApi
 import com.whitelynxteam.hwwach.data.remote.interceptor.TokenAuthenticator
 import com.whitelynxteam.hwwach.data.remote.interceptor.TokenInterceptor
@@ -138,4 +139,10 @@ object NetworkModule {
     @Named("api")
     fun providePhotosApi(@Named("api") retrofit: Retrofit): PhotosApi =
         retrofit.create(PhotosApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("api")
+    fun provideAssetApi(@Named("api") retrofit: Retrofit): AssetApi =
+        retrofit.create(AssetApi::class.java)
 }

@@ -1,8 +1,9 @@
 package com.whitelynxteam.hwwach.domain.models
 
-enum class AssetUploadStatusEnum {
+enum class UploadStatusEnum {
     PENDING,
+    UPLOADING,
+    UPLOADED,
     SYNCED,
-    EDITED,
-    ERROR,
+    FAILED,
 }

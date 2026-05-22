@@ -3,7 +3,7 @@ package com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.whitelynxteam.hwwach.domain.models.MainDestinationEnum
-import com.whitelynxteam.hwwach.domain.usecases.GetStartMainScreenDestinationUseCase
+import com.whitelynxteam.hwwach.domain.usecases.asset.GetStartMainScreenDestinationUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

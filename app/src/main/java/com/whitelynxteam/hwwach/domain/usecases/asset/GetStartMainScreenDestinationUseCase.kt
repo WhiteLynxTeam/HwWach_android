@@ -1,4 +1,4 @@
-package com.whitelynxteam.hwwach.domain.usecases
+package com.whitelynxteam.hwwach.domain.usecases.asset
 
 import com.whitelynxteam.hwwach.domain.irepositories.IAssetRepository
 import com.whitelynxteam.hwwach.domain.models.MainDestinationEnum

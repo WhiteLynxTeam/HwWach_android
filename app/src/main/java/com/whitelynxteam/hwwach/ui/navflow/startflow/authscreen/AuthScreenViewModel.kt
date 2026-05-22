@@ -3,8 +3,8 @@ package com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.whitelynxteam.hwwach.domain.DomainResult
-import com.whitelynxteam.hwwach.domain.usecases.CheckRegistrationUseCase
-import com.whitelynxteam.hwwach.domain.usecases.LoginWithProfileUseCase
+import com.whitelynxteam.hwwach.domain.usecases.user.CheckRegistrationUseCase
+import com.whitelynxteam.hwwach.domain.usecases.user.LoginWithProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

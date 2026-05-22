@@ -8,6 +8,7 @@ interface IAssetRepository {
 
     suspend fun hasAssets(): Int
     suspend fun getAssets(): DomainResult<List<Asset>>
+    suspend fun addAsset(asset: Asset): DomainResult<Asset>
     fun getAssetsFlow(): Flow<List<Asset>>
     fun getAssetFlow(clientId: String): Flow<Asset?>
 }

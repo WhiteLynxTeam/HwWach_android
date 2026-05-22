@@ -26,6 +26,10 @@ import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.InnerMainFlowNavi
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreenEvent
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreenViewModel
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.assetdetail.AssetDetailScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.assetdetail.AssetDetailScreenEvent
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.assetdetail.AssetDetailScreenViewModel
+
 
 class MainFlowNavigation(
     val navController: NavHostController,
@@ -47,6 +51,9 @@ class MainFlowNavigation(
                     },
                     onNavigateToAddAsset = {
                         navController.navigate("MainFlowNavigator.AddAssetScreen")
+                    },
+                    onNavigateToAssetDetail = { clientId ->
+                        navController.navigate("MainFlowNavigator.AssetDetailScreen/$clientId")
                     },
                     onLogout = {
                         navController.navigate("StartFlowNavigator.AuthScreen") {
@@ -98,6 +105,10 @@ class MainFlowNavigation(
                                 is AddAssetScreenEvent.NavigateToFullImage -> {
                                     navController.navigate("MainFlowNavigator.FullImageScreen/${event.clientId}")
                                 }
+                                AddAssetScreenEvent.ShowSuccessMessage -> {
+                                    val context = navController.context
+                                    android.widget.Toast.makeText(context, "Актив успешно добавлен", android.widget.Toast.LENGTH_SHORT).show()
+                                }
                                 else -> {}
                             }
                         }
@@ -139,6 +150,50 @@ class MainFlowNavigation(
                     modifier = Modifier.fillMaxSize()
                 )
             }
+
+            // ===== Детализация актива (Инвентарная карточка) =====
+            composable(
+                route = Routes.AssetDetailScreen.route,
+                arguments = listOf(navArgument("clientId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val viewModel = hiltViewModel<AssetDetailScreenViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                AssetDetailScreenEvent.NavigateBack -> {
+                                    navController.popBackStack()
+                                }
+                                AssetDetailScreenEvent.NavigateToEdit -> {
+                                    val context = navController.context
+                                    android.widget.Toast.makeText(context, "Редактирование (заглушка)", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                                is AssetDetailScreenEvent.NavigateToFullImage -> {
+                                    navController.navigate("MainFlowNavigator.FullImageScreen/${event.clientId}")
+                                }
+                                AssetDetailScreenEvent.ShowDeleteConfirmation -> {
+                                    val context = navController.context
+                                    android.widget.Toast.makeText(context, "Удаление (заглушка)", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                                is AssetDetailScreenEvent.ShowErrorMessage -> {
+                                    val context = navController.context
+                                    android.widget.Toast.makeText(context, event.message, android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    }
+                }
+
+                AssetDetailScreen(
+                    state = state,
+                    onAction = viewModel::handleAction,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
     }
 
@@ -146,5 +201,6 @@ class MainFlowNavigation(
         data object MainScreen : Routes(route = "MainFlowNavigator.MainScreen")
         data object AddAssetScreen : Routes(route = "MainFlowNavigator.AddAssetScreen")
         data object FullImageScreen : Routes(route = "MainFlowNavigator.FullImageScreen/{clientId}")
+        data object AssetDetailScreen : Routes(route = "MainFlowNavigator.AssetDetailScreen/{clientId}")
     }
 }

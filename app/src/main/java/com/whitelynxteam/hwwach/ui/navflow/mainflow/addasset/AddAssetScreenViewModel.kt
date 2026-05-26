@@ -86,7 +86,9 @@ class AddAssetScreenViewModel @Inject constructor(
                 }
             }
             is AddAssetScreenAction.Submit -> {
-                validateAndSubmit()
+                if (!_state.value.isLoading) {
+                    validateAndSubmit()
+                }
             }
 
             // Действия ShowSourceSelector, OpenGallery и OpenCamera перехватываются локально в AddAssetScreen.kt
@@ -106,6 +108,9 @@ class AddAssetScreenViewModel @Inject constructor(
                 _state.update { it.copy(errorMessage = "Добавьте хотя бы одно фото") }
                 return@launch
             }
+
+            _state.update { it.copy(isLoading = true, errorMessage = "") }
+
             val asset = Asset(
                 clientId = UUID.randomUUID().toString(),
                 serverUuid = null,
@@ -115,7 +120,7 @@ class AddAssetScreenViewModel @Inject constructor(
                 description = currentState.comment,
                 assetStatus = AssetStatusEnum.ACTIVE,
                 moderationStatus = ModerationStatusEnum.PENDING,
-                status = UploadStatusEnum.UPLOADING,
+                status = UploadStatusEnum.PENDING,
                 adminComment = null,
                 createdAt = null,
                 updatedAt = null,
@@ -126,18 +131,19 @@ class AddAssetScreenViewModel @Inject constructor(
 
             when (val result = addAssetUseCase(asset)) {
                 is DomainResult.Success -> {
+                    _state.update { it.copy(isLoading = false) }
                     _events.emit(AddAssetScreenEvent.ShowSuccessMessage)
                     kotlinx.coroutines.delay(1000)
                     _events.emit(AddAssetScreenEvent.NavigateBack)
                 }
                 is DomainResult.NetworkError -> {
-                    _state.update { it.copy(errorMessage = result.message) }
+                    _state.update { it.copy(isLoading = false, errorMessage = result.message) }
                 }
                 is DomainResult.UnauthorizedError -> {
-                    _state.update { it.copy(errorMessage = "Ошибка авторизации") }
+                    _state.update { it.copy(isLoading = false, errorMessage = "Ошибка авторизации") }
                 }
                 else -> {
-                    _state.update { it.copy(errorMessage = "Неизвестная ошибка") }
+                    _state.update { it.copy(isLoading = false, errorMessage = "Неизвестная ошибка") }
                 }
             }
         }

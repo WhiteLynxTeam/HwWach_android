@@ -37,5 +37,6 @@ data class AddAssetScreenState(
     val comment: String = "",
     val photos: List<Photo> = emptyList(),
 
+    val isLoading: Boolean = false,
     val errorMessage: String = "",
 )

@@ -24,10 +24,10 @@ interface AssetPhotoCrossRefDao {
     fun getCrossRef(assetClientId: String, photoClientId: String): Flow<AssetPhotoCrossRef?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCrossRef(crossRef: AssetPhotoCrossRef)
+    suspend fun insertCrossRef(crossRef: AssetPhotoCrossRef): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCrossRefs(crossRefs: List<AssetPhotoCrossRef>)
+    suspend fun insertCrossRefs(crossRefs: List<AssetPhotoCrossRef>): List<Long>
 
     @Delete
     suspend fun deleteCrossRef(crossRef: AssetPhotoCrossRef)

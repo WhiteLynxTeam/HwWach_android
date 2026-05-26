@@ -3,9 +3,12 @@ package com.whitelynxteam.hwwach.di
 import android.content.Context
 import androidx.room.Room
 import com.whitelynxteam.hwwach.data.local.AppDatabase
+import com.whitelynxteam.hwwach.data.local.RoomTransactionRunner
+import com.whitelynxteam.hwwach.data.local.TransactionRunner
 import com.whitelynxteam.hwwach.data.local.dao.AssetDao
 import com.whitelynxteam.hwwach.data.local.dao.AssetPhotoCrossRefDao
 import com.whitelynxteam.hwwach.data.local.dao.PhotoDao
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,36 +18,44 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DatabaseModule {
+abstract class DatabaseModule {
 
-    @Provides
+    @Binds
     @Singleton
-    fun provideAppDatabase(
-        @ApplicationContext context: Context
-    ): AppDatabase {
-        return Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "hwwach_db"
-        )
-            .build()
-    }
+    abstract fun bindTransactionRunner(
+        impl: RoomTransactionRunner
+    ): TransactionRunner
 
-    @Provides
-    @Singleton
-    fun providePhotoDao(database: AppDatabase): PhotoDao {
-        return database.photoDao()
-    }
+    companion object {
+        @Provides
+        @Singleton
+        fun provideAppDatabase(
+            @ApplicationContext context: Context
+        ): AppDatabase {
+            return Room.databaseBuilder(
+                context,
+                AppDatabase::class.java,
+                "hwwach_db"
+            )
+                .build()
+        }
 
-    @Provides
-    @Singleton
-    fun provideAssetDao(database: AppDatabase): AssetDao {
-        return database.assetDao()
-    }
+        @Provides
+        @Singleton
+        fun providePhotoDao(database: AppDatabase): PhotoDao {
+            return database.photoDao()
+        }
 
-    @Provides
-    @Singleton
-    fun provideAssetPhotoCrossRefDao(database: AppDatabase): AssetPhotoCrossRefDao {
-        return database.assetPhotoCrossRefDao()
+        @Provides
+        @Singleton
+        fun provideAssetDao(database: AppDatabase): AssetDao {
+            return database.assetDao()
+        }
+
+        @Provides
+        @Singleton
+        fun provideAssetPhotoCrossRefDao(database: AppDatabase): AssetPhotoCrossRefDao {
+            return database.assetPhotoCrossRefDao()
+        }
     }
 }

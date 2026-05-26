@@ -1,6 +1,6 @@
 package com.whitelynxteam.hwwach.data.repositories
 
-import com.whitelynxteam.hwwach.data.local.AppDatabase
+import com.whitelynxteam.hwwach.data.local.TransactionRunner
 import com.whitelynxteam.hwwach.data.local.dao.AssetDao
 import com.whitelynxteam.hwwach.data.local.dao.AssetPhotoCrossRefDao
 import com.whitelynxteam.hwwach.data.local.entity.AssetPhotoCrossRef
@@ -14,15 +14,15 @@ import com.whitelynxteam.hwwach.domain.DomainResult
 import com.whitelynxteam.hwwach.domain.irepositories.IAssetRepository
 import com.whitelynxteam.hwwach.domain.irepositories.IPhotoRepository
 import com.whitelynxteam.hwwach.domain.models.Asset
+import com.whitelynxteam.hwwach.domain.models.ModerationStatusEnum
 import com.whitelynxteam.hwwach.domain.models.UploadStatusEnum
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Named
 
 class AssetRepositoryImpl @Inject constructor(
-    private val db: AppDatabase,
+    private val transactionRunner: TransactionRunner,
     private val assetDao: AssetDao,
     private val assetEntityToDomainMapper: AssetEntityToDomainMapper,
     private val assetDomainToEntityMapper: AssetDomainToEntityMapper,
@@ -45,7 +45,7 @@ class AssetRepositoryImpl @Inject constructor(
                 val body = response.body()
                 if (body != null) {
                     val assets = body.assets.map { assetDtoToDomainMapper.map(it) }
-                    saveAssets(assets)
+                    upsertAssets(assets)
                     DomainResult.Success(assets)
                 } else {
                     DomainResult.NetworkError("Empty body")
@@ -59,7 +59,7 @@ class AssetRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addAsset(asset: Asset): DomainResult<Asset> {
-        // 1. Транзакция: сохраняем asset (UPLOADING) + cross-refs в БД
+        // 1. Транзакция: сохраняем asset (PENDING) + cross-refs в БД
         val assetEntity = assetDomainToEntityMapper.map(asset)
         val crossRefs = asset.photoClientIds.map { photoClientId ->
             AssetPhotoCrossRef(
@@ -69,26 +69,30 @@ class AssetRepositoryImpl @Inject constructor(
         }
 
         try {
-            db.runInTransaction {
-                runBlocking {
-                    assetDao.insertAsset(assetEntity)
-                    assetPhotoCrossRefDao.insertCrossRefs(crossRefs)
-                }
+            transactionRunner {
+                assetDao.insertAsset(assetEntity)
+                assetPhotoCrossRefDao.insertCrossRefs(crossRefs)
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             // Транзакция не удалась — запросы на API не производим
             return DomainResult.NetworkError("Ошибка записи в БД: ${e.message}")
         }
 
-        // 2. Отправляем фотографии на сервер (аналогично Gallery)
+        // 2. Загружаем только фотографии этого актива на сервер
+        //    При любой ошибке — помечаем asset как FAILED
         try {
-            photoRepository.syncPendingPhotos()
+            photoRepository.syncPhotosByClientIds(asset.photoClientIds)
         } catch (e: Exception) {
+            e.printStackTrace()
             assetDao.updateAssetStatus(asset.clientId, UploadStatusEnum.FAILED.name)
             return DomainResult.NetworkError("Ошибка загрузки фото: ${e.message}")
         }
 
-        // 3. Отправляем asset на сервер с photoClientIds
+        // 3. Все фото синхронизированы → переводим asset в UPLOADING
+        assetDao.updateAssetStatus(asset.clientId, UploadStatusEnum.UPLOADING.name)
+
+        // 4. Отправляем asset JSON на сервер с photoClientIds
         return try {
             val requestDto = assetDomainToRequestDtoMapper.map(asset)
             val response = assetApi.createAsset(requestDto)
@@ -101,8 +105,16 @@ class AssetRepositoryImpl @Inject constructor(
                     } else {
                         mappedAsset
                     }
-                    // Успех — сохраняем данные с сервера и ставим PENDING
-                    saveAsset(createdAsset.copy(status = UploadStatusEnum.PENDING))
+                    // Успех — сохраняем данные с сервера и ставим SYNCED через частичный апдейт
+                    // чтобы не затереть каскадным удалением локальные связи с фото
+                    assetDao.updateAssetSyncInfo(
+                        clientId = createdAsset.clientId,
+                        serverUuid = createdAsset.serverUuid,
+                        status = UploadStatusEnum.SYNCED.name,
+                        moderationStatus = (createdAsset.moderationStatus ?: ModerationStatusEnum.SYNCED).name,
+                        createdAt = createdAsset.createdAt,
+                        updatedAt = createdAsset.updatedAt
+                    )
                     DomainResult.Success(createdAsset)
                 } else {
                     assetDao.updateAssetStatus(asset.clientId, UploadStatusEnum.FAILED.name)
@@ -113,6 +125,7 @@ class AssetRepositoryImpl @Inject constructor(
                 responseErrorMapper.map(response)
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             assetDao.updateAssetStatus(asset.clientId, UploadStatusEnum.FAILED.name)
             DomainResult.NetworkError(e.message ?: "Unknown error")
         }
@@ -138,5 +151,10 @@ class AssetRepositoryImpl @Inject constructor(
     suspend fun saveAssets(assets: List<Asset>) {
         val entities = assets.map { assetDomainToEntityMapper.map(it) }
         assetDao.insertAssets(entities)
+    }
+
+    suspend fun upsertAssets(assets: List<Asset>) {
+        val entities = assets.map { assetDomainToEntityMapper.map(it) }
+        assetDao.upsertAssets(entities)
     }
 }

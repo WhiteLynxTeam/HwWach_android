@@ -13,6 +13,7 @@ import com.whitelynxteam.hwwach.data.remote.model.photo.UploadUrlResponse
 import com.whitelynxteam.hwwach.di.UploadOkHttpClient
 import com.whitelynxteam.hwwach.domain.DomainResult
 import com.whitelynxteam.hwwach.domain.irepositories.IPhotoRepository
+import com.whitelynxteam.hwwach.domain.exception.PhotoSyncException
 import com.whitelynxteam.hwwach.domain.istorage.IFileStorage
 import com.whitelynxteam.hwwach.domain.models.Photo
 import com.whitelynxteam.hwwach.domain.models.UploadStatusEnum
@@ -29,6 +30,10 @@ import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Named
 
+/**
+ * Репозиторий для работы с фото: синхронизация с сервером,
+ * загрузка локальных файлов и предоставление данных через Flow.
+ */
 class PhotoRepositoryImpl @Inject constructor(
     @Named("api") private val photosApi: PhotosApi,
     private val photoDao: PhotoDao,
@@ -41,7 +46,7 @@ class PhotoRepositoryImpl @Inject constructor(
 ) : IPhotoRepository {
 
     /**
-     * Синхронизация фото с сервером (SSOT через Flow из БД).
+     * Синхронизирует список фото с сервером (SSOT через Flow из БД).
      * Не возвращает данные — UI получает их через getAllPhotosFlow().
      *
      * Логика синхронизации:
@@ -102,6 +107,10 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Возвращает Flow со списком фото для конкретного clientId.
+     * Фильтрация по наличии локального файла выполняется на уровне маппинга.
+     */
     override fun getPhotosFlow(clientId: String): Flow<List<Photo>> {
         return photoDao.getPhotosByClientId(clientId).map { entities ->
             entities.map { entity ->
@@ -111,6 +120,10 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Возвращает Flow со всеми фото из БД.
+     * Фильтрация по наличии локального файла выполняется на уровне маппинга.
+     */
     override fun getAllPhotosFlow(): Flow<List<Photo>> {
         return photoDao.getAllPhotos().map { entities ->
             entities.map { entity ->
@@ -120,6 +133,10 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Возвращает Flow со фото, отфильтрованными по статусу.
+     * Фильтрация по наличии локального файла выполняется на уровне маппинга.
+     */
     override fun getPhotosByStatusFlow(status: String): Flow<List<Photo>> {
         return photoDao.getPhotosByStatus(status).map { entities ->
             entities.map { entity ->
@@ -129,28 +146,46 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Возвращает одно фото по clientId либо null, если не найдено.
+     * Проверяет существование локального файла перед возвратом.
+     */
     override suspend fun getPhotoByClientId(clientId: String): Photo? {
         val entity = photoDao.getPhotoByClientId(clientId) ?: return null
         val actualLocalPath = entity.localFilePath?.takeIf { fileStorage.fileExists(it) }
         return photoEntityToDomainMapper.map(entity.copy(localFilePath = actualLocalPath))
     }
 
+    /**
+     * Сохраняет новое фото в БД и кеш-хранилище.
+     * Копирует файл в кеш и сохраняет путь к нему в сущности.
+     */
     override suspend fun savePhoto(photo: Photo) {
         val localPath = fileStorage.copyToCache(photo.localPath ?: "")
         val entity = photoDomainToEntityMapper.map(photo.copy(localPath = localPath))
         photoDao.insertPhoto(entity)
     }
 
+    /**
+     * Удаляет фото по clientId: удаляет локальный файл и запись из БД.
+     */
     override suspend fun deletePhoto(clientId: String) {
         val photo = photoDao.getPhotoByClientId(clientId)
         photo?.localFilePath?.let { fileStorage.deleteFile(it) }
         photoDao.deletePhotoByClientId(clientId)
     }
 
+    /**
+     * Возвращает список всех фото со статусом PENDING (ожидают загрузки).
+     */
     override suspend fun getPendingPhotos(): List<Photo> {
         return photoDao.getPendingPhotos().map { photoEntityToDomainMapper.map(it) }
     }
 
+    /**
+     * Загружает все pending-фото на сервер и подтверждает их приём бэкендом.
+     * Выполняется в Dispatchers.IO из-за сетевых операций и чтения файлов.
+     */
     override suspend fun syncPendingPhotos() = withContext(Dispatchers.IO) {
         val pendingPhotos = photoDao.getPendingPhotos()
         if (pendingPhotos.isEmpty()) return@withContext
@@ -175,6 +210,68 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Загружает на сервер только фото с указанными clientId.
+     * При любой ошибке (файл не найден, загрузка, подтверждение) бросает [PhotoSyncException].
+     */
+    override suspend fun syncPhotosByClientIds(clientIds: List<String>) = withContext(Dispatchers.IO) {
+        if (clientIds.isEmpty()) return@withContext
+
+        val photos = photoDao.getPhotosByClientIds(clientIds)
+
+        for (entity in photos) {
+            currentCoroutineContext().ensureActive()
+
+            // Пропускаем уже синхронизированные
+            if (entity.status == UploadStatusEnum.SYNCED) continue
+
+            val localPath = entity.localFilePath
+                ?: throw PhotoSyncException(
+                    "Локальный файл не найден для фото ${entity.clientId}",
+                    entity.clientId
+                )
+
+            val bytes = fileStorage.readBytes(localPath)
+                ?: throw PhotoSyncException(
+                    "Не удалось прочитать файл $localPath",
+                    entity.clientId
+                )
+
+            val result = uploadSinglePhoto(entity, bytes)
+            if (result !is DomainResult.Success) {
+                val errorMsg = when (result) {
+                    is DomainResult.NetworkError -> result.message
+                    is DomainResult.ValidationError -> result.message
+                    else -> "Неизвестная ошибка загрузки фото"
+                }
+                throw PhotoSyncException(
+                    "Ошибка загрузки фото ${entity.clientId}: $errorMsg",
+                    entity.clientId
+                )
+            }
+
+            // Помечаем как UPLOADED
+            photoDao.completeUpload(
+                entity.clientId,
+                result.data,
+                UploadStatusEnum.UPLOADED.name
+            )
+
+            // Подтверждаем у бэкенда → SYNCED
+            val confirmed = confirmUploadToBackend(entity.clientId, result.data)
+            if (!confirmed) {
+                throw PhotoSyncException(
+                    "Не удалось подтвердить фото ${entity.clientId} у бэкенда",
+                    entity.clientId
+                )
+            }
+        }
+    }
+
+    /**
+     * Подтверждает уже загруженные фото (статус UPLOADED) у бэкенда,
+     * переводя их в SYNCED. Вызывается при старте приложения.
+     */
     override suspend fun resumeUploadedPhotos() = withContext(Dispatchers.IO) {
         val uploadedPhotos = photoDao.getUploadedPhotos()
         for (entity in uploadedPhotos) {
@@ -183,6 +280,10 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Сбрасывает статус «зависающих» загрузок (UPLOADING при старте) в FAILED,
+     * чтобы они могли быть повторно отправлены.
+     */
     override suspend fun resetStuckUploads() = withContext(Dispatchers.IO) {
         val stuckPhotos = photoDao.getStuckUploadingPhotos()
         for (entity in stuckPhotos) {
@@ -196,6 +297,10 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Повторно пытается отправить фото, ранее завершившиеся ошибкой (FAILED),
+     * но имеющие возможность повторной попытки (реtryable).
+     */
     override suspend fun retrySyncFailedPhotos() = withContext(Dispatchers.IO) {
         val retryablePhotos = photoDao.getRetryablePhotos()
         for (entity in retryablePhotos) {
@@ -218,6 +323,11 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Подтверждает загрузку конкретного фото у бэкенда.
+     * При успехе обновляет запись: serverUuid, remoteUrl и статус SYNCED.
+     * Возвращает true при успешном подтверждении, иначе false.
+     */
     private suspend fun confirmUploadToBackend(clientId: String, photoUuid: String): Boolean {
         return try {
             val response = photosApi.completeUpload(CompleteUploadRequest(photoUuid = photoUuid))
@@ -244,6 +354,10 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Выполняет загрузку одного файла на полученный от сервера URL.
+     * Возвращает UUID загруженного фото либо ошибку.
+     */
     private suspend fun uploadSinglePhoto(entity: PhotoEntity, fileBytes: ByteArray): DomainResult<String> {
         val filename = entity.localFilePath?.substringAfterLast("/") ?: "photo.jpg"
         val contentType = guessContentType(filename)
@@ -302,6 +416,9 @@ class PhotoRepositoryImpl @Inject constructor(
         return DomainResult.Success(urlResponse.body()!!.photoUuid)
     }
 
+    /**
+     * Определяет MIME-тип по расширению имени файла.
+     */
     private fun guessContentType(filename: String): String {
         return when {
             filename.endsWith(".jpg", ignoreCase = true) ||

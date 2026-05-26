@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.whitelynxteam.hwwach.data.local.entity.AssetEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -20,10 +21,13 @@ interface AssetDao {
     fun getAssetByClientId(clientId: String): Flow<AssetEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAsset(asset: AssetEntity)
+    suspend fun insertAsset(asset: AssetEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAssets(assets: List<AssetEntity>)
+    suspend fun insertAssets(assets: List<AssetEntity>): List<Long>
+
+    @Upsert
+    suspend fun upsertAssets(assets: List<AssetEntity>)
 
     @Query("DELETE FROM assets")
     suspend fun deleteAllAssets()
@@ -33,4 +37,14 @@ interface AssetDao {
 
     @Query("UPDATE assets SET status = :status WHERE clientId = :clientId")
     suspend fun updateAssetStatus(clientId: String, status: String)
+
+    @Query("UPDATE assets SET serverUuid = :serverUuid, status = :status, moderationStatus = :moderationStatus, createdAt = :createdAt, updatedAt = :updatedAt WHERE clientId = :clientId")
+    suspend fun updateAssetSyncInfo(
+        clientId: String,
+        serverUuid: String?,
+        status: String,
+        moderationStatus: String,
+        createdAt: Long?,
+        updatedAt: Long?
+    )
 }

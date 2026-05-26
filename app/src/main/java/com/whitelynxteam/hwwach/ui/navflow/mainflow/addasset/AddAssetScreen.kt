@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -45,6 +46,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -114,91 +116,120 @@ fun AddAssetScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = { Text(text = "Добавить актив") },
-            navigationIcon = {
-                IconButton(
-                    onClick = { onAction(AddAssetScreenAction.NavigateBack) }
-                ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Назад")
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(
+                title = { Text(text = "Добавить актив") },
+                navigationIcon = {
+                    IconButton(
+                        onClick = { onAction(AddAssetScreenAction.NavigateBack) }
+                    ) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад")
+                    }
                 }
-            }
-        )
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Top
-        ) {
-            item {
-                Column {
-                    AddFormTextField(
-                        value = state.name,
-                        onValueChange = { onAction(AddAssetScreenAction.InputName(it)) },
-                        label = "Название"
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    CategoryDropdown(
-                        selectedCategory = state.category,
-                        onCategorySelected = { onAction(AddAssetScreenAction.InputCategory(it)) }
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    AddFormTextField(
-                        value = state.inventoryNumber,
-                        onValueChange = { onAction(AddAssetScreenAction.InputInventoryNumber(it)) },
-                        label = "Инвентаризационный номер"
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    AddFormTextField(
-                        value = state.address,
-                        onValueChange = { onAction(AddAssetScreenAction.InputAddress(it)) },
-                        label = "Адрес"
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    AddFormTextField(
-                        value = state.comment,
-                        onValueChange = { onAction(AddAssetScreenAction.InputComment(it)) },
-                        label = "Комментарий"
-                    )
+            )
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Top
+            ) {
+                item {
+                    Column {
+                        AddFormTextField(
+                            value = state.name,
+                            onValueChange = { onAction(AddAssetScreenAction.InputName(it)) },
+                            label = "Название"
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        CategoryDropdown(
+                            selectedCategory = state.category,
+                            onCategorySelected = { onAction(AddAssetScreenAction.InputCategory(it)) }
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        AddFormTextField(
+                            value = state.inventoryNumber,
+                            onValueChange = { onAction(AddAssetScreenAction.InputInventoryNumber(it)) },
+                            label = "Инвентаризационный номер"
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        AddFormTextField(
+                            value = state.address,
+                            onValueChange = { onAction(AddAssetScreenAction.InputAddress(it)) },
+                            label = "Адрес"
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        AddFormTextField(
+                            value = state.comment,
+                            onValueChange = { onAction(AddAssetScreenAction.InputComment(it)) },
+                            label = "Комментарий"
+                        )
+                    }
                 }
-            }
 
-            item {
-                ImageGallery(
-                    modifier = Modifier
-                        .padding(vertical = 16.dp)
-                        .heightIn(min = 120.dp, max = 320.dp),
-                    photos = state.photos,
-                    onImageClick = { clientId -> localOnAction(AddAssetScreenAction.OpenFullImage(clientId)) },
-                    onDeleteClick = { photo -> localOnAction(AddAssetScreenAction.RemovePhoto(photo)) },
-                    showSourceSelector = { localOnAction(AddAssetScreenAction.ShowSourceSelector) },
-                    enabled = true
+                item {
+                    ImageGallery(
+                        modifier = Modifier
+                            .padding(vertical = 16.dp)
+                            .heightIn(min = 120.dp, max = 320.dp),
+                        photos = state.photos,
+                        onImageClick = { clientId -> localOnAction(AddAssetScreenAction.OpenFullImage(clientId)) },
+                        onDeleteClick = { photo -> localOnAction(AddAssetScreenAction.RemovePhoto(photo)) },
+                        showSourceSelector = { localOnAction(AddAssetScreenAction.ShowSourceSelector) },
+                        enabled = !state.isLoading
+                    )
+                }
+
+                if (state.errorMessage.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = state.errorMessage,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+                }
+
+                item {
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(44.dp),
+                        enabled = !state.isLoading,
+                        onClick = {
+                            onAction(AddAssetScreenAction.Submit)
+                        },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
+                        )
+                    ) {
+                        Text(
+                            text = "Добавить",
+                            fontSize = 16.sp,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
+        }
+
+        // Loading overlay
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.4f))
+                    .clickable(enabled = false) { },
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary
                 )
-            }
-
-            item {
-                Button(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(44.dp),
-                    onClick = {
-                        onAction(AddAssetScreenAction.Submit)
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
-                    )
-                ) {
-                    Text(
-                        text = "Добавить",
-                        fontSize = 16.sp,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
             }
         }
     }

@@ -33,6 +33,10 @@ interface PhotoDao {
     @Query("SELECT * FROM photos WHERE status = 'PENDING'")
     suspend fun getPendingPhotos(): List<PhotoEntity>
 
+    /** Фото по списку clientId (для целевой синхронизации фото актива) */
+    @Query("SELECT * FROM photos WHERE clientId IN (:clientIds)")
+    suspend fun getPhotosByClientIds(clientIds: List<String>): List<PhotoEntity>
+
     /** Фото, загруженные в MinIO, но не подтверждённые бэкендом */
     @Query("SELECT * FROM photos WHERE status = 'UPLOADED'")
     suspend fun getUploadedPhotos(): List<PhotoEntity>

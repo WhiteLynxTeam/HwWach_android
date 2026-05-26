@@ -20,6 +20,11 @@ interface IPhotoRepository {
     suspend fun deletePhoto(clientId: String)
     suspend fun getPendingPhotos(): List<Photo>
     suspend fun syncPendingPhotos()
+    /**
+     * Загружает на сервер только фото с указанными clientId.
+     * @throws com.whitelynxteam.hwwach.domain.exception.PhotoSyncException если хотя бы одно фото не удалось загрузить/подтвердить.
+     */
+    suspend fun syncPhotosByClientIds(clientIds: List<String>)
     /** Завершить подтверждение для фото со статусом UPLOADED (отправить complete-upload на бэк) */
     suspend fun resumeUploadedPhotos()
     /** Сбросить зависшие UPLOADING → FAILED для повторной отправки */

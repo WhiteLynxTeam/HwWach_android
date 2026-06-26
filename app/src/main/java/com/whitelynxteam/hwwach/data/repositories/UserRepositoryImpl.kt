@@ -7,6 +7,9 @@ import com.whitelynxteam.hwwach.data.mappers.ResponseErrorMapper
 import com.whitelynxteam.hwwach.data.mappers.UserDomainToAuthUserRequestMapper
 import com.whitelynxteam.hwwach.data.mappers.UserDomainToRegUserRequestMapper
 import com.whitelynxteam.hwwach.data.remote.api.UserApi
+import com.whitelynxteam.hwwach.data.remote.api.UserTokensApi
+import com.whitelynxteam.hwwach.data.remote.model.auth.ChangeTempPasswordRequest
+import com.whitelynxteam.hwwach.data.remote.model.user.ChangePasswordRequest
 import com.whitelynxteam.hwwach.domain.DomainResult
 import com.whitelynxteam.hwwach.domain.irepositories.IUserRepository
 import com.whitelynxteam.hwwach.domain.models.RegStatus
@@ -21,11 +24,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Named
 
 class UserRepositoryImpl @Inject constructor(
     @Named("auth") private val userApi: UserApi,
+    @Named("user_token") private val userTokensApi: UserTokensApi,
     private val userDomainToAuthUserRequestMapper: UserDomainToAuthUserRequestMapper,
     private val userDomainToRegUserRequestMapper: UserDomainToRegUserRequestMapper,
     private val regResponseDtoToUserDomainMapper: RegResponseDtoToUserDomainMapper,
@@ -95,26 +100,30 @@ class UserRepositoryImpl @Inject constructor(
                 }
             )
 
-        val response = userApi.auth(userAuthRequest)
+        return try {
+            val response = userApi.auth(userAuthRequest)
 
-        return when {
-            !response.isSuccessful -> responseErrorMapper.map(response)
-            else -> {
-                val authResponse = response.body()
-                    ?: return DomainResult.ValidationError("Auth response not found")
+            when {
+                !response.isSuccessful -> responseErrorMapper.map(response)
+                else -> {
+                    val authResponse = response.body()
+                        ?: return DomainResult.ValidationError("Auth response not found")
 
-                // Очищаем временный uuid после успешной аутентификации
-                clearUUIDTemp()
+                    // Очищаем временный uuid после успешной аутентификации
+                    clearUUIDTemp()
 
-                val token = Token(
-                    accessToken = authResponse.accessToken,
-                    refreshToken = authResponse.refreshToken
-                )
-                
-                val mappedUser = userResponseDtoToUserDomainMapper.map(authResponse.user)
-                
-                DomainResult.Success(Pair(token, mappedUser))
+                    val token = Token(
+                        accessToken = authResponse.accessToken,
+                        refreshToken = authResponse.refreshToken
+                    )
+
+                    val mappedUser = userResponseDtoToUserDomainMapper.map(authResponse.user)
+
+                    DomainResult.Success(Pair(token, mappedUser))
+                }
             }
+        } catch (e: IOException) {
+            DomainResult.NetworkError(e.message ?: "Network error")
         }
     }
 
@@ -144,6 +153,32 @@ class UserRepositoryImpl @Inject constructor(
                 val mappedUser = userResponseDtoToUserDomainMapper.map(userInfoResponseDto)
                 DomainResult.Success(mappedUser)
             }
+        }
+    }
+
+    override suspend fun changeTempPassword(login: String, oldPass: String, newPass: String): DomainResult<Unit> {
+        return try {
+            val response = userApi.changeTempPassword(ChangeTempPasswordRequest(login, oldPass, newPass))
+            if (response.isSuccessful) {
+                DomainResult.Success(Unit)
+            } else {
+                responseErrorMapper.map(response)
+            }
+        } catch (e: IOException) {
+            DomainResult.NetworkError(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun changePassword(oldPass: String, newPass: String): DomainResult<Unit> {
+        return try {
+            val response = userTokensApi.changePassword(ChangePasswordRequest(oldPass, newPass))
+            if (response.isSuccessful) {
+                DomainResult.Success(Unit)
+            } else {
+                responseErrorMapper.map(response)
+            }
+        } catch (e: IOException) {
+            DomainResult.NetworkError(e.message ?: "Network error")
         }
     }
 }

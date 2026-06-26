@@ -31,6 +31,7 @@ class InnerMainFlowNavigation(
     private val onNavigateToFullImage: (String) -> Unit,
     private val onNavigateToAddAsset: () -> Unit,
     private val onNavigateToAssetDetail: (String) -> Unit,
+    private val onNavigateToChangePassword: () -> Unit,
     private val onLogout: () -> Unit,
     onFinished: (routeName: String) -> Unit
 ) : FlowNavigation(onFinished) {
@@ -126,7 +127,7 @@ class InnerMainFlowNavigation(
                         viewModel.events.collect { event ->
                             when (event) {
                                 is ProfileEvent.NavigateToChangePassword -> {
-                                    // Navigate to change password screen
+                                    onNavigateToChangePassword()
                                 }
 
                                 is ProfileEvent.NavigateToLogin -> {

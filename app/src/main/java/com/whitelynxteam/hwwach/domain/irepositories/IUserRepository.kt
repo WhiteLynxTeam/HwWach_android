@@ -2,7 +2,6 @@ package com.whitelynxteam.hwwach.domain.irepositories
 
 import com.whitelynxteam.hwwach.domain.DomainResult
 import com.whitelynxteam.hwwach.domain.models.RegStatus
-import com.whitelynxteam.hwwach.domain.models.RegStatusEnum
 import com.whitelynxteam.hwwach.domain.models.Token
 import com.whitelynxteam.hwwach.domain.models.User
 import kotlinx.coroutines.flow.Flow
@@ -22,4 +21,7 @@ interface IUserRepository {
     suspend fun getRegStatus(): DomainResult<RegStatus>
 
     suspend fun getUserInfo(id: String): DomainResult<User>
+
+    suspend fun changeTempPassword(login: String, oldPass: String, newPass: String): DomainResult<Unit>
+    suspend fun changePassword(oldPass: String, newPass: String): DomainResult<Unit>
 }

@@ -2,6 +2,7 @@ package com.whitelynxteam.hwwach.data.remote.api
 
 import com.whitelynxteam.hwwach.data.remote.model.auth.AuthResponseDto
 import com.whitelynxteam.hwwach.data.remote.model.auth.AuthUserRequest
+import com.whitelynxteam.hwwach.data.remote.model.auth.ChangeTempPasswordRequest
 import com.whitelynxteam.hwwach.data.remote.model.auth.RefreshTokenRequest
 import com.whitelynxteam.hwwach.data.remote.model.auth.RefreshTokenResponse
 import com.whitelynxteam.hwwach.data.remote.model.reg.RegResponseDto
@@ -39,4 +40,9 @@ interface UserApi {
     suspend fun refreshToken(
         @Body request: RefreshTokenRequest
     ): Response<RefreshTokenResponse>
+
+    @POST("/auth/change-temp-password/")
+    suspend fun changeTempPassword(
+        @Body request: ChangeTempPasswordRequest
+    ): Response<Unit>
 }

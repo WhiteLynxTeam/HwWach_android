@@ -13,6 +13,7 @@ sealed class AuthScreenEvent {
     data object NavigateToMain : AuthScreenEvent()
     data object NavigateToReg : AuthScreenEvent()
     data object NavigateToForgotPassword : AuthScreenEvent()
+    data class NavigateToChangeTempPassword(val login: String, val tempPassword: String) : AuthScreenEvent()
     data object Exit : AuthScreenEvent()
 }
 

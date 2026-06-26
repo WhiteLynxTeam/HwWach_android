@@ -111,6 +111,23 @@ class AuthScreenViewModel @Inject constructor(
                         ) 
                     }
                 }
+                is DomainResult.ServerError -> {
+                    println("AuthScreenViewModel DomainResult.ServerError code=${result.code}")
+                    if (result.code == 412) {
+                        _state.update { it.copy(isLoading = false, errorMessage = "") }
+                        _events.emit(AuthScreenEvent.NavigateToChangeTempPassword(
+                            login = currentState.login,
+                            tempPassword = currentState.password
+                        ))
+                    } else {
+                        _state.update { 
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = "Ошибка сервера авторизации: ${result.code}"
+                            ) 
+                        }
+                    }
+                }
                 else -> {
                     println("AuthScreenViewModel DomainResult - else")
 

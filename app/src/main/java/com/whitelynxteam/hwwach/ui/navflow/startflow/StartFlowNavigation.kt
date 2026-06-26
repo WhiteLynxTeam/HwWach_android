@@ -11,7 +11,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.whitelynxteam.hwwach.ui.FlowNavigation
 import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreen
 import com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen.AuthScreenEvent
@@ -25,6 +27,9 @@ import com.whitelynxteam.hwwach.ui.navflow.startflow.splashscreen.SplashScreenVi
 import com.whitelynxteam.hwwach.ui.navflow.startflow.forgotpasswordscreen.ForgotPasswordScreen
 import com.whitelynxteam.hwwach.ui.navflow.startflow.forgotpasswordscreen.ForgotPasswordEvent
 import com.whitelynxteam.hwwach.ui.navflow.startflow.forgotpasswordscreen.ForgotPasswordViewModel
+import com.whitelynxteam.hwwach.ui.navflow.startflow.changetemppasswordscreen.ChangeTempPasswordScreen
+import com.whitelynxteam.hwwach.ui.navflow.startflow.changetemppasswordscreen.ChangeTempPasswordEvent
+import com.whitelynxteam.hwwach.ui.navflow.startflow.changetemppasswordscreen.ChangeTempPasswordViewModel
 
 class StartFlowNavigation(
     val navController: NavHostController,
@@ -97,6 +102,10 @@ class StartFlowNavigation(
                                 
                                 AuthScreenEvent.NavigateToForgotPassword -> {
                                     navController.navigate(Routes.ForgotPasswordScreen.route)
+                                }
+
+                                is AuthScreenEvent.NavigateToChangeTempPassword -> {
+                                    navController.navigate("StartFlowNavigator.ChangeTempPasswordScreen/${event.login}/${event.tempPassword}")
                                 }
 
                                 is AuthScreenEvent.Exit -> {
@@ -176,6 +185,37 @@ class StartFlowNavigation(
                     onAction = viewModel::handleAction
                 )
             }
+
+            // ===== CHANGE TEMP PASSWORD =====
+            composable(
+                route = Routes.ChangeTempPasswordScreen.route,
+                arguments = listOf(
+                    navArgument("login") { type = NavType.StringType },
+                    navArgument("tempPassword") { type = NavType.StringType }
+                )
+            ) {
+                val viewModel = hiltViewModel<ChangeTempPasswordViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                is ChangeTempPasswordEvent.Exit -> {
+                                    navController.popBackStack()
+                                }
+                            }
+                        }
+                    }
+                }
+
+                ChangeTempPasswordScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    onAction = viewModel::handleAction
+                )
+            }
         }
     }
 
@@ -184,5 +224,6 @@ class StartFlowNavigation(
         data object AuthScreen : Routes("StartFlowNavigator.AuthScreen")
         data object RegScreen : Routes("StartFlowNavigator.RegScreen")
         data object ForgotPasswordScreen : Routes("StartFlowNavigator.ForgotPasswordScreen")
+        data object ChangeTempPasswordScreen : Routes("StartFlowNavigator.ChangeTempPasswordScreen/{login}/{tempPassword}")
     }
 }

@@ -20,6 +20,8 @@ import com.whitelynxteam.hwwach.domain.usecases.photo.SyncPhotosUseCase
 import com.whitelynxteam.hwwach.domain.usecases.settings.GetLastSyncTimeUseCase
 import com.whitelynxteam.hwwach.domain.usecases.settings.SaveLastSyncTimeUseCase
 import com.whitelynxteam.hwwach.domain.usecases.user.AuthApiUseCase
+import com.whitelynxteam.hwwach.domain.usecases.user.ChangeTempPasswordUseCase
+import com.whitelynxteam.hwwach.domain.usecases.user.ChangePasswordUseCase
 import com.whitelynxteam.hwwach.domain.usecases.user.CheckAuthTokenUseCase
 import com.whitelynxteam.hwwach.domain.usecases.user.CheckRegistrationUseCase
 import com.whitelynxteam.hwwach.domain.usecases.user.GetUserInfoUseCase
@@ -182,5 +184,21 @@ object UseCaseModule {
         tokensRepository: ITokensRepository
     ): CheckAuthTokenUseCase {
         return CheckAuthTokenUseCase(tokensRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideChangeTempPasswordUseCase(
+        userRepository: IUserRepository
+    ): ChangeTempPasswordUseCase {
+        return ChangeTempPasswordUseCase(userRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideChangePasswordUseCase(
+        userRepository: IUserRepository
+    ): ChangePasswordUseCase {
+        return ChangePasswordUseCase(userRepository)
     }
 }

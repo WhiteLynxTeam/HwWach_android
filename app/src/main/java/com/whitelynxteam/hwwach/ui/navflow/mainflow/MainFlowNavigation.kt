@@ -29,6 +29,9 @@ import com.whitelynxteam.hwwach.ui.navflow.mainflow.mainscreen.MainScreenViewMod
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.assetdetail.AssetDetailScreen
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.assetdetail.AssetDetailScreenEvent
 import com.whitelynxteam.hwwach.ui.navflow.mainflow.assetdetail.AssetDetailScreenViewModel
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.changepasswordscreen.ChangePasswordScreen
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.changepasswordscreen.ChangePasswordEvent
+import com.whitelynxteam.hwwach.ui.navflow.mainflow.changepasswordscreen.ChangePasswordViewModel
 
 
 class MainFlowNavigation(
@@ -54,6 +57,9 @@ class MainFlowNavigation(
                     },
                     onNavigateToAssetDetail = { clientId ->
                         navController.navigate("MainFlowNavigator.AssetDetailScreen/$clientId")
+                    },
+                    onNavigateToChangePassword = {
+                        navController.navigate("MainFlowNavigator.ChangePasswordScreen")
                     },
                     onLogout = {
                         navController.navigate("StartFlowNavigator.AuthScreen") {
@@ -194,6 +200,31 @@ class MainFlowNavigation(
                     modifier = Modifier.fillMaxSize()
                 )
             }
+
+            // ===== Смена пароля из профиля =====
+            composable(Routes.ChangePasswordScreen.route) {
+                val viewModel = hiltViewModel<ChangePasswordViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                ChangePasswordEvent.Exit -> {
+                                    navController.popBackStack()
+                                }
+                            }
+                        }
+                    }
+                }
+
+                ChangePasswordScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    onAction = viewModel::handleAction
+                )
+            }
         }
     }
 
@@ -202,5 +233,6 @@ class MainFlowNavigation(
         data object AddAssetScreen : Routes(route = "MainFlowNavigator.AddAssetScreen")
         data object FullImageScreen : Routes(route = "MainFlowNavigator.FullImageScreen/{clientId}")
         data object AssetDetailScreen : Routes(route = "MainFlowNavigator.AssetDetailScreen/{clientId}")
+        data object ChangePasswordScreen : Routes(route = "MainFlowNavigator.ChangePasswordScreen")
     }
 }

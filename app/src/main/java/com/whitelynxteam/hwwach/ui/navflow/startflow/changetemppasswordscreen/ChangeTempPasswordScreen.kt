@@ -1,4 +1,4 @@
-package com.whitelynxteam.hwwach.ui.navflow.startflow.authscreen
+package com.whitelynxteam.hwwach.ui.navflow.startflow.changetemppasswordscreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -37,12 +37,11 @@ import com.whitelynxteam.hwwach.ui.theme.Red500
 import com.whitelynxteam.hwwach.ui.theme.White
 
 @Composable
-fun AuthScreen(
+fun ChangeTempPasswordScreen(
     modifier: Modifier = Modifier,
-    state: AuthScreenState,
-    onAction: (AuthScreenAction) -> Unit
+    state: ChangeTempPasswordState,
+    onAction: (ChangeTempPasswordAction) -> Unit
 ) {
-
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -50,8 +49,10 @@ fun AuthScreen(
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally)
-        {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
@@ -62,40 +63,53 @@ fun AuthScreen(
                 ) {
                     Text(
                         modifier = Modifier.padding(bottom = 4.dp),
-                        text = "Добро пожаловать",
+                        text = "Смена временного пароля",
                         fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Gray800
                     )
                     Text(
-                        text = "Введите Ваш логин и пароль",
+                        text = "Пожалуйста, установите новый пароль",
                         fontSize = 16.sp,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Gray700
+                        color = Gray700,
+                        textAlign = TextAlign.Center
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(30.dp))
+            
             LoginTextField(
                 value = state.login,
                 placeholderText = "Логин",
-                onValueChange = { onAction(AuthScreenAction.InputLogin(it)) }
+                onValueChange = { onAction(ChangeTempPasswordAction.InputLogin(it)) }
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
             LoginTextField(
-                value = state.password,
-                placeholderText = "Пароль",
-                type = TextFieldType.PASSWORD,
-                onValueChange = { onAction(AuthScreenAction.InputPassword(it)) }
+                value = state.oldPassword,
+                placeholderText = "Временный пароль",
+                onValueChange = { onAction(ChangeTempPasswordAction.InputOldPassword(it)) },
+                type = TextFieldType.PASSWORD
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LoginTextField(
+                value = state.newPassword,
+                placeholderText = "Новый пароль",
+                onValueChange = { onAction(ChangeTempPasswordAction.InputNewPassword(it)) },
+                type = TextFieldType.PASSWORD
             )
             Spacer(modifier = Modifier.height(20.dp))
+
             Button(
                 modifier = Modifier
                     .padding(bottom = 8.dp)
                     .fillMaxWidth()
                     .height(56.dp),
                 onClick = {
-                    onAction(AuthScreenAction.OnAuthClicked)
+                    onAction(ChangeTempPasswordAction.OnSubmitClicked)
                 },
                 shape = RoundedCornerShape(36.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -105,74 +119,58 @@ fun AuthScreen(
                     disabledContentColor = White,
                 ),
                 enabled = !state.isLoading,
-            )
-            {
+            ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
                     if (state.isLoading) {
                         CircularProgressIndicator(
-                            modifier = Modifier
-                                .size(16.dp),
+                            modifier = Modifier.size(16.dp),
                             strokeWidth = 2.dp,
                             color = Color.White
                         )
                         Spacer(modifier = Modifier.size(8.dp))
                     }
                     Text(
-                        text = "Войти",
+                        text = "Сменить пароль",
                         fontSize = 16.sp,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
 
-            // Кнопка Забыл пароль
-            TextButton(
-                modifier = Modifier.padding(top = 8.dp),
-                onClick = { onAction(AuthScreenAction.OnForgotPasswordClicked) }
-            ) {
-                Text(
-                    text = "Забыл пароль?",
-                    fontSize = 14.sp,
-                    color = Gray700,
-                )
-            }
-
-            // Отображение статуса регистрации
-            state.registrationStatusMessage?.let { statusMessage ->
+            state.successMessage?.let { successMessage ->
                 Text(
                     modifier = Modifier
                         .padding(top = 8.dp, bottom = 8.dp)
                         .fillMaxWidth(),
-                    text = statusMessage,
+                    text = successMessage,
                     fontSize = 14.sp,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Gray700,
+                    color = Color(0xFF4CAF50),
                     textAlign = TextAlign.Center
                 )
             }
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            state.errorMessage?.let { errorMessage ->
                 Text(
-                    text = state.errorMessage, // Передаем всю строку целиком с "\n"
-                    textAlign = TextAlign.Center, // <--- Это магическая настройка
+                    modifier = Modifier
+                        .padding(top = 8.dp, bottom = 8.dp)
+                        .fillMaxWidth(),
+                    text = errorMessage,
                     fontSize = 14.sp,
                     style = MaterialTheme.typography.bodySmall,
                     color = Red500,
-                    modifier = Modifier.padding(bottom = 4.dp)
+                    textAlign = TextAlign.Center
                 )
             }
 
-            // Ссылка на регистрацию
-            TextButton(onClick = { onAction(AuthScreenAction.OnRegClicked) })
-            {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(onClick = { onAction(ChangeTempPasswordAction.OnBackClicked) }) {
                 Text(
-                    text = "Регистрация",
+                    text = "Назад к авторизации",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = Blue800,
@@ -180,32 +178,13 @@ fun AuthScreen(
             }
         }
     }
-
 }
 
 @Preview(showBackground = true)
 @Composable
-fun AuthScreenPreview() {
-    AuthScreen(modifier = Modifier, state = AuthScreenState(), onAction = {})
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AuthScreenPreviewWithError() {
-    AuthScreen(
-        modifier = Modifier,
-        state = AuthScreenState(errorMessage = "Ошибка авторизации"),
-        onAction = {})
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AuthScreenPreviewWithErrorWithRegStatus() {
-    AuthScreen(
-        modifier = Modifier,
-        state = AuthScreenState(
-            errorMessage = "Ошибка авторизации",
-            registrationStatusMessage = "Логин: Тест на проверке.",
-        ),
-        onAction = {})
+fun ChangeTempPasswordScreenPreview() {
+    ChangeTempPasswordScreen(
+        state = ChangeTempPasswordState(login = "test_user", oldPassword = "tempPassword"),
+        onAction = {}
+    )
 }

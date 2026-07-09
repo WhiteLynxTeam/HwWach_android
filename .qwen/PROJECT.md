@@ -15,10 +15,10 @@
 - **Target SDK**: 36, **Min SDK**: 24
 - **JVM**: Java 17
 
-## Базовый пакет: `com.whitelynxteam.hwwach`
+## Базовый пакет: `ed.maevski.hwwach`
 
 ```
-com.whitelynxteam.hwwach
+ed.maevski.hwwach
 │
 ├── HwWachApplication.kt          # Entry point приложения
 ├── MainActivity.kt               # Главная Activity

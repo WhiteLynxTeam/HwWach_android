@@ -1,4 +1,4 @@
-package com.whitelynxteam.hwwach
+package ed.maevski.hwwach
 
 import org.junit.Test
 

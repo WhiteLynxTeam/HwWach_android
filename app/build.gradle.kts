@@ -9,13 +9,13 @@ plugins {
 }
 
 android {
-    namespace = "com.whitelynxteam.hwwach"
+    namespace = "ed.maevski.hwwach"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.whitelynxteam.hwwach"
+        applicationId = "ed.maevski.hwwach"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -23,6 +23,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
+
 
     buildTypes {
         debug {
@@ -83,6 +85,9 @@ dependencies {
     implementation(libs.coil.network.okhttp)
     implementation(libs.telephoto.zoomable.coil)
 
+    /** Lottie */
+    implementation(libs.lottie.compose)
+
     /** Retrofit */
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
@@ -101,6 +106,13 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
+
+    /** CameraX */
+    implementation(libs.camerax.core)
+    implementation(libs.camerax.camera2)
+    implementation(libs.camerax.lifecycle)
+    implementation(libs.camerax.view)
+    implementation(libs.camerax.extensions)
 
     testImplementation(libs.junit)
     debugImplementation(libs.androidx.ui.tooling)

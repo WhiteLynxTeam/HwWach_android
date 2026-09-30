@@ -57,4 +57,10 @@ abstract class RepositoryModule {
     abstract fun bindSettingsRepository(
         settingsRepositoryImpl: SettingsRepositoryImpl
     ): ISettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCategoryRepository(
+        categoryRepositoryImpl: ed.maevski.hwwach.data.repositories.CategoryRepositoryImpl
+    ): ed.maevski.hwwach.domain.irepositories.ICategoryRepository
 }

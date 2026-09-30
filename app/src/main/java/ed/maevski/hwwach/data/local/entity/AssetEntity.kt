@@ -14,6 +14,7 @@ data class AssetEntity(
     // Бизнес-данные
     val name: String,
     val category: String?,
+    val categoryUuid: String? = null,
     val inventoryNum: String?,
     val description: String?,
 

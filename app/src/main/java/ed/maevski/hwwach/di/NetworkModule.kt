@@ -145,4 +145,10 @@ object NetworkModule {
     @Named("api")
     fun provideAssetApi(@Named("api") retrofit: Retrofit): AssetApi =
         retrofit.create(AssetApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("api")
+    fun provideCategoryApi(@Named("api") retrofit: Retrofit): ed.maevski.hwwach.data.remote.api.CategoryApi =
+        retrofit.create(ed.maevski.hwwach.data.remote.api.CategoryApi::class.java)
 }

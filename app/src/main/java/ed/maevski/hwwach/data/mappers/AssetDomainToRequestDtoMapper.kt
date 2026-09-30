@@ -12,7 +12,9 @@ class AssetDomainToRequestDtoMapper @Inject constructor() {
             inventoryNum = domain.inventoryNum,
             description = domain.description,
             assetStatus = domain.assetStatus?.name?.lowercase(Locale.ROOT) ?: "active",
-            category = domain.category ?: "",
+            category = domain.category,
+            categoryUuid = domain.categoryUuid,
+            categoryText = if (domain.categoryUuid == null) domain.category else null,
             name = domain.name,
             photoClientIds = domain.photoClientIds
         )

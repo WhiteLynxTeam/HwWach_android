@@ -19,8 +19,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.BottomSheetDefaults
@@ -31,10 +36,12 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -53,8 +60,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ed.maevski.hwwach.domain.models.Category
 import ed.maevski.hwwach.ui.components.ImageGallery
-import ed.maevski.hwwach.ui.models.Categories
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,9 +124,9 @@ fun AddAssetScreen(
                             label = "Название"
                         )
                         Spacer(modifier = Modifier.height(24.dp))
-                        CategoryDropdown(
-                            selectedCategory = state.category,
-                            onCategorySelected = { onAction(AddAssetScreenAction.InputCategory(it)) }
+                        CategoryAutocompleteField(
+                            state = state,
+                            onAction = onAction
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         AddFormTextField(
@@ -319,81 +326,191 @@ fun AddFormTextField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryDropdown(
+fun CategoryAutocompleteField(
     modifier: Modifier = Modifier,
-    selectedCategory: Categories?,
-    onCategorySelected: (Categories) -> Unit
+    state: AddAssetScreenState,
+    onAction: (AddAssetScreenAction) -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
-
     val interactionSource = remember { MutableInteractionSource() }
-    val isFocused = interactionSource.collectIsFocusedAsState().value
-    val borderColor =
-        if (isFocused || selectedCategory != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    val isFocused by interactionSource.collectIsFocusedAsState()
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(
-                color = MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(16.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = borderColor,
-                shape = RoundedCornerShape(16.dp)
-            )
-            .padding(horizontal = 12.dp)
-    ) {
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
-        ) {
-            TextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(),
-                readOnly = true,
-                value = selectedCategory?.displayName ?: "",
-                onValueChange = {},
-                label = {
-                    Text(
-                        text = "Категория",
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = MaterialTheme.colorScheme.primary,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val borderColor = if (isFocused || state.selectedCategory != null) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.outline
+    }
+
+    val trimmedText = state.categoryText.trim()
+    val isDropdownExpanded = state.isCategoryDropdownVisible &&
+            (state.categorySuggestions.isNotEmpty() || state.canAddCustomCategory)
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.background,
+                    shape = RoundedCornerShape(16.dp)
                 )
-            )
-
-            ExposedDropdownMenu(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(8.dp),
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
+                .border(
+                    width = 1.dp,
+                    color = borderColor,
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(horizontal = 12.dp)
+        ) {
+            ExposedDropdownMenuBox(
+                expanded = isDropdownExpanded,
+                onExpandedChange = { onAction(AddAssetScreenAction.SetCategoryDropdownVisible(it)) }
             ) {
-                Categories.entries.forEach { category ->
-                    DropdownMenuItem(
-                        text = { Text(category.displayName) },
-                        onClick = {
-                            onCategorySelected(category)
-                            expanded = false
+                TextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
+                    value = state.categoryText,
+                    onValueChange = {
+                        onAction(AddAssetScreenAction.InputCategoryText(it))
+                    },
+                    label = {
+                        Text(
+                            text = "Категория",
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    },
+                    trailingIcon = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (state.isSearchingCategories) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                            }
+                            if (state.categoryText.isNotEmpty()) {
+                                IconButton(
+                                    onClick = {
+                                        onAction(AddAssetScreenAction.InputCategoryText(""))
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = "Очистить",
+                                        tint = MaterialTheme.colorScheme.outline
+                                    )
+                                }
+                            } else {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded)
+                            }
                         }
-                    )
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedTextColor = MaterialTheme.colorScheme.primary,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    interactionSource = interactionSource
+                )
+
+                ExposedDropdownMenu(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(vertical = 4.dp),
+                    expanded = isDropdownExpanded,
+                    onDismissRequest = {
+                        onAction(AddAssetScreenAction.SetCategoryDropdownVisible(false))
+                    }
+                ) {
+                    state.categorySuggestions.forEach { category ->
+                        DropdownMenuItem(
+                            text = {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = category.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.weight(1f, fill = false)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    CategoryLevelBadge(level = category.level)
+                                }
+                            },
+                            onClick = {
+                                onAction(AddAssetScreenAction.SelectCategory(category))
+                            }
+                        )
+                    }
+
+                    if (state.canAddCustomCategory) {
+                        if (state.categorySuggestions.isNotEmpty()) {
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        }
+                        DropdownMenuItem(
+                            text = {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Добавить категорию: \"$trimmedText\"",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            },
+                            onClick = {
+                                onAction(AddAssetScreenAction.CreateCustomCategory)
+                            }
+                        )
+                    }
                 }
             }
         }
+
+        // Подсказка, если введено 1 или 2 символа
+        if (trimmedText.length in 1..2) {
+            Text(
+                text = "Введите от 3 символов для поиска",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun CategoryLevelBadge(level: Int) {
+    val (label, bg, fg) = when (level) {
+        1 -> Triple("L1", MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
+        2 -> Triple("L2", MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer)
+        else -> Triple("L3", MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
+    }
+
+    Surface(
+        color = bg,
+        shape = RoundedCornerShape(6.dp)
+    ) {
+        Text(
+            text = label,
+            color = fg,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+        )
     }
 }
 

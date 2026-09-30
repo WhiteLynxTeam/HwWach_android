@@ -11,6 +11,7 @@ class AssetDomainToEntityMapper @Inject constructor() {
             serverUuid = asset.serverUuid,
             name = asset.name,
             category = asset.category,
+            categoryUuid = asset.categoryUuid,
             inventoryNum = asset.inventoryNum,
             description = asset.description,
             assetStatus = asset.assetStatus,

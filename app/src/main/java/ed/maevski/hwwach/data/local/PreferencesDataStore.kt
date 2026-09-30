@@ -41,6 +41,9 @@ class PreferencesDataStore @Inject constructor(
 
         // Ключ для времени последней синхронизации (rate limiting)
         val LAST_SYNC_TIME_KEY = longPreferencesKey("last_sync_time")
+
+        // Ключ для временной метки последней синхронизации категорий
+        val LAST_CATEGORIES_SYNC_AT_KEY = stringPreferencesKey("last_categories_sync_at")
     }
 
     // Методы для работы с uuid временной регистрации
@@ -154,6 +157,18 @@ class PreferencesDataStore @Inject constructor(
     suspend fun saveLastSyncTime(timestamp: Long) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.LAST_SYNC_TIME_KEY] = timestamp
+        }
+    }
+
+    // Методы для работы с временной меткой последней синхронизации категорий
+    val lastCategoriesSyncAt: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.LAST_CATEGORIES_SYNC_AT_KEY]
+        }
+
+    suspend fun saveLastCategoriesSyncAt(syncedAt: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LAST_CATEGORIES_SYNC_AT_KEY] = syncedAt
         }
     }
 }

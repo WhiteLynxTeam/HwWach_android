@@ -1,11 +1,14 @@
 package ed.maevski.hwwach.ui.navflow.mainflow.addasset
 
+import ed.maevski.hwwach.domain.models.Category
 import ed.maevski.hwwach.domain.models.Photo
-import ed.maevski.hwwach.ui.models.Categories
 
 sealed class AddAssetScreenAction {
     data class InputName(val value: String) : AddAssetScreenAction()
-    data class InputCategory(val value: Categories) : AddAssetScreenAction()
+    data class InputCategoryText(val value: String) : AddAssetScreenAction()
+    data class SelectCategory(val category: Category) : AddAssetScreenAction()
+    data object CreateCustomCategory : AddAssetScreenAction()
+    data class SetCategoryDropdownVisible(val visible: Boolean) : AddAssetScreenAction()
     data class InputInventoryNumber(val value: String) : AddAssetScreenAction()
     data class InputAddress(val value: String) : AddAssetScreenAction()
     data class InputComment(val value: String) : AddAssetScreenAction()
@@ -31,7 +34,11 @@ sealed class AddAssetScreenEvent {
 
 data class AddAssetScreenState(
     val name: String = "",
-    val category: Categories? = null,
+    val categoryText: String = "",
+    val selectedCategory: Category? = null,
+    val categorySuggestions: List<Category> = emptyList(),
+    val isCategoryDropdownVisible: Boolean = false,
+    val isSearchingCategories: Boolean = false,
     val inventoryNumber: String = "",
     val address: String = "",
     val comment: String = "",
@@ -39,4 +46,11 @@ data class AddAssetScreenState(
 
     val isLoading: Boolean = false,
     val errorMessage: String = "",
-)
+) {
+    val canAddCustomCategory: Boolean
+        get() {
+            val trimmed = categoryText.trim()
+            if (trimmed.length < 2) return false
+            return categorySuggestions.none { it.name.equals(trimmed, ignoreCase = true) }
+        }
+}

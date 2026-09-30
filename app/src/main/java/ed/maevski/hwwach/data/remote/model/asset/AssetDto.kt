@@ -6,6 +6,7 @@ data class AssetDto(
     @SerializedName("admin_comment") val adminComment: String?,
     @SerializedName("asset_status") val assetStatus: String?,
     @SerializedName("category") val category: String?,
+    @SerializedName("category_uuid") val categoryUuid: String? = null,
     @SerializedName("client_id") val clientId: String,
     @SerializedName("created_at") val createdAt: String?,
     @SerializedName("description") val description: String?,

@@ -17,6 +17,7 @@ class AssetDtoToDomainMapper @Inject constructor() {
             serverUuid = dto.uuid,
             name = dto.name ?: "",
             category = dto.category,
+            categoryUuid = dto.categoryUuid,
             inventoryNum = dto.inventoryNum,
             description = dto.description,
             assetStatus = dto.assetStatus?.let { statusStr ->

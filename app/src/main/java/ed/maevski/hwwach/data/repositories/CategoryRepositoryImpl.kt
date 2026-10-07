@@ -48,10 +48,10 @@ class CategoryRepositoryImpl @Inject constructor(
                 }
                 DomainResult.Success(domainList)
             } else {
-                DomainResult.Error(responseErrorMapper.map(response.errorBody()?.string()))
+                responseErrorMapper.map(response)
             }
         } catch (e: Exception) {
-            DomainResult.Error(responseErrorMapper.map(e))
+            DomainResult.NetworkError(e.message ?: "Unknown error")
         }
     }
 
@@ -74,13 +74,13 @@ class CategoryRepositoryImpl @Inject constructor(
                     preferencesDataStore.saveLastCategoriesSyncAt(body.syncedAt)
                     DomainResult.Success(Unit)
                 } else {
-                    DomainResult.Error(responseErrorMapper.map("Empty sync response"))
+                    DomainResult.NetworkError("Empty sync response")
                 }
             } else {
-                DomainResult.Error(responseErrorMapper.map(response.errorBody()?.string()))
+                responseErrorMapper.map(response)
             }
         } catch (e: Exception) {
-            DomainResult.Error(responseErrorMapper.map(e))
+            DomainResult.NetworkError(e.message ?: "Unknown error")
         }
     }
 

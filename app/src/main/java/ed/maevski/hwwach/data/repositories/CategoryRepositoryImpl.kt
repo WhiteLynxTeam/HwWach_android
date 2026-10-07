@@ -62,7 +62,7 @@ class CategoryRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
-                    transactionRunner.runInTransaction {
+                    transactionRunner {
                         if (body.categories.isNotEmpty()) {
                             val entities = body.categories.map { CategoryEntity.fromDomain(it.toDomain()) }
                             categoryDao.upsertAll(entities)

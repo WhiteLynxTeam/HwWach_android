@@ -41,6 +41,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -345,28 +346,29 @@ fun CategoryAutocompleteField(
             (state.categorySuggestions.isNotEmpty() || state.canAddCustomCategory)
 
     Column(modifier = modifier.fillMaxWidth()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    color = MaterialTheme.colorScheme.background,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .border(
-                    width = 1.dp,
-                    color = borderColor,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(horizontal = 12.dp)
+        ExposedDropdownMenuBox(
+            modifier = Modifier.fillMaxWidth(),
+            expanded = isDropdownExpanded,
+            onExpandedChange = { onAction(AddAssetScreenAction.SetCategoryDropdownVisible(it)) }
         ) {
-            ExposedDropdownMenuBox(
-                expanded = isDropdownExpanded,
-                onExpandedChange = { onAction(AddAssetScreenAction.SetCategoryDropdownVisible(it)) }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = MaterialTheme.colorScheme.background,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = borderColor,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(horizontal = 12.dp)
             ) {
                 TextField(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor(),
+                        .menuAnchor(MenuAnchorType.PrimaryEditable),
                     value = state.categoryText,
                     onValueChange = {
                         onAction(AddAssetScreenAction.InputCategoryText(it))
@@ -414,69 +416,71 @@ fun CategoryAutocompleteField(
                     ),
                     interactionSource = interactionSource
                 )
+            }
 
-                ExposedDropdownMenu(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(vertical = 4.dp),
-                    expanded = isDropdownExpanded,
-                    onDismissRequest = {
-                        onAction(AddAssetScreenAction.SetCategoryDropdownVisible(false))
-                    }
-                ) {
-                    state.categorySuggestions.forEach { category ->
-                        DropdownMenuItem(
-                            text = {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = category.name,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.weight(1f, fill = false)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    CategoryLevelBadge(level = category.level)
-                                }
-                            },
-                            onClick = {
-                                onAction(AddAssetScreenAction.SelectCategory(category))
+            ExposedDropdownMenu(
+                modifier = Modifier
+                    .exposedDropdownSize(matchTextFieldWidth = true)
+                    .heightIn(max = 240.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(vertical = 4.dp),
+                expanded = isDropdownExpanded,
+                onDismissRequest = {
+                    onAction(AddAssetScreenAction.SetCategoryDropdownVisible(false))
+                }
+            ) {
+                state.categorySuggestions.forEach { category ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = category.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.weight(1f, fill = false)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                CategoryLevelBadge(level = category.level)
                             }
-                        )
-                    }
-
-                    if (state.canAddCustomCategory) {
-                        if (state.categorySuggestions.isNotEmpty()) {
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        },
+                        onClick = {
+                            onAction(AddAssetScreenAction.SelectCategory(category))
                         }
-                        DropdownMenuItem(
-                            text = {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Add,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = "Добавить категорию: \"$trimmedText\"",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            },
-                            onClick = {
-                                onAction(AddAssetScreenAction.CreateCustomCategory)
-                            }
-                        )
+                    )
+                }
+
+                if (state.canAddCustomCategory) {
+                    if (state.categorySuggestions.isNotEmpty()) {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                     }
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Добавить категорию: \"$trimmedText\"",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        },
+                        onClick = {
+                            onAction(AddAssetScreenAction.CreateCustomCategory)
+                        }
+                    )
                 }
             }
         }

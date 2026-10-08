@@ -267,6 +267,9 @@ class AddAssetScreenViewModel @Inject constructor(
                 is DomainResult.NetworkError -> {
                     _state.update { it.copy(isLoading = false, errorMessage = result.message) }
                 }
+                is DomainResult.ValidationError -> {
+                    _state.update { it.copy(isLoading = false, errorMessage = result.message) }
+                }
                 is DomainResult.UnauthorizedError -> {
                     _state.update { it.copy(isLoading = false, errorMessage = "Ошибка авторизации") }
                 }

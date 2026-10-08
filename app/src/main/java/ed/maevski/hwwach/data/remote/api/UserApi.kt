@@ -37,7 +37,7 @@ interface UserApi {
         @Path("id") id: String
     ): Response<UserResponseDto>
 
-    @POST("/auth/refresh/")
+    @POST("/auth/refresh")
     fun refreshToken(
         @Body request: RefreshTokenRequest
     ): Call<RefreshTokenResponse>

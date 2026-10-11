@@ -42,6 +42,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -268,47 +270,34 @@ fun AddFormTextField(
     onValueChange: (String) -> Unit,
     label: String
 ) {
-
     val interactionSource = remember { MutableInteractionSource() }
-    val isFocused = interactionSource.collectIsFocusedAsState().value
-    val borderColor =
-        if (isFocused || value.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(
-                color = MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(16.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = borderColor,
-                shape = RoundedCornerShape(16.dp)
-            )
-            .padding(horizontal = 12.dp)
-    ) {
-        TextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = value,
-            onValueChange = onValueChange,
-            interactionSource = interactionSource,
-            label = {
-                Text(
-                    text = label,
-                    color = MaterialTheme.colorScheme.outline
-                )
-            },
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedTextColor = MaterialTheme.colorScheme.primary,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        )
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val unfocusedBorderColor = if (value.isNotEmpty()) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.outline
     }
+
+    OutlinedTextField(
+        modifier = modifier.fillMaxWidth(),
+        value = value,
+        onValueChange = onValueChange,
+        interactionSource = interactionSource,
+        label = {
+            Text(text = label)
+        },
+        shape = RoundedCornerShape(16.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = unfocusedBorderColor,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+            focusedTextColor = MaterialTheme.colorScheme.primary,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedContainerColor = MaterialTheme.colorScheme.background,
+            unfocusedContainerColor = MaterialTheme.colorScheme.background
+        )
+    )
 }
 
 // @Composable
@@ -335,7 +324,7 @@ fun CategoryAutocompleteField(
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
 
-    val borderColor = if (isFocused || state.selectedCategory != null) {
+    val unfocusedBorderColor = if (state.categoryText.isNotEmpty() || state.selectedCategory != null) {
         MaterialTheme.colorScheme.primary
     } else {
         MaterialTheme.colorScheme.outline
@@ -351,72 +340,57 @@ fun CategoryAutocompleteField(
             expanded = isDropdownExpanded,
             onExpandedChange = { onAction(AddAssetScreenAction.SetCategoryDropdownVisible(it)) }
         ) {
-            Box(
+            OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .border(
-                        width = 1.dp,
-                        color = borderColor,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .padding(horizontal = 12.dp)
-            ) {
-                TextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(MenuAnchorType.PrimaryEditable),
-                    value = state.categoryText,
-                    onValueChange = {
-                        onAction(AddAssetScreenAction.InputCategoryText(it))
-                    },
-                    label = {
-                        Text(
-                            text = "Категория",
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    },
-                    trailingIcon = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (state.isSearchingCategories) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                            }
-                            if (state.categoryText.isNotEmpty()) {
-                                IconButton(
-                                    onClick = {
-                                        onAction(AddAssetScreenAction.InputCategoryText(""))
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = "Очистить",
-                                        tint = MaterialTheme.colorScheme.outline
-                                    )
-                                }
-                            } else {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded)
-                            }
+                    .menuAnchor(MenuAnchorType.PrimaryEditable),
+                value = state.categoryText,
+                onValueChange = {
+                    onAction(AddAssetScreenAction.InputCategoryText(it))
+                },
+                label = {
+                    Text(text = "Категория")
+                },
+                shape = RoundedCornerShape(16.dp),
+                trailingIcon = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (state.isSearchingCategories) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
                         }
-                    },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedTextColor = MaterialTheme.colorScheme.primary,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    interactionSource = interactionSource
-                )
-            }
+                        if (state.categoryText.isNotEmpty()) {
+                            IconButton(
+                                onClick = {
+                                    onAction(AddAssetScreenAction.InputCategoryText(""))
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Очистить",
+                                    tint = MaterialTheme.colorScheme.outline
+                                )
+                            }
+                        } else {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded)
+                        }
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = unfocusedBorderColor,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.background,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.background
+                ),
+                interactionSource = interactionSource
+            )
 
             ExposedDropdownMenu(
                 modifier = Modifier

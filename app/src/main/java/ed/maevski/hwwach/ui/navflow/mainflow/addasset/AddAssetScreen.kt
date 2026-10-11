@@ -420,7 +420,7 @@ fun CategoryAutocompleteField(
 
             ExposedDropdownMenu(
                 modifier = Modifier
-                    .exposedDropdownSize(matchTextFieldWidth = true)
+                    .exposedDropdownSize(matchAnchorWidth = true)
                     .heightIn(max = 240.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surface)

@@ -1,6 +1,7 @@
 package ed.maevski.hwwach.di
 
 import ed.maevski.hwwach.BuildConfig
+import ed.maevski.hwwach.data.remote.api.AdminApi
 import ed.maevski.hwwach.data.remote.api.AssetApi
 import ed.maevski.hwwach.data.remote.api.PhotosApi
 import ed.maevski.hwwach.data.remote.api.UserApi
@@ -50,6 +51,19 @@ object NetworkModule {
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+
+    /**
+     * Клиент для «пробуждения» серверов на Render: холодный старт занимает до минуты,
+     * поэтому таймаут чтения увеличен. Логирование тела не нужно.
+     */
+    @Provides
+    @Singleton
+    @WarmupOkHttpClient
+    fun provideWarmupOkHttpClient(): OkHttpClient =
+        OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(90, TimeUnit.SECONDS)
             .build()
 
     /** Клиент без токена — для запросов, где авторизация не нужна (login, register) */
@@ -133,6 +147,12 @@ object NetworkModule {
     @Named("user_token")
     fun provideUserTokensApi(@Named("user_token") retrofit: Retrofit): UserTokensApi =
         retrofit.create(UserTokensApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("user_token")
+    fun provideAdminApi(@Named("user_token") retrofit: Retrofit): AdminApi =
+        retrofit.create(AdminApi::class.java)
 
     @Provides
     @Singleton

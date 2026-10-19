@@ -73,20 +73,24 @@ class UserRepositoryImpl @Inject constructor(
                 }
             )
 
-        val response = userApi.reg(userRegRequest)
+        return try {
+            val response = userApi.reg(userRegRequest)
 
-        return when {
-            !response.isSuccessful -> responseErrorMapper.map(response)
-            else -> {
-                val regResponseDto = response.body() ?: return DomainResult.ValidationError("Registration response not found")
+            when {
+                !response.isSuccessful -> responseErrorMapper.map(response)
+                else -> {
+                    val regResponseDto = response.body() ?: return DomainResult.ValidationError("Registration response not found")
 
-                // сохраняем временный uuid локально после регистрации во временной таблицы регистрации
-                // перед одобрением администратора
-                saveUUIDTemp(regResponseDto.uuid)
+                    // сохраняем временный uuid локально после регистрации во временной таблицы регистрации
+                    // перед одобрением администратора
+                    saveUUIDTemp(regResponseDto.uuid)
 
-                val mappedUser = regResponseDtoToUserDomainMapper.map(regResponseDto)
-                DomainResult.Success(mappedUser)
+                    val mappedUser = regResponseDtoToUserDomainMapper.map(regResponseDto)
+                    DomainResult.Success(mappedUser)
+                }
             }
+        } catch (e: IOException) {
+            DomainResult.NetworkError(e.message ?: "Network error")
         }
     }
 
@@ -131,28 +135,37 @@ class UserRepositoryImpl @Inject constructor(
         val tempUuid = preferencesDataStore.uuidTemp.firstOrNull()
             ?: return DomainResult.Success(RegStatus())
 
-        val response = userApi.statusReg(tempUuid)
+        // Сервер на Render может спать — таймаут/обрыв не должен ронять экран входа
+        return try {
+            val response = userApi.statusReg(tempUuid)
 
-        return when {
-            !response.isSuccessful -> responseErrorMapper.map(response)
-            else -> {
-                val status = response.body() ?: return DomainResult.ValidationError("RegStatus not found")
-                val mappedStatus = regStatusResponseDtoToRegStatusDomainMapper.map(status)
-                DomainResult.Success(mappedStatus)
+            when {
+                !response.isSuccessful -> responseErrorMapper.map(response)
+                else -> {
+                    val status = response.body() ?: return DomainResult.ValidationError("RegStatus not found")
+                    val mappedStatus = regStatusResponseDtoToRegStatusDomainMapper.map(status)
+                    DomainResult.Success(mappedStatus)
+                }
             }
+        } catch (e: IOException) {
+            DomainResult.NetworkError(e.message ?: "Network error")
         }
     }
 
     override suspend fun getUserInfo(id: String): DomainResult<User> {
-        val response = userApi.getUserInfo(id)
+        return try {
+            val response = userApi.getUserInfo(id)
 
-        return when {
-            !response.isSuccessful -> responseErrorMapper.map(response)
-            else -> {
-                val userInfoResponseDto = response.body() ?: return DomainResult.ValidationError("UserInfo response not found")
-                val mappedUser = userResponseDtoToUserDomainMapper.map(userInfoResponseDto)
-                DomainResult.Success(mappedUser)
+            when {
+                !response.isSuccessful -> responseErrorMapper.map(response)
+                else -> {
+                    val userInfoResponseDto = response.body() ?: return DomainResult.ValidationError("UserInfo response not found")
+                    val mappedUser = userResponseDtoToUserDomainMapper.map(userInfoResponseDto)
+                    DomainResult.Success(mappedUser)
+                }
             }
+        } catch (e: IOException) {
+            DomainResult.NetworkError(e.message ?: "Network error")
         }
     }
 

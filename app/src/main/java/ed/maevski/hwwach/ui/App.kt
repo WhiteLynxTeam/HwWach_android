@@ -7,6 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import ed.maevski.hwwach.domain.irepositories.ITokensRepository
 import ed.maevski.hwwach.domain.irepositories.TokenState
+import ed.maevski.hwwach.ui.navflow.adminflow.ADMIN_FLOW_ROUTE_PREFIX
+import ed.maevski.hwwach.ui.navflow.adminflow.AdminFlowNavigation
 import ed.maevski.hwwach.ui.navflow.mainflow.MainFlowNavigation
 import ed.maevski.hwwach.ui.navflow.startflow.StartFlowNavigation
 import javax.inject.Inject
@@ -23,6 +25,9 @@ class App @Inject constructor(
                 // при завершении данной ветки навигации приложение должно закрыться
             }
 
+        val adminFlowNavigation =
+            AdminFlowNavigation(navController) {}
+
         val startFlowNavigation =
             StartFlowNavigation(navController) {
                 navController.navigate(mainFlowNavigation.startRoute) {
@@ -38,7 +43,10 @@ class App @Inject constructor(
             tokensRepository.tokenState.collect { state ->
                 if (state is TokenState.Unauthenticated) {
                     val currentRoute = navController.currentBackStackEntry?.destination?.route
-                    if (currentRoute != null && currentRoute.startsWith("MainFlowNavigator")) {
+                    val isProtectedRoute = currentRoute != null &&
+                        (currentRoute.startsWith("MainFlowNavigator") ||
+                            currentRoute.startsWith(ADMIN_FLOW_ROUTE_PREFIX))
+                    if (isProtectedRoute) {
                         navController.navigate(startFlowNavigation.startRoute) {
                             popUpTo(0) { inclusive = true }
                         }
@@ -50,6 +58,7 @@ class App @Inject constructor(
         val flows: NavGraphBuilder.() -> Unit = {
             startFlowNavigation.addFlow(this)
             mainFlowNavigation.addFlow(this)
+            adminFlowNavigation.addFlow(this)
         }
 
         NavHost(

@@ -115,6 +115,15 @@ class RegScreenViewModel @Inject constructor(
                 is DomainResult.Success -> {
                     _events.emit(RegScreenEvent.NavigateToAuth)
                 }
+                // Чаще всего — сервер на Render ещё просыпается после простоя
+                is DomainResult.NetworkError -> {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "Нет связи с сервером. Подождите минуту и попробуйте снова"
+                        )
+                    }
+                }
                 else -> {
                     _state.update {
                         it.copy(

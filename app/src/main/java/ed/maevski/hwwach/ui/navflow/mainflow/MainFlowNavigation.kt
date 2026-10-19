@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import ed.maevski.hwwach.ui.FlowNavigation
+import ed.maevski.hwwach.ui.navflow.adminflow.AdminFlowNavigation
 import ed.maevski.hwwach.ui.navflow.mainflow.addasset.AddAssetScreen
 import ed.maevski.hwwach.ui.navflow.mainflow.addasset.AddAssetScreenEvent
 import ed.maevski.hwwach.ui.navflow.mainflow.addasset.AddAssetScreenViewModel
@@ -67,6 +68,9 @@ class MainFlowNavigation(
                     },
                     onNavigateToCamera = {
                         navController.navigate("MainFlowNavigator.CameraScreen")
+                    },
+                    onNavigateToAdmin = {
+                        navController.navigate(AdminFlowNavigation.Routes.AdminHubScreen.route)
                     },
                     onLogout = {
                         navController.navigate("StartFlowNavigator.AuthScreen") {

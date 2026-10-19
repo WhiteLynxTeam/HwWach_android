@@ -33,6 +33,7 @@ class InnerMainFlowNavigation(
     private val onNavigateToAssetDetail: (String) -> Unit,
     private val onNavigateToChangePassword: () -> Unit,
     private val onNavigateToCamera: () -> Unit,
+    private val onNavigateToAdmin: () -> Unit,
     private val onLogout: () -> Unit,
     onFinished: (routeName: String) -> Unit
 ) : FlowNavigation(onFinished) {
@@ -135,6 +136,10 @@ class InnerMainFlowNavigation(
 
                                 is ProfileEvent.NavigateToLogin -> {
                                     onLogout()
+                                }
+
+                                is ProfileEvent.NavigateToAdmin -> {
+                                    onNavigateToAdmin()
                                 }
                             }
                         }

@@ -45,6 +45,11 @@ class ProfileScreenViewModel @Inject constructor(
                     _events.emit(ProfileEvent.NavigateToChangePassword)
                 }
             }
+            is ProfileAction.OnAdminClicked -> {
+                viewModelScope.launch {
+                    _events.emit(ProfileEvent.NavigateToAdmin)
+                }
+            }
             is ProfileAction.OnLogoutClicked -> {
                 viewModelScope.launch {
                     tokensRepository.clearTokens()

@@ -1,11 +1,13 @@
 package ed.maevski.hwwach.di
 
+import ed.maevski.hwwach.data.repositories.AdminRepositoryImpl
 import ed.maevski.hwwach.data.repositories.AssetRepositoryImpl
 import ed.maevski.hwwach.data.repositories.PhotoRepositoryImpl
 import ed.maevski.hwwach.data.repositories.SettingsRepositoryImpl
 import ed.maevski.hwwach.data.repositories.TokenRepositoryImpl
 import ed.maevski.hwwach.data.repositories.UserProfileRepositoryImpl
 import ed.maevski.hwwach.data.repositories.UserRepositoryImpl
+import ed.maevski.hwwach.domain.irepositories.IAdminRepository
 import ed.maevski.hwwach.domain.irepositories.IAssetRepository
 import ed.maevski.hwwach.domain.irepositories.IPhotoRepository
 import ed.maevski.hwwach.domain.irepositories.ISettingsRepository
@@ -63,4 +65,16 @@ abstract class RepositoryModule {
     abstract fun bindCategoryRepository(
         categoryRepositoryImpl: ed.maevski.hwwach.data.repositories.CategoryRepositoryImpl
     ): ed.maevski.hwwach.domain.irepositories.ICategoryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAdminRepository(
+        adminRepositoryImpl: AdminRepositoryImpl
+    ): IAdminRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindServerWarmupRepository(
+        serverWarmupRepositoryImpl: ed.maevski.hwwach.data.repositories.ServerWarmupRepositoryImpl
+    ): ed.maevski.hwwach.domain.irepositories.IServerWarmupRepository
 }

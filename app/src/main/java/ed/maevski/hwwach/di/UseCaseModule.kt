@@ -1,6 +1,11 @@
 package ed.maevski.hwwach.di
 
+import ed.maevski.hwwach.domain.irepositories.IAdminRepository
 import ed.maevski.hwwach.domain.irepositories.IAssetRepository
+import ed.maevski.hwwach.domain.usecases.admin.ApproveRegistrationUseCase
+import ed.maevski.hwwach.domain.usecases.admin.GetPendingRegistrationsUseCase
+import ed.maevski.hwwach.domain.usecases.admin.GetRegistrationUseCase
+import ed.maevski.hwwach.domain.usecases.admin.RejectRegistrationUseCase
 import ed.maevski.hwwach.domain.irepositories.IPhotoRepository
 import ed.maevski.hwwach.domain.irepositories.ISettingsRepository
 import ed.maevski.hwwach.domain.irepositories.ITokensRepository
@@ -200,5 +205,47 @@ object UseCaseModule {
         userRepository: IUserRepository
     ): ChangePasswordUseCase {
         return ChangePasswordUseCase(userRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWakeUpServersUseCase(
+        serverWarmupRepository: ed.maevski.hwwach.domain.irepositories.IServerWarmupRepository
+    ): ed.maevski.hwwach.domain.usecases.settings.WakeUpServersUseCase {
+        return ed.maevski.hwwach.domain.usecases.settings.WakeUpServersUseCase(serverWarmupRepository)
+    }
+
+    // --- Админ ---
+
+    @Provides
+    @Singleton
+    fun provideGetPendingRegistrationsUseCase(
+        adminRepository: IAdminRepository
+    ): GetPendingRegistrationsUseCase {
+        return GetPendingRegistrationsUseCase(adminRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetRegistrationUseCase(
+        adminRepository: IAdminRepository
+    ): GetRegistrationUseCase {
+        return GetRegistrationUseCase(adminRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideApproveRegistrationUseCase(
+        adminRepository: IAdminRepository
+    ): ApproveRegistrationUseCase {
+        return ApproveRegistrationUseCase(adminRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRejectRegistrationUseCase(
+        adminRepository: IAdminRepository
+    ): RejectRegistrationUseCase {
+        return RejectRegistrationUseCase(adminRepository)
     }
 }

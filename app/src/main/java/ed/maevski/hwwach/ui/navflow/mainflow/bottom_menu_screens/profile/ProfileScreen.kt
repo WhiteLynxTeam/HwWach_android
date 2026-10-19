@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -43,6 +44,7 @@ fun ProfileScreen(
         state.user?.let { user ->
             ProfileContent(
                 user = user,
+                isAdmin = state.isAdmin,
                 modifier = modifier,
                 onAction = onAction
             )
@@ -57,6 +59,7 @@ fun ProfileScreen(
 @Composable
 fun ProfileContent(
     user: User,
+    isAdmin: Boolean,
     modifier: Modifier = Modifier,
     onAction: (ProfileAction) -> Unit
 ) {
@@ -149,6 +152,22 @@ fun ProfileContent(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        if (isAdmin) {
+            OutlinedButton(
+                onClick = { onAction(ProfileAction.OnAdminClicked) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(imageVector = Icons.Default.AdminPanelSettings, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "Администрирование", fontSize = 16.sp)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
         Button(
             onClick = { onAction(ProfileAction.OnChangePasswordClicked) },

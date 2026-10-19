@@ -3,6 +3,7 @@ package ed.maevski.hwwach.ui.navflow.startflow.authscreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ed.maevski.hwwach.domain.DomainResult
+import ed.maevski.hwwach.domain.usecases.settings.WakeUpServersUseCase
 import ed.maevski.hwwach.domain.usecases.user.CheckRegistrationUseCase
 import ed.maevski.hwwach.domain.usecases.user.LoginWithProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthScreenViewModel @Inject constructor(
     private val loginWithProfileUseCase: LoginWithProfileUseCase,
-    private val checkRegistrationUseCase: CheckRegistrationUseCase
+    private val checkRegistrationUseCase: CheckRegistrationUseCase,
+    private val wakeUpServersUseCase: WakeUpServersUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthScreenState())
@@ -29,6 +31,11 @@ class AuthScreenViewModel @Inject constructor(
     val events: SharedFlow<AuthScreenEvent> = _events.asSharedFlow()
 
     init {
+        // Экран входа может открыться спустя долгое время после старта (после выхода из аккаунта
+        // или протухшего токена) — серверы к этому моменту могли снова уснуть.
+        // Повторные вызовы в течение минуты репозиторий отбрасывает сам.
+        viewModelScope.launch { wakeUpServersUseCase() }
+
         // Проверяем статус регистрации при инициализации ViewModel
         viewModelScope.launch {
             val regStatus = checkRegistrationUseCase()

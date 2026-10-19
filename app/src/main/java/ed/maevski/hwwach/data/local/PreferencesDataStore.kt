@@ -38,6 +38,7 @@ class PreferencesDataStore @Inject constructor(
         val USER_POSITION_KEY = stringPreferencesKey("user_position")
         val USER_OFFICE_NAME_KEY = stringPreferencesKey("user_office_name")
         val USER_OFFICE_LOCATION_KEY = stringPreferencesKey("user_office_location")
+        val USER_ROLE_KEY = stringPreferencesKey("user_role")
 
         // Ключ для времени последней синхронизации (rate limiting)
         val LAST_SYNC_TIME_KEY = longPreferencesKey("last_sync_time")
@@ -105,6 +106,7 @@ class PreferencesDataStore @Inject constructor(
             val position = preferences[PreferencesKeys.USER_POSITION_KEY]
             val officeName = preferences[PreferencesKeys.USER_OFFICE_NAME_KEY]
             val officeLocation = preferences[PreferencesKeys.USER_OFFICE_LOCATION_KEY]
+            val role = preferences[PreferencesKeys.USER_ROLE_KEY]
 
             if (username != null) {
                 User(
@@ -116,6 +118,7 @@ class PreferencesDataStore @Inject constructor(
                     position = position,
                     officeName = officeName,
                     officeLocation = officeLocation,
+                    role = role,
                 )
             } else {
                 null
@@ -132,6 +135,7 @@ class PreferencesDataStore @Inject constructor(
             user.position?.let { preferences[PreferencesKeys.USER_POSITION_KEY] = it }
             user.officeName?.let { preferences[PreferencesKeys.USER_OFFICE_NAME_KEY] = it }
             user.officeLocation?.let { preferences[PreferencesKeys.USER_OFFICE_LOCATION_KEY] = it }
+            user.role?.let { preferences[PreferencesKeys.USER_ROLE_KEY] = it }
         }
     }
 
@@ -145,6 +149,7 @@ class PreferencesDataStore @Inject constructor(
             preferences.remove(PreferencesKeys.USER_POSITION_KEY)
             preferences.remove(PreferencesKeys.USER_OFFICE_NAME_KEY)
             preferences.remove(PreferencesKeys.USER_OFFICE_LOCATION_KEY)
+            preferences.remove(PreferencesKeys.USER_ROLE_KEY)
         }
     }
 

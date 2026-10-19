@@ -14,3 +14,7 @@ annotation class TokenOkHttpClient
 @Qualifier
 @Retention(BINARY)
 annotation class UploadOkHttpClient
+
+@Qualifier
+@Retention(BINARY)
+annotation class WarmupOkHttpClient

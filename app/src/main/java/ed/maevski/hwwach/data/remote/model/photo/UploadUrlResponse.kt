@@ -12,6 +12,7 @@ data class UploadUrlResponse(
     @SerializedName("max_file_size")
     val maxFileSize: Long,
 
+    @SerializedName("method")
     val method: String,
 
     @SerializedName("photo_uuid")

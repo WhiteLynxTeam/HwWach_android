@@ -9,7 +9,9 @@ data class PhotoDto(
     @SerializedName("created_at")
     val createdAt: String,
 
+    @SerializedName("url")
     val url: String,
 
+    @SerializedName("uuid")
     val uuid: String,
 )

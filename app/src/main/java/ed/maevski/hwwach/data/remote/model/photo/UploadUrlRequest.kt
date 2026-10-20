@@ -12,5 +12,6 @@ data class UploadUrlRequest(
     @SerializedName("file_size")
     val fileSize: Long,
 
+    @SerializedName("filename")
     val filename: String,
 )

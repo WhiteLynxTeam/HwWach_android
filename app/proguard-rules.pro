@@ -1,21 +1,13 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Правила R8 для release-сборки (isMinifyEnabled = true).
+# Retrofit, OkHttp, Gson, Hilt, Room и Compose приносят свои правила сами.
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Номера строк в стектрейсах; расшифровка — через build/outputs/mapping/release/mapping.txt
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Дженерики и аннотации нужны Gson и Retrofit (List<CategoryDto>, @SerializedName, suspend-методы)
+-keepattributes Signature,*Annotation*,InnerClasses,EnclosingMethod
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# DTO сети: Gson работает через рефлексию — поля, конструкторы и константы enum не трогаем.
+# @SerializedName страхует имена, а это правило — от удаления «неиспользуемых» полей.
+-keep class ed.maevski.hwwach.data.remote.model.** { *; }

@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +38,7 @@ import ed.maevski.hwwach.ui.theme.Gray300
 import ed.maevski.hwwach.ui.theme.Gray500
 import ed.maevski.hwwach.ui.theme.Gray600
 import ed.maevski.hwwach.ui.theme.Gray800
+import ed.maevski.hwwach.ui.theme.White
 import kotlinx.coroutines.delay
 
 @Composable
@@ -82,15 +85,45 @@ fun SplashScreen(
                         dotCount = (dotCount + 1) % 4
                     }
                 }
-                val loadingText = "загрузка данных" + ".".repeat(dotCount)
+                val loadingText = if (state.isWakingServer) "будим сервер, это до минуты" else "загрузка данных"
 
                 Text(
-                    text = loadingText,
+                    text = loadingText + ".".repeat(dotCount),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     color = Gray500,
                     textAlign = TextAlign.Center
                 )
+            }
+
+            state.errorMessage?.let { message ->
+                Text(
+                    text = message,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Gray600,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 32.dp)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    modifier = Modifier.height(48.dp),
+                    onClick = { onAction(SplashScreenAction.Retry) },
+                    shape = RoundedCornerShape(36.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Gray800,
+                        contentColor = White
+                    )
+                ) {
+                    Text(
+                        text = "Повторить",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                }
             }
         }
 

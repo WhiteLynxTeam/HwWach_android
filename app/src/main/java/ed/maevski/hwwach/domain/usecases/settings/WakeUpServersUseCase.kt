@@ -6,7 +6,6 @@ import javax.inject.Inject
 class WakeUpServersUseCase @Inject constructor(
     private val serverWarmupRepository: IServerWarmupRepository
 ) {
-    suspend operator fun invoke() {
-        serverWarmupRepository.wakeUp()
-    }
+    /** true — оба бэкенда ответили */
+    suspend operator fun invoke(): Boolean = serverWarmupRepository.wakeUp()
 }

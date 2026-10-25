@@ -103,7 +103,11 @@ fun RegScreen(
             }
 
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+
+            RegOrganizationBlock(state = state, onAction = onAction)
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             LoginTextField(
                 value = state.lastName,

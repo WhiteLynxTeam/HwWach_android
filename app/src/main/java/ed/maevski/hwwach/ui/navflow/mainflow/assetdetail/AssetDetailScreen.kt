@@ -29,6 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ed.maevski.hwwach.domain.models.Asset
+import ed.maevski.hwwach.domain.models.AssetLabels
+import ed.maevski.hwwach.domain.models.AssetServerInfo
 import ed.maevski.hwwach.ui.components.ImageGallery
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,7 +81,11 @@ fun AssetDetailScreen(
                         .padding(16.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    AssetInfoCard(asset = state.asset)
+                    AssetInfoCard(asset = state.asset, serverInfo = state.serverInfo)
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    AssetRolesCard(state = state, onAction = onAction)
                     
                     Spacer(modifier = Modifier.height(24.dp))
                     
@@ -115,7 +121,7 @@ fun AssetDetailScreen(
 }
 
 @Composable
-private fun AssetInfoCard(asset: Asset, modifier: Modifier = Modifier) {
+private fun AssetInfoCard(asset: Asset, serverInfo: AssetServerInfo?, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -138,7 +144,14 @@ private fun AssetInfoCard(asset: Asset, modifier: Modifier = Modifier) {
                 ed.maevski.hwwach.domain.models.AssetStatusEnum.LOST -> "Утерян"
                 null -> "Не указан"
             }
-            DetailRow(label = "Статус", value = statusDisplay)
+            // с сервера — свежий учётный статус и техническое состояние; офлайн — локальный статус
+            DetailRow(label = "Статус", value = serverInfo?.let { AssetLabels.accounting(it.accountingStatus) } ?: statusDisplay)
+            serverInfo?.let {
+                DetailRow(label = "Состояние", value = AssetLabels.condition(it.condition))
+                if (it.inRepairOverdue) {
+                    DetailRow(label = "Ремонт", value = "Просрочен возврат из ремонта")
+                }
+            }
         }
     }
 }

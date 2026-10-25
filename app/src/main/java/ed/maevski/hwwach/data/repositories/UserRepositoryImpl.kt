@@ -12,6 +12,7 @@ import ed.maevski.hwwach.data.remote.api.UserTokensApi
 import ed.maevski.hwwach.data.remote.model.auth.ChangeTempPasswordRequest
 import ed.maevski.hwwach.data.remote.model.user.ChangePasswordRequest
 import ed.maevski.hwwach.domain.DomainResult
+import ed.maevski.hwwach.domain.irepositories.ITokensRepository
 import ed.maevski.hwwach.domain.irepositories.IUserRepository
 import ed.maevski.hwwach.domain.models.RegStatus
 import ed.maevski.hwwach.domain.models.Token
@@ -38,6 +39,7 @@ class UserRepositoryImpl @Inject constructor(
     private val userResponseDtoToUserDomainMapper: UserResponseDtoToUserDomainMapper,
     private val responseErrorMapper: ResponseErrorMapper,
     private val preferencesDataStore: PreferencesDataStore,
+    private val tokensRepository: ITokensRepository,
 ) : IUserRepository {
 
     private val _uuidTempCache = MutableStateFlow<String?>(null)
@@ -67,6 +69,8 @@ class UserRepositoryImpl @Inject constructor(
                 when {
                     user.username.isNullOrBlank() -> "Login is empty"
                     user.password.isNullOrBlank() -> "Password is empty"
+                    user.inviteCode.isNullOrBlank() && user.organizationId.isNullOrBlank() ->
+                        "Выберите организацию или введите код приглашения"
                     user.firstName.isNullOrBlank() -> "Имя is empty"
                     user.lastName.isNullOrBlank() -> "Фамилия is empty"
                     else -> "Invalid credentials"
@@ -186,6 +190,8 @@ class UserRepositoryImpl @Inject constructor(
         return try {
             val response = userTokensApi.changePassword(ChangePasswordRequest(oldPass, newPass))
             if (response.isSuccessful) {
+                // прежние refresh отозваны — сохраняем новую пару, иначе через 10 минут выкинет на вход
+                response.body()?.let { tokensRepository.saveTokens(it.accessToken, it.refreshToken) }
                 DomainResult.Success(Unit)
             } else {
                 responseErrorMapper.map(response)

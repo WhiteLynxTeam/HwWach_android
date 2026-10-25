@@ -22,6 +22,8 @@ import ed.maevski.hwwach.ui.navflow.mainflow.addasset.AddAssetScreen
 import ed.maevski.hwwach.ui.navflow.mainflow.addasset.AddAssetScreenEvent
 import ed.maevski.hwwach.ui.navflow.mainflow.addasset.AddAssetScreenViewModel
 import ed.maevski.hwwach.ui.navflow.mainflow.assetdetail.AssetDetailScreen
+import ed.maevski.hwwach.ui.navflow.mainflow.assignments.AssignmentsScreen
+import ed.maevski.hwwach.ui.navflow.mainflow.assignments.AssignmentsViewModel
 import ed.maevski.hwwach.ui.navflow.mainflow.assetdetail.AssetDetailScreenEvent
 import ed.maevski.hwwach.ui.navflow.mainflow.assetdetail.AssetDetailScreenViewModel
 import ed.maevski.hwwach.ui.navflow.mainflow.camera.CameraEvent
@@ -71,6 +73,9 @@ class MainFlowNavigation(
                     },
                     onNavigateToAdmin = {
                         navController.navigate(AdminFlowNavigation.Routes.AdminHubScreen.route)
+                    },
+                    onNavigateToAssignments = {
+                        navController.navigate(Routes.AssignmentsScreen.route)
                     },
                     onLogout = {
                         navController.navigate("StartFlowNavigator.AuthScreen") {
@@ -239,6 +244,17 @@ class MainFlowNavigation(
             }
 
             // ===== Камера (CameraX) =====
+            // ===== МНЕ НАЗНАЧЕНО =====
+            composable(Routes.AssignmentsScreen.route) {
+                val viewModel = hiltViewModel<AssignmentsViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                AssignmentsScreen(
+                    state = state,
+                    onAction = viewModel::handleAction,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
             composable(Routes.CameraScreen.route) {
                 val viewModel = hiltViewModel<CameraViewModel>()
                 val state by viewModel.state.collectAsStateWithLifecycle()
@@ -270,5 +286,6 @@ class MainFlowNavigation(
         data object AssetDetailScreen : Routes(route = "MainFlowNavigator.AssetDetailScreen/{clientId}")
         data object ChangePasswordScreen : Routes(route = "MainFlowNavigator.ChangePasswordScreen")
         data object CameraScreen : Routes(route = "MainFlowNavigator.CameraScreen")
+        data object AssignmentsScreen : Routes(route = "MainFlowNavigator.AssignmentsScreen")
     }
 }

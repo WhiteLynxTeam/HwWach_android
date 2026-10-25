@@ -20,13 +20,7 @@ class AssetDtoToDomainMapper @Inject constructor() {
             categoryUuid = dto.categoryUuid,
             inventoryNum = dto.inventoryNum,
             description = dto.description,
-            assetStatus = dto.assetStatus?.let { statusStr ->
-                try {
-                    AssetStatusEnum.valueOf(statusStr.uppercase(Locale.ROOT))
-                } catch (e: IllegalArgumentException) {
-                    null
-                }
-            },
+            assetStatus = AssetStatusEnum.fromServer(dto.accountingStatus),
             moderationStatus = ModerationStatusEnum.SYNCED,
             adminComment = dto.adminComment,
             createdAt = parseIsoDate(dto.createdAt),

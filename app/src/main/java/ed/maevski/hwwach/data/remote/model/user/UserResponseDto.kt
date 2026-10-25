@@ -15,10 +15,30 @@ data class UserResponseDto(
     val firstName: String? = null,
     @SerializedName("middleName")
     val middleName: String? = null,
+    @SerializedName("fullName")
+    val fullName: String? = null,
     @SerializedName("position")
     val position: String? = null,
+    // код системной роли: admin / asset_manager / reviewer / member / observer
     @SerializedName("role")
     val role: String,
+    @SerializedName("roleName")
+    val roleName: String? = null,
+    // права — по ним строим меню, а не по роли
+    @SerializedName("perms")
+    val perms: List<String>? = null,
+    @SerializedName("personId")
+    val personId: String? = null,
+    @SerializedName("organizationId")
+    val organizationId: String? = null,
+    @SerializedName("organizationName")
+    val organizationName: String? = null,
+    // материально ответственное лицо
+    @SerializedName("isMol")
+    val isMol: Boolean? = false,
+    // просил признак МОЛ, ждёт админа
+    @SerializedName("molRequested")
+    val molRequested: Boolean? = false,
     @SerializedName("isActive")
     val isActive: Boolean? = true,
     @SerializedName("createdAt")

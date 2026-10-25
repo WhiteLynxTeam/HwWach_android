@@ -9,4 +9,6 @@ enum class RegStatusEnumDto{
     APPROVED,
     @SerializedName("REJECTED")
     REJECTED,
+    @SerializedName("EXPIRED")
+    EXPIRED,
 }

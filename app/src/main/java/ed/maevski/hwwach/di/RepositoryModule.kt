@@ -77,4 +77,16 @@ abstract class RepositoryModule {
     abstract fun bindServerWarmupRepository(
         serverWarmupRepositoryImpl: ed.maevski.hwwach.data.repositories.ServerWarmupRepositoryImpl
     ): ed.maevski.hwwach.domain.irepositories.IServerWarmupRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindOrgRepository(
+        orgRepositoryImpl: ed.maevski.hwwach.data.repositories.OrgRepositoryImpl
+    ): ed.maevski.hwwach.domain.irepositories.IOrgRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAssetRolesRepository(
+        assetRolesRepositoryImpl: ed.maevski.hwwach.data.repositories.AssetRolesRepositoryImpl
+    ): ed.maevski.hwwach.domain.irepositories.IAssetRolesRepository
 }

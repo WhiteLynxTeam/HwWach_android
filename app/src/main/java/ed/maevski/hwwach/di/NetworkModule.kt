@@ -169,6 +169,24 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @Named("auth")
+    fun provideOrgApi(@Named("auth") retrofit: Retrofit): ed.maevski.hwwach.data.remote.api.OrgApi =
+        retrofit.create(ed.maevski.hwwach.data.remote.api.OrgApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("user_token")
+    fun provideOrgTokensApi(@Named("user_token") retrofit: Retrofit): ed.maevski.hwwach.data.remote.api.OrgTokensApi =
+        retrofit.create(ed.maevski.hwwach.data.remote.api.OrgTokensApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("api")
+    fun provideAssetRolesApi(@Named("api") retrofit: Retrofit): ed.maevski.hwwach.data.remote.api.AssetRolesApi =
+        retrofit.create(ed.maevski.hwwach.data.remote.api.AssetRolesApi::class.java)
+
+    @Provides
+    @Singleton
     @Named("api")
     fun provideCategoryApi(@Named("api") retrofit: Retrofit): ed.maevski.hwwach.data.remote.api.CategoryApi =
         retrofit.create(ed.maevski.hwwach.data.remote.api.CategoryApi::class.java)

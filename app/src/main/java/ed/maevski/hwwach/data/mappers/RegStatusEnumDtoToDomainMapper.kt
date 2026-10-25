@@ -10,6 +10,7 @@ class RegStatusEnumDtoToDomainMapper @Inject constructor() {
             RegStatusEnumDto.PENDING -> RegStatusEnum.PENDING
             RegStatusEnumDto.APPROVED -> RegStatusEnum.APPROVED
             RegStatusEnumDto.REJECTED -> RegStatusEnum.REJECTED
+            RegStatusEnumDto.EXPIRED -> RegStatusEnum.EXPIRED
         }
     }
 }

@@ -68,10 +68,15 @@ class TokenAuthenticator @Inject constructor(
 
                 if (refreshResponse.isSuccessful) {
                     val newAccessToken = refreshResponse.body()?.accessToken
+                    val newRefreshToken = refreshResponse.body()?.refreshToken
                     if (newAccessToken != null) {
-                        // Сохраняем access token асинхронно
+                        // Сохраняем токены асинхронно. Сервер обновляет и refresh: права перечитаны, сессия продлена
                         scope.launch {
-                            tokensRepository.saveAccessToken(newAccessToken)
+                            if (newRefreshToken != null) {
+                                tokensRepository.saveTokens(newAccessToken, newRefreshToken)
+                            } else {
+                                tokensRepository.saveAccessToken(newAccessToken)
+                            }
                         }
 
                         // Повторяем оригинальный запрос с новым access token

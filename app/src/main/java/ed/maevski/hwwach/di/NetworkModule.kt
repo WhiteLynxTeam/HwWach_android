@@ -54,16 +54,17 @@ object NetworkModule {
             .build()
 
     /**
-     * Клиент для «пробуждения» серверов на Render: холодный старт занимает до минуты,
-     * поэтому таймаут чтения увеличен. Логирование тела не нужно.
+     * Клиент для «пробуждения» серверов на Render: холодный старт занимает до минуты.
+     * Одна попытка — до 20 с, общий лимит ожидания (~90 с) держит ServerWarmupRepositoryImpl.
+     * Логирование тела не нужно.
      */
     @Provides
     @Singleton
     @WarmupOkHttpClient
     fun provideWarmupOkHttpClient(): OkHttpClient =
         OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(90, TimeUnit.SECONDS)
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
             .build()
 
     /** Клиент без токена — для запросов, где авторизация не нужна (login, register) */

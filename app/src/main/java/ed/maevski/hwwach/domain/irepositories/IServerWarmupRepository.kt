@@ -1,6 +1,9 @@
 package ed.maevski.hwwach.domain.irepositories
 
 interface IServerWarmupRepository {
-    /** Шлёт лёгкие запросы на оба бэкенда, чтобы «разбудить» их (Render усыпляет бесплатные сервисы) */
-    suspend fun wakeUp()
+    /**
+     * Будит оба бэкенда (Render усыпляет бесплатные сервисы) и ждёт их ответа.
+     * true — оба ответили, false — хотя бы один не проснулся за отведённое время.
+     */
+    suspend fun wakeUp(): Boolean
 }

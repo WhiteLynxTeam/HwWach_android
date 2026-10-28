@@ -1,6 +1,6 @@
 package ed.maevski.hwwach.ui.navflow.startflow.orgregscreen
 
-// Регистрация организации (8.1): почта → код → организация и администратор
+// Регистрация организации (8.1): название и почта → код → данные организации и администратор
 enum class OrgRegStep { EMAIL, CODE, DETAILS }
 
 enum class OrgRegField {
@@ -12,6 +12,7 @@ sealed class OrgRegAction {
     data object OnNextClicked : OrgRegAction()
     data object OnResendClicked : OrgRegAction()
     data object OnBackClicked : OrgRegAction()
+    data object OnAuthClicked : OrgRegAction()
 }
 
 sealed class OrgRegEvent {

@@ -1,6 +1,9 @@
 package ed.maevski.hwwach.ui.navflow.startflow.forgotpasswordscreen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,6 +50,7 @@ fun ForgotPasswordScreen(
         modifier = modifier
             .fillMaxSize()
             .background(Gray250)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {

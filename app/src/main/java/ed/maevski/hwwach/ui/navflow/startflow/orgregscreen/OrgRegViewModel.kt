@@ -32,6 +32,8 @@ class OrgRegViewModel @Inject constructor(
             OrgRegAction.OnNextClicked -> onNext()
             OrgRegAction.OnResendClicked -> sendCode()
             OrgRegAction.OnBackClicked -> onBack()
+            // на экран регистрации организации попадают со входа — возврат к нему
+            OrgRegAction.OnAuthClicked -> viewModelScope.launch { _events.emit(OrgRegEvent.Exit) }
         }
     }
 
@@ -77,9 +79,14 @@ class OrgRegViewModel @Inject constructor(
         else -> "Ошибка сервера, попробуйте позже"
     }
 
-    // Шаг 1: письмо с кодом. Ответ одинаковый, даже если на почту уже есть организация — тогда в письме подсказка
+    // Шаг 1: письмо с кодом. Ответ одинаковый, даже если на почту уже есть организация — тогда в письме подсказка.
+    // Название на сервер уходит на шаге 3 вместе с остальными данными
     private fun sendCode() {
         val email = _state.value.email
+        if (_state.value.name.isBlank()) {
+            _state.update { it.copy(errorMessage = "Введите название организации") }
+            return
+        }
         if (!email.contains("@")) {
             _state.update { it.copy(errorMessage = "Введите адрес почты") }
             return
@@ -116,8 +123,12 @@ class OrgRegViewModel @Inject constructor(
     private fun complete() {
         val s = _state.value
         val token = s.registrationToken ?: return
-        if (s.name.isBlank() || s.lastName.isBlank() || s.firstName.isBlank()) {
-            _state.update { it.copy(errorMessage = "Укажите название организации, фамилию и имя") }
+        if (s.name.isBlank()) {
+            _state.update { it.copy(step = OrgRegStep.EMAIL, errorMessage = "Введите название организации") }
+            return
+        }
+        if (s.lastName.isBlank() || s.firstName.isBlank()) {
+            _state.update { it.copy(errorMessage = "Укажите фамилию и имя") }
             return
         }
         if (s.password.length < 4) {

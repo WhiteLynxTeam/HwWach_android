@@ -11,12 +11,25 @@ data class User(
     val position: String? = null,
     val officeName: String? = null,
     val officeLocation: String? = null,
+    // код системной роли (admin, member…) — только для показа; права — в perms
     val role: String? = null,
+    val roleName: String? = null,
+    val perms: List<String> = emptyList(),
+    val personId: String? = null,
+    val organizationId: String? = null,
+    val organizationName: String? = null,
+    // материально ответственное лицо; molRequested — просил признак, ждёт админа
+    val isMol: Boolean = false,
+    val molRequested: Boolean = false,
+    // регистрация: организация из поиска (organizationId) или код приглашения
+    val inviteCode: String? = null,
     val isActive: Boolean = true,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
-    
+
+    fun can(perm: String): Boolean = perms.contains(perm)
+
     /**
      * Validate user data
      */

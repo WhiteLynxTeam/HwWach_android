@@ -8,8 +8,14 @@ class UserDomainToRegUserRequestMapper @Inject constructor() {
     fun map(user: User): RegUserRequest? {
         val login = user.username?.takeIf { it.isNotBlank() } ?: return null
         val password = user.password?.takeIf { it.isNotBlank() } ?: return null
-        val lastName = user.lastName?.takeIf { it.isNotBlank() } ?: return null
-        val firstName = user.firstName?.takeIf { it.isNotBlank() } ?: return null
+        val inviteCode = user.inviteCode?.takeIf { it.isNotBlank() }
+        val organizationId = user.organizationId?.takeIf { it.isNotBlank() }
+        // без приглашения нужна организация из поиска
+        if (inviteCode == null && organizationId == null) return null
+        val lastName = user.lastName?.takeIf { it.isNotBlank() }
+        val firstName = user.firstName?.takeIf { it.isNotBlank() }
+        // по приглашению из карточки ФИО уже на сервере, иначе обязательны
+        if (inviteCode == null && (lastName == null || firstName == null)) return null
         return RegUserRequest(
             login = login,
             password = password,
@@ -21,7 +27,9 @@ class UserDomainToRegUserRequestMapper @Inject constructor() {
             // И размер отправляемых данных меньше.
             phone = user.phone?.takeIf { it.isNotBlank() },
             middleName = user.middleName?.takeIf { it.isNotBlank() },
-            position = user.position?.takeIf { it.isNotBlank() }
+            position = user.position?.takeIf { it.isNotBlank() },
+            organizationId = if (inviteCode == null) organizationId else null,
+            inviteCode = inviteCode,
         )
     }
 }

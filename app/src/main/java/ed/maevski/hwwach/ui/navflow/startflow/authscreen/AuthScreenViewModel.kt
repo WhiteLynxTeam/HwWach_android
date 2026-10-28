@@ -69,6 +69,11 @@ class AuthScreenViewModel @Inject constructor(
 
             AuthScreenAction.OnAuthClicked -> onAuthClicked()
             AuthScreenAction.OnRegClicked -> onRegClicked()
+            AuthScreenAction.OnOrgRegClicked -> {
+                viewModelScope.launch {
+                    _events.emit(AuthScreenEvent.NavigateToOrgReg)
+                }
+            }
             AuthScreenAction.OnForgotPasswordClicked -> onForgotPasswordClicked()
             is AuthScreenAction.OnPrivacyPolicyChecked -> {
                 _state.update { it.copy(isPrivacyPolicyAccepted = action.checked) }

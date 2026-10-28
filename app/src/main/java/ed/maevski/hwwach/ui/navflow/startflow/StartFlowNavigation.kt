@@ -14,6 +14,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import ed.maevski.hwwach.common.deeplink.PendingInvite
 import ed.maevski.hwwach.ui.FlowNavigation
 import ed.maevski.hwwach.ui.navflow.startflow.authscreen.AuthScreen
 import ed.maevski.hwwach.ui.navflow.startflow.authscreen.AuthScreenEvent
@@ -24,6 +25,9 @@ import ed.maevski.hwwach.ui.navflow.startflow.changetemppasswordscreen.ChangeTem
 import ed.maevski.hwwach.ui.navflow.startflow.forgotpasswordscreen.ForgotPasswordEvent
 import ed.maevski.hwwach.ui.navflow.startflow.forgotpasswordscreen.ForgotPasswordScreen
 import ed.maevski.hwwach.ui.navflow.startflow.forgotpasswordscreen.ForgotPasswordViewModel
+import ed.maevski.hwwach.ui.navflow.startflow.orgregscreen.OrgRegEvent
+import ed.maevski.hwwach.ui.navflow.startflow.orgregscreen.OrgRegScreen
+import ed.maevski.hwwach.ui.navflow.startflow.orgregscreen.OrgRegViewModel
 import ed.maevski.hwwach.ui.navflow.startflow.privacypolicyscreen.PrivacyPolicyScreen
 import ed.maevski.hwwach.ui.navflow.startflow.regscreen.RegScreen
 import ed.maevski.hwwach.ui.navflow.startflow.regscreen.RegScreenEvent
@@ -96,6 +100,10 @@ class StartFlowNavigation(
                                 AuthScreenEvent.NavigateToReg -> {
                                     navController.navigate(Routes.RegScreen.route)
                                 }
+
+                                AuthScreenEvent.NavigateToOrgReg -> {
+                                    navController.navigate(Routes.OrgRegScreen.route)
+                                }
                                 
                                 AuthScreenEvent.NavigateToForgotPassword -> {
                                     navController.navigate(Routes.ForgotPasswordScreen.route)
@@ -117,7 +125,40 @@ class StartFlowNavigation(
                     }
                 }
 
+                // открыли по ссылке-приглашению — на регистрацию, код подставит её экран
+                val pendingInvite by PendingInvite.code.collectAsStateWithLifecycle()
+                LaunchedEffect(pendingInvite) {
+                    if (pendingInvite != null) {
+                        navController.navigate(Routes.RegScreen.route)
+                    }
+                }
+
                 AuthScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    onAction = viewModel::handleAction
+                )
+            }
+
+            // ===== ORG REG =====
+            composable(Routes.OrgRegScreen.route) {
+                val viewModel = hiltViewModel<OrgRegViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                // организация создана — вход администратором уже выполнен
+                                OrgRegEvent.NavigateToMain -> finishFlow()
+                                OrgRegEvent.Exit -> navController.popBackStack()
+                            }
+                        }
+                    }
+                }
+
+                OrgRegScreen(
                     modifier = Modifier.fillMaxSize(),
                     state = state,
                     onAction = viewModel::handleAction
@@ -236,6 +277,7 @@ class StartFlowNavigation(
         data object SplashScreen : Routes("StartFlowNavigator.SplashScreen")
         data object AuthScreen : Routes("StartFlowNavigator.AuthScreen")
         data object RegScreen : Routes("StartFlowNavigator.RegScreen")
+        data object OrgRegScreen : Routes("StartFlowNavigator.OrgRegScreen")
         data object ForgotPasswordScreen : Routes("StartFlowNavigator.ForgotPasswordScreen")
         data object ChangeTempPasswordScreen : Routes("StartFlowNavigator.ChangeTempPasswordScreen/{login}/{tempPassword}")
         data object PrivacyPolicyScreen : Routes("StartFlowNavigator.PrivacyPolicyScreen")

@@ -45,6 +45,7 @@ fun ProfileScreen(
             ProfileContent(
                 user = user,
                 isAdmin = state.isAdmin,
+                molRequestMessage = state.molRequestMessage,
                 modifier = modifier,
                 onAction = onAction
             )
@@ -60,6 +61,7 @@ fun ProfileScreen(
 fun ProfileContent(
     user: User,
     isAdmin: Boolean,
+    molRequestMessage: String = "",
     modifier: Modifier = Modifier,
     onAction: (ProfileAction) -> Unit
 ) {
@@ -137,21 +139,68 @@ fun ProfileContent(
                 
                 ProfileInfoRow(
                     icon = Icons.Default.Work,
-                    label = "Офис",
-                    value = user.officeName?.takeIf { it.isNotBlank() } ?: "Не указан"
+                    label = "Организация",
+                    value = user.organizationName?.takeIf { it.isNotBlank() } ?: "Не указана"
                 )
 
                 Divider(modifier = Modifier.padding(vertical = 12.dp))
-                
+
+                ProfileInfoRow(
+                    icon = Icons.Default.AdminPanelSettings,
+                    label = "Роль",
+                    value = user.roleName?.takeIf { it.isNotBlank() } ?: "—"
+                )
+
+                Divider(modifier = Modifier.padding(vertical = 12.dp))
+
+                // МОЛ — материально ответственное лицо: за ним могут числиться активы. Признак ставит админ
                 ProfileInfoRow(
                     icon = Icons.Default.LocationOn,
-                    label = "Расположение офиса",
-                    value = user.officeLocation?.takeIf { it.isNotBlank() } ?: "Не указано"
+                    label = "Материально ответственное лицо",
+                    value = when {
+                        user.isMol -> "Да"
+                        user.molRequested -> "Просьба на рассмотрении"
+                        else -> "Нет"
+                    }
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        // что за мной числится и с чем я работаю — подтвердить или отказаться
+        OutlinedButton(
+            onClick = { onAction(ProfileAction.OnAssignmentsClicked) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(text = "Мне назначено", fontSize = 16.sp)
+        }
+
+        if (!user.isMol && !user.molRequested) {
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedButton(
+                onClick = { onAction(ProfileAction.OnRequestMolClicked) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(text = "Я — МОЛ (попросить признак)", fontSize = 16.sp)
+            }
+        }
+        if (molRequestMessage.isNotBlank()) {
+            Text(
+                text = molRequestMessage,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         if (isAdmin) {
             OutlinedButton(

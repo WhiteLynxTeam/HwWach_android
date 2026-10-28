@@ -200,7 +200,7 @@ fun AuthScreen(
                 val textColor = when (state.registrationStatus) {
                     RegStatusEnum.PENDING -> Yellow800
                     RegStatusEnum.APPROVED -> Green700
-                    RegStatusEnum.REJECTED -> Red500
+                    RegStatusEnum.REJECTED, RegStatusEnum.EXPIRED -> Red500
                     null -> Gray700
                 }
                 Text(
@@ -237,6 +237,16 @@ fun AuthScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = Blue800,
+                )
+            }
+
+            // Новая организация: мастер из трёх шагов, регистрирующий становится администратором
+            TextButton(onClick = { onAction(AuthScreenAction.OnOrgRegClicked) })
+            {
+                Text(
+                    text = "Зарегистрировать организацию",
+                    fontSize = 14.sp,
+                    color = Gray700,
                 )
             }
         }

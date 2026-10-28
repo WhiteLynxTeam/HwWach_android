@@ -3,9 +3,11 @@ package ed.maevski.hwwach.data.local
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import ed.maevski.hwwach.domain.models.User
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -39,6 +41,16 @@ class PreferencesDataStore @Inject constructor(
         val USER_OFFICE_NAME_KEY = stringPreferencesKey("user_office_name")
         val USER_OFFICE_LOCATION_KEY = stringPreferencesKey("user_office_location")
         val USER_ROLE_KEY = stringPreferencesKey("user_role")
+
+        // Организация, человек и права (меню строится по правам)
+        val USER_ROLE_NAME_KEY = stringPreferencesKey("user_role_name")
+        val USER_PERMS_KEY = stringSetPreferencesKey("user_perms")
+        val USER_FULL_NAME_KEY = stringPreferencesKey("user_full_name")
+        val USER_PERSON_ID_KEY = stringPreferencesKey("user_person_id")
+        val USER_ORG_ID_KEY = stringPreferencesKey("user_org_id")
+        val USER_ORG_NAME_KEY = stringPreferencesKey("user_org_name")
+        val USER_IS_MOL_KEY = booleanPreferencesKey("user_is_mol")
+        val USER_MOL_REQUESTED_KEY = booleanPreferencesKey("user_mol_requested")
 
         // Ключ для времени последней синхронизации (rate limiting)
         val LAST_SYNC_TIME_KEY = longPreferencesKey("last_sync_time")
@@ -107,6 +119,14 @@ class PreferencesDataStore @Inject constructor(
             val officeName = preferences[PreferencesKeys.USER_OFFICE_NAME_KEY]
             val officeLocation = preferences[PreferencesKeys.USER_OFFICE_LOCATION_KEY]
             val role = preferences[PreferencesKeys.USER_ROLE_KEY]
+            val roleName = preferences[PreferencesKeys.USER_ROLE_NAME_KEY]
+            val perms = preferences[PreferencesKeys.USER_PERMS_KEY]?.toList() ?: emptyList()
+            val fullName = preferences[PreferencesKeys.USER_FULL_NAME_KEY]
+            val personId = preferences[PreferencesKeys.USER_PERSON_ID_KEY]
+            val organizationId = preferences[PreferencesKeys.USER_ORG_ID_KEY]
+            val organizationName = preferences[PreferencesKeys.USER_ORG_NAME_KEY]
+            val isMol = preferences[PreferencesKeys.USER_IS_MOL_KEY] ?: false
+            val molRequested = preferences[PreferencesKeys.USER_MOL_REQUESTED_KEY] ?: false
 
             if (username != null) {
                 User(
@@ -119,6 +139,14 @@ class PreferencesDataStore @Inject constructor(
                     officeName = officeName,
                     officeLocation = officeLocation,
                     role = role,
+                    roleName = roleName,
+                    perms = perms,
+                    fullName = fullName,
+                    personId = personId,
+                    organizationId = organizationId,
+                    organizationName = organizationName,
+                    isMol = isMol,
+                    molRequested = molRequested,
                 )
             } else {
                 null
@@ -136,6 +164,14 @@ class PreferencesDataStore @Inject constructor(
             user.officeName?.let { preferences[PreferencesKeys.USER_OFFICE_NAME_KEY] = it }
             user.officeLocation?.let { preferences[PreferencesKeys.USER_OFFICE_LOCATION_KEY] = it }
             user.role?.let { preferences[PreferencesKeys.USER_ROLE_KEY] = it }
+            user.roleName?.let { preferences[PreferencesKeys.USER_ROLE_NAME_KEY] = it }
+            preferences[PreferencesKeys.USER_PERMS_KEY] = user.perms.toSet()
+            user.fullName?.let { preferences[PreferencesKeys.USER_FULL_NAME_KEY] = it }
+            user.personId?.let { preferences[PreferencesKeys.USER_PERSON_ID_KEY] = it }
+            user.organizationId?.let { preferences[PreferencesKeys.USER_ORG_ID_KEY] = it }
+            user.organizationName?.let { preferences[PreferencesKeys.USER_ORG_NAME_KEY] = it }
+            preferences[PreferencesKeys.USER_IS_MOL_KEY] = user.isMol
+            preferences[PreferencesKeys.USER_MOL_REQUESTED_KEY] = user.molRequested
         }
     }
 
@@ -150,6 +186,14 @@ class PreferencesDataStore @Inject constructor(
             preferences.remove(PreferencesKeys.USER_OFFICE_NAME_KEY)
             preferences.remove(PreferencesKeys.USER_OFFICE_LOCATION_KEY)
             preferences.remove(PreferencesKeys.USER_ROLE_KEY)
+            preferences.remove(PreferencesKeys.USER_ROLE_NAME_KEY)
+            preferences.remove(PreferencesKeys.USER_PERMS_KEY)
+            preferences.remove(PreferencesKeys.USER_FULL_NAME_KEY)
+            preferences.remove(PreferencesKeys.USER_PERSON_ID_KEY)
+            preferences.remove(PreferencesKeys.USER_ORG_ID_KEY)
+            preferences.remove(PreferencesKeys.USER_ORG_NAME_KEY)
+            preferences.remove(PreferencesKeys.USER_IS_MOL_KEY)
+            preferences.remove(PreferencesKeys.USER_MOL_REQUESTED_KEY)
         }
     }
 

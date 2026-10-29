@@ -20,6 +20,10 @@ import ed.maevski.hwwach.ui.navflow.adminflow.hub.AdminHubAction
 import ed.maevski.hwwach.ui.navflow.adminflow.hub.AdminHubEvent
 import ed.maevski.hwwach.ui.navflow.adminflow.hub.AdminHubScreen
 import ed.maevski.hwwach.ui.navflow.adminflow.hub.AdminHubViewModel
+import ed.maevski.hwwach.ui.navflow.adminflow.passwordresets.PasswordResetsAction
+import ed.maevski.hwwach.ui.navflow.adminflow.passwordresets.PasswordResetsEvent
+import ed.maevski.hwwach.ui.navflow.adminflow.passwordresets.PasswordResetsScreen
+import ed.maevski.hwwach.ui.navflow.adminflow.passwordresets.PasswordResetsViewModel
 import ed.maevski.hwwach.ui.navflow.adminflow.registrationrequestdetail.RegistrationRequestDetailEvent
 import ed.maevski.hwwach.ui.navflow.adminflow.registrationrequestdetail.RegistrationRequestDetailScreen
 import ed.maevski.hwwach.ui.navflow.adminflow.registrationrequestdetail.RegistrationRequestDetailViewModel
@@ -59,6 +63,9 @@ class AdminFlowNavigation(
                             when (event) {
                                 AdminHubEvent.NavigateToRegistrationRequests -> {
                                     navController.navigate(Routes.RegistrationRequestsScreen.route)
+                                }
+                                AdminHubEvent.NavigateToPasswordResets -> {
+                                    navController.navigate(Routes.PasswordResetsScreen.route)
                                 }
                                 AdminHubEvent.NavigateBack -> {
                                     navController.popBackStack()
@@ -107,6 +114,39 @@ class AdminFlowNavigation(
                 )
             }
 
+            // ===== Заявки на сброс пароля =====
+            composable(Routes.PasswordResetsScreen.route) {
+                val viewModel = hiltViewModel<PasswordResetsViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                val lifecycleOwner = LocalLifecycleOwner.current
+                val context = LocalContext.current
+
+                LaunchedEffect(Unit) {
+                    viewModel.handleAction(PasswordResetsAction.OnScreenShown)
+                }
+
+                LaunchedEffect(viewModel.events, lifecycleOwner.lifecycle) {
+                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                is PasswordResetsEvent.ShowMessage -> {
+                                    android.widget.Toast.makeText(context, event.message, android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                                PasswordResetsEvent.NavigateBack -> {
+                                    navController.popBackStack()
+                                }
+                            }
+                        }
+                    }
+                }
+
+                PasswordResetsScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    onAction = viewModel::handleAction
+                )
+            }
+
             // ===== Детали заявки: одобрение / отклонение =====
             composable(
                 route = Routes.RegistrationRequestDetailScreen.route,
@@ -144,6 +184,7 @@ class AdminFlowNavigation(
     sealed class Routes(val route: String) {
         data object AdminHubScreen : Routes(route = "$ADMIN_FLOW_ROUTE_PREFIX.AdminHubScreen")
         data object RegistrationRequestsScreen : Routes(route = "$ADMIN_FLOW_ROUTE_PREFIX.RegistrationRequestsScreen")
+        data object PasswordResetsScreen : Routes(route = "$ADMIN_FLOW_ROUTE_PREFIX.PasswordResetsScreen")
         data object RegistrationRequestDetailScreen : Routes(route = "$ADMIN_FLOW_ROUTE_PREFIX.RegistrationRequestDetailScreen/{id}") {
             fun create(id: String) = "$ADMIN_FLOW_ROUTE_PREFIX.RegistrationRequestDetailScreen/$id"
         }

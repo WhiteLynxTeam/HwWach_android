@@ -1,6 +1,8 @@
 package ed.maevski.hwwach.domain.irepositories
 
 import ed.maevski.hwwach.domain.DomainResult
+import ed.maevski.hwwach.domain.models.PasswordResetRequest
+import ed.maevski.hwwach.domain.models.PasswordResetResult
 import ed.maevski.hwwach.domain.models.RegistrationRequest
 
 interface IAdminRepository {
@@ -8,4 +10,7 @@ interface IAdminRepository {
     suspend fun getRegistration(id: String): DomainResult<RegistrationRequest>
     suspend fun approveRegistration(id: String, comment: String): DomainResult<Unit>
     suspend fun rejectRegistration(id: String, reason: String): DomainResult<Unit>
+    suspend fun getPasswordResets(): DomainResult<List<PasswordResetRequest>>
+    suspend fun approvePasswordReset(id: String, password: String?): DomainResult<PasswordResetResult>
+    suspend fun rejectPasswordReset(id: String): DomainResult<Unit>
 }

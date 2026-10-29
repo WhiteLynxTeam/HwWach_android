@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
@@ -63,6 +65,13 @@ fun AdminHubScreen(
                 title = "Заявки на регистрацию",
                 badgeCount = state.pendingRegistrationsCount,
                 onClick = { onAction(AdminHubAction.OnRegistrationRequestsClicked) }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            AdminHubItem(
+                icon = Icons.Default.LockReset,
+                title = "Сброс пароля",
+                badgeCount = state.pendingPasswordResetsCount,
+                onClick = { onAction(AdminHubAction.OnPasswordResetsClicked) }
             )
         }
     }
@@ -115,7 +124,7 @@ private fun AdminHubItem(
 @Composable
 private fun AdminHubScreenPreview() {
     AdminHubScreen(
-        state = AdminHubState(pendingRegistrationsCount = 3),
+        state = AdminHubState(pendingRegistrationsCount = 3, pendingPasswordResetsCount = 1),
         onAction = {}
     )
 }

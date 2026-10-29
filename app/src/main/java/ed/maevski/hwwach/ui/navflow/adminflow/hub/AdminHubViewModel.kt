@@ -3,6 +3,7 @@ package ed.maevski.hwwach.ui.navflow.adminflow.hub
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ed.maevski.hwwach.domain.DomainResult
+import ed.maevski.hwwach.domain.usecases.admin.GetPasswordResetsUseCase
 import ed.maevski.hwwach.domain.usecases.admin.GetPendingRegistrationsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -17,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AdminHubViewModel @Inject constructor(
-    private val getPendingRegistrationsUseCase: GetPendingRegistrationsUseCase
+    private val getPendingRegistrationsUseCase: GetPendingRegistrationsUseCase,
+    private val getPasswordResetsUseCase: GetPasswordResetsUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AdminHubState())
@@ -32,6 +34,9 @@ class AdminHubViewModel @Inject constructor(
             AdminHubAction.OnRegistrationRequestsClicked -> viewModelScope.launch {
                 _events.emit(AdminHubEvent.NavigateToRegistrationRequests)
             }
+            AdminHubAction.OnPasswordResetsClicked -> viewModelScope.launch {
+                _events.emit(AdminHubEvent.NavigateToPasswordResets)
+            }
             AdminHubAction.OnBackPressed -> viewModelScope.launch {
                 _events.emit(AdminHubEvent.NavigateBack)
             }
@@ -44,6 +49,12 @@ class AdminHubViewModel @Inject constructor(
             val result = getPendingRegistrationsUseCase()
             if (result is DomainResult.Success) {
                 _state.update { it.copy(pendingRegistrationsCount = result.data.size) }
+            }
+        }
+        viewModelScope.launch {
+            val result = getPasswordResetsUseCase()
+            if (result is DomainResult.Success) {
+                _state.update { it.copy(pendingPasswordResetsCount = result.data.size) }
             }
         }
     }

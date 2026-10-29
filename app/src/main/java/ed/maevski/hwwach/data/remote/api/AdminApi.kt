@@ -1,6 +1,9 @@
 package ed.maevski.hwwach.data.remote.api
 
+import ed.maevski.hwwach.data.remote.model.admin.ApprovePasswordResetDto
+import ed.maevski.hwwach.data.remote.model.admin.ApprovePasswordResetResponseDto
 import ed.maevski.hwwach.data.remote.model.admin.ApproveRegistrationRequestDto
+import ed.maevski.hwwach.data.remote.model.admin.PasswordResetRequestDto
 import ed.maevski.hwwach.data.remote.model.admin.RegistrationRequestDto
 import ed.maevski.hwwach.data.remote.model.admin.RejectRegistrationRequestDto
 import retrofit2.Response
@@ -29,5 +32,20 @@ interface AdminApi {
     suspend fun rejectRegistration(
         @Path("id") id: String,
         @Body request: RejectRegistrationRequestDto
+    ): Response<Unit>
+
+    // Заявки «Забыли пароль?»: одобрение задаёт временный пароль, при входе его потребуют сменить
+    @GET("/reset-pass")
+    suspend fun getPasswordResets(): Response<List<PasswordResetRequestDto>>
+
+    @POST("/reset-pass/{id}/approve")
+    suspend fun approvePasswordReset(
+        @Path("id") id: String,
+        @Body request: ApprovePasswordResetDto
+    ): Response<ApprovePasswordResetResponseDto>
+
+    @POST("/reset-pass/{id}/reject")
+    suspend fun rejectPasswordReset(
+        @Path("id") id: String
     ): Response<Unit>
 }

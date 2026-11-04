@@ -8,7 +8,7 @@ package ed.maevski.hwwach.domain.models
 object OrgNumber {
     const val LENGTH = 7
 
-    /** Только цифры из ввода («482 913 5» → «4829135»), не длиннее номера. */
+    /** Только цифры из ввода («482 913 1» → «4829131»), не длиннее номера. */
     fun digits(raw: String): String = raw.filter(Char::isDigit).take(LENGTH)
 
     /** Номер верный: 7 цифр, первая не 0, контрольная сходится. */
@@ -17,7 +17,7 @@ object OrgNumber {
         return d.length == LENGTH && d[0] != '0' && checkDigit(d.substring(0, LENGTH - 1)) == d[LENGTH - 1] - '0'
     }
 
-    /** «4829135» → «482 913 5». */
+    /** «4829131» → «482 913 1». */
     fun format(number: String): String {
         val d = digits(number)
         return if (d.length == LENGTH) "${d.substring(0, 3)} ${d.substring(3, 6)} ${d.substring(6)}" else number

@@ -72,7 +72,7 @@ fun RegOrganizationBlock(
             // Номер продиктовал админ (9.2); опечатку ловит контрольная цифра ещё до запроса
             LoginTextField(
                 value = state.orgNumber,
-                placeholderText = "Номер организации, например 482 913 5",
+                placeholderText = "Номер организации, например 482 913 1",
                 type = TextFieldType.NUMBER,
                 onValueChange = { onAction(RegScreenAction.InputOrgNumber(it)) }
             )

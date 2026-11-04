@@ -14,6 +14,8 @@ sealed class ChangeTempPasswordEvent {
 
 data class ChangeTempPasswordState(
     val login: String = "",
+    // номер организации с экрана входа (9.2): логин уникален только внутри неё; пусто — без номера
+    val organizationNumber: String = "",
     val oldPassword: String = "",
     val newPassword: String = "",
     val isLoading: Boolean = false,

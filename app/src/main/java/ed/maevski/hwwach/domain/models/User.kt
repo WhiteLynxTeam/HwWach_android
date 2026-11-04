@@ -23,6 +23,8 @@ data class User(
     val molRequested: Boolean = false,
     // регистрация: организация из поиска (organizationId) или код приглашения
     val inviteCode: String? = null,
+    // номер организации (9.2): при входе — где искать логин, при регистрации — куда заявка
+    val organizationNumber: String? = null,
     val isActive: Boolean = true,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()

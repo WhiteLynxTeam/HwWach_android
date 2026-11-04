@@ -12,8 +12,10 @@ import ed.maevski.hwwach.domain.DomainResult
 import ed.maevski.hwwach.domain.irepositories.IOrgRepository
 import ed.maevski.hwwach.domain.irepositories.ITokensRepository
 import ed.maevski.hwwach.domain.models.InviteInfo
+import ed.maevski.hwwach.domain.models.OrgNumber
 import ed.maevski.hwwach.domain.models.OrgSearchItem
 import ed.maevski.hwwach.domain.models.PersonBrief
+import kotlinx.coroutines.flow.Flow
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Named
@@ -42,6 +44,19 @@ class OrgRepositoryImpl @Inject constructor(
         val response = orgApi.search(query.trim())
         if (!response.isSuccessful) return@call responseErrorMapper.map(response)
         DomainResult.Success(response.body().orEmpty().map { OrgSearchItem(it.id, it.name, it.shortName) })
+    }
+
+    override suspend fun findByNumber(number: String): DomainResult<OrgSearchItem> = call {
+        val response = orgApi.byNumber(OrgNumber.digits(number))
+        if (!response.isSuccessful) return@call responseErrorMapper.map(response)
+        val body = response.body() ?: return@call DomainResult.ValidationError("Организация не найдена")
+        DomainResult.Success(OrgSearchItem(body.id, body.name, body.shortName))
+    }
+
+    override val lastOrganization: Flow<Pair<String, String>?> = preferencesDataStore.lastOrganization
+
+    override suspend fun saveLastOrganization(number: String?, name: String?) {
+        preferencesDataStore.saveLastOrganization(number?.let(OrgNumber::digits), name)
     }
 
     override suspend fun resolveInvite(code: String): DomainResult<InviteInfo> = call {

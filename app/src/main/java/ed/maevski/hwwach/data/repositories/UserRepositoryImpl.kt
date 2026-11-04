@@ -173,9 +173,9 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun changeTempPassword(login: String, oldPass: String, newPass: String): DomainResult<Unit> {
+    override suspend fun changeTempPassword(login: String, oldPass: String, newPass: String, organizationNumber: String?): DomainResult<Unit> {
         return try {
-            val response = userApi.changeTempPassword(ChangeTempPasswordRequest(login, oldPass, newPass))
+            val response = userApi.changeTempPassword(ChangeTempPasswordRequest(login, oldPass, newPass, organizationNumber))
             if (response.isSuccessful) {
                 DomainResult.Success(Unit)
             } else {

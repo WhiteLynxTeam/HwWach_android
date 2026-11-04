@@ -22,6 +22,6 @@ interface IUserRepository {
 
     suspend fun getUserInfo(id: String): DomainResult<User>
 
-    suspend fun changeTempPassword(login: String, oldPass: String, newPass: String): DomainResult<Unit>
+    suspend fun changeTempPassword(login: String, oldPass: String, newPass: String, organizationNumber: String? = null): DomainResult<Unit>
     suspend fun changePassword(oldPass: String, newPass: String): DomainResult<Unit>
 }

@@ -1,11 +1,12 @@
 package ed.maevski.hwwach.ui.navflow.startflow.regscreen
 
 import ed.maevski.hwwach.domain.models.InviteInfo
+import ed.maevski.hwwach.domain.models.OrgNumber
 import ed.maevski.hwwach.domain.models.OrgSearchItem
 
-// Как человек попадает в организацию (9.1): по коду приглашения или через поиск.
-// В обоих случаях заявку утверждает админ организации
-enum class OrgMode { INVITE, SEARCH }
+// Как человек попадает в организацию (9.1, 9.2): по коду приглашения, через поиск или по номеру
+// организации, который продиктовал админ. Во всех случаях заявку утверждает админ организации
+enum class OrgMode { INVITE, SEARCH, NUMBER }
 
 sealed class RegScreenAction {
     data class InputLastName(val name: String) : RegScreenAction()
@@ -28,6 +29,8 @@ sealed class RegScreenAction {
     data class SelectOrg(val org: OrgSearchItem) : RegScreenAction()
     data class InputInviteCode(val code: String) : RegScreenAction()
     data object OnCheckInviteClicked : RegScreenAction()
+    data class InputOrgNumber(val number: String) : RegScreenAction()
+    data object OnCheckOrgNumberClicked : RegScreenAction()
 }
 
 sealed class RegScreenEvent {
@@ -57,6 +60,10 @@ data class RegScreenState (
     val inviteCode: String = "",
     val isCheckingInvite: Boolean = false,
     val invite: InviteInfo? = null,
+    // по номеру организации: цифры как ввёл человек и найденная по нему организация
+    val orgNumber: String = "",
+    val isCheckingOrgNumber: Boolean = false,
+    val numberOrg: OrgSearchItem? = null,
     val orgError: String = "",
 ) {
     // кнопка «Найти» появляется от 4 символов: «пуща» найдёт «… пуща», 3 дают слишком много совпадений
@@ -64,7 +71,18 @@ data class RegScreenState (
         get() = orgQuery.trim().length >= MIN_ORG_QUERY
 
     val organizationChosen: Boolean
-        get() = if (orgMode == OrgMode.INVITE) invite != null else selectedOrg != null
+        get() = when (orgMode) {
+            OrgMode.INVITE -> invite != null
+            OrgMode.SEARCH -> selectedOrg != null
+            OrgMode.NUMBER -> numberOrg != null
+        }
+
+    /** Номер набран полностью — можно проверять; контрольная цифра не сошлась — опечатка. */
+    val isOrgNumberComplete: Boolean
+        get() = OrgNumber.digits(orgNumber).length == OrgNumber.LENGTH
+
+    val isOrgNumberInvalid: Boolean
+        get() = isOrgNumberComplete && !OrgNumber.isValid(orgNumber)
 
     companion object {
         const val MIN_ORG_QUERY = 4

@@ -18,9 +18,12 @@ data class RegUserRequest(
     val middleName: String? = null,
     @SerializedName("position")
     val position: String? = null,
-    // организация, найденная поиском, или код приглашения — одно из двух
+    // организация, найденная поиском, код приглашения или номер организации — одно из трёх
     @SerializedName("organizationId")
     val organizationId: String? = null,
     @SerializedName("inviteCode")
     val inviteCode: String? = null,
+    // номер организации, продиктованный админом (9.2) — вместо поиска и приглашения
+    @SerializedName("organizationNumber")
+    val organizationNumber: String? = null,
 )

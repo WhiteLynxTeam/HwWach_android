@@ -2,6 +2,7 @@ package ed.maevski.hwwach.di
 
 import ed.maevski.hwwach.domain.irepositories.IAdminRepository
 import ed.maevski.hwwach.domain.irepositories.IAssetRepository
+import ed.maevski.hwwach.domain.irepositories.IOrgRepository
 import ed.maevski.hwwach.domain.usecases.admin.ApprovePasswordResetUseCase
 import ed.maevski.hwwach.domain.usecases.admin.ApproveRegistrationUseCase
 import ed.maevski.hwwach.domain.usecases.admin.GetPasswordResetsUseCase
@@ -75,9 +76,10 @@ object UseCaseModule {
     @Singleton
     fun provideLoginWithProfileUseCase(
         userProfileRepository: IUserProfileRepository,
-        authApiUseCase: AuthApiUseCase
+        authApiUseCase: AuthApiUseCase,
+        orgRepository: IOrgRepository,
     ): LoginWithProfileUseCase {
-        return LoginWithProfileUseCase(userProfileRepository, authApiUseCase)
+        return LoginWithProfileUseCase(userProfileRepository, authApiUseCase, orgRepository)
     }
 
     @Provides

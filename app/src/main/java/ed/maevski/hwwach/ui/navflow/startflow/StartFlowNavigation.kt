@@ -1,5 +1,6 @@
 package ed.maevski.hwwach.ui.navflow.startflow
 
+import android.net.Uri
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -110,7 +111,10 @@ class StartFlowNavigation(
                                 }
 
                                 is AuthScreenEvent.NavigateToChangeTempPassword -> {
-                                    navController.navigate("StartFlowNavigator.ChangeTempPasswordScreen/${event.login}/${event.tempPassword}")
+                                    navController.navigate(
+                                        "StartFlowNavigator.ChangeTempPasswordScreen/${event.login}/${event.tempPassword}" +
+                                            "?orgNumber=${Uri.encode(event.organizationNumber.orEmpty())}"
+                                    )
                                 }
 
                                 AuthScreenEvent.NavigateToPrivacyPolicy -> {
@@ -237,7 +241,11 @@ class StartFlowNavigation(
                 route = Routes.ChangeTempPasswordScreen.route,
                 arguments = listOf(
                     navArgument("login") { type = NavType.StringType },
-                    navArgument("tempPassword") { type = NavType.StringType }
+                    navArgument("tempPassword") { type = NavType.StringType },
+                    navArgument("orgNumber") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    },
                 )
             ) {
                 val viewModel = hiltViewModel<ChangeTempPasswordViewModel>()
@@ -279,7 +287,7 @@ class StartFlowNavigation(
         data object RegScreen : Routes("StartFlowNavigator.RegScreen")
         data object OrgRegScreen : Routes("StartFlowNavigator.OrgRegScreen")
         data object ForgotPasswordScreen : Routes("StartFlowNavigator.ForgotPasswordScreen")
-        data object ChangeTempPasswordScreen : Routes("StartFlowNavigator.ChangeTempPasswordScreen/{login}/{tempPassword}")
+        data object ChangeTempPasswordScreen : Routes("StartFlowNavigator.ChangeTempPasswordScreen/{login}/{tempPassword}?orgNumber={orgNumber}")
         data object PrivacyPolicyScreen : Routes("StartFlowNavigator.PrivacyPolicyScreen")
     }
 }

@@ -8,5 +8,7 @@ data class ChangeTempPasswordRequest(
     @SerializedName("oldPassword")
     val oldPassword: String,
     @SerializedName("newPassword")
-    val newPassword: String
+    val newPassword: String,
+    @SerializedName("organizationNumber")
+    val organizationNumber: String? = null,
 )

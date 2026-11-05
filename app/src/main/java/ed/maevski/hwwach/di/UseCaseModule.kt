@@ -32,6 +32,7 @@ import ed.maevski.hwwach.domain.usecases.user.AuthApiUseCase
 import ed.maevski.hwwach.domain.usecases.user.ChangePasswordUseCase
 import ed.maevski.hwwach.domain.usecases.user.ChangeTempPasswordUseCase
 import ed.maevski.hwwach.domain.usecases.user.RequestPasswordResetUseCase
+import ed.maevski.hwwach.domain.usecases.user.PasswordResetByEmailUseCase
 import ed.maevski.hwwach.domain.usecases.user.CheckAuthTokenUseCase
 import ed.maevski.hwwach.domain.usecases.user.CheckRegistrationUseCase
 import ed.maevski.hwwach.domain.usecases.user.GetUserInfoUseCase
@@ -211,6 +212,15 @@ object UseCaseModule {
         userRepository: IUserRepository
     ): RequestPasswordResetUseCase {
         return RequestPasswordResetUseCase(userRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun providePasswordResetByEmailUseCase(
+        userRepository: IUserRepository,
+        orgRepository: IOrgRepository,
+    ): PasswordResetByEmailUseCase {
+        return PasswordResetByEmailUseCase(userRepository, orgRepository)
     }
 
     @Provides

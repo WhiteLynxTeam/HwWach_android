@@ -10,8 +10,9 @@ class UserDomainToRegUserRequestMapper @Inject constructor() {
         val password = user.password?.takeIf { it.isNotBlank() } ?: return null
         val inviteCode = user.inviteCode?.takeIf { it.isNotBlank() }
         val organizationId = user.organizationId?.takeIf { it.isNotBlank() }
-        // без приглашения нужна организация из поиска
-        if (inviteCode == null && organizationId == null) return null
+        val organizationNumber = user.organizationNumber?.takeIf { it.isNotBlank() }
+        // без приглашения нужна организация из поиска или номер организации
+        if (inviteCode == null && organizationId == null && organizationNumber == null) return null
         val lastName = user.lastName?.takeIf { it.isNotBlank() }
         val firstName = user.firstName?.takeIf { it.isNotBlank() }
         // по приглашению из карточки ФИО уже на сервере, иначе обязательны
@@ -28,8 +29,9 @@ class UserDomainToRegUserRequestMapper @Inject constructor() {
             phone = user.phone?.takeIf { it.isNotBlank() },
             middleName = user.middleName?.takeIf { it.isNotBlank() },
             position = user.position?.takeIf { it.isNotBlank() },
-            organizationId = if (inviteCode == null) organizationId else null,
+            organizationId = if (inviteCode == null && organizationNumber == null) organizationId else null,
             inviteCode = inviteCode,
+            organizationNumber = if (inviteCode == null) organizationNumber else null,
         )
     }
 }

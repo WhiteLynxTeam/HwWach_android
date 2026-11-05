@@ -31,8 +31,9 @@ class ChangeTempPasswordViewModel @Inject constructor(
     init {
         val loginArg = savedStateHandle.get<String>("login") ?: ""
         val tempPasswordArg = savedStateHandle.get<String>("tempPassword") ?: ""
+        val orgNumberArg = savedStateHandle.get<String>("orgNumber") ?: ""
         _state.update {
-            it.copy(login = loginArg, oldPassword = tempPasswordArg)
+            it.copy(login = loginArg, oldPassword = tempPasswordArg, organizationNumber = orgNumberArg)
         }
     }
 
@@ -71,7 +72,8 @@ class ChangeTempPasswordViewModel @Inject constructor(
             val result = changeTempPasswordUseCase(
                 login = currentState.login,
                 oldPass = currentState.oldPassword,
-                newPass = currentState.newPassword
+                newPass = currentState.newPassword,
+                organizationNumber = currentState.organizationNumber.takeIf { it.isNotBlank() },
             )
 
             when (result) {

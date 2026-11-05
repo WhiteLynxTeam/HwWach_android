@@ -25,13 +25,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ed.maevski.hwwach.ui.navflow.startflow.LoginTextField
+import ed.maevski.hwwach.ui.navflow.startflow.TextFieldType
 import ed.maevski.hwwach.ui.theme.Gray250
 import ed.maevski.hwwach.ui.theme.Gray400
 import ed.maevski.hwwach.ui.theme.Gray700
 import ed.maevski.hwwach.ui.theme.Gray800
 import ed.maevski.hwwach.ui.theme.White
 
-// Выбор организации на экране регистрации (9.1): код приглашения или поиск без подсказок
+// Выбор организации на экране регистрации (9.1, 9.2): код приглашения, номер организации или поиск без подсказок
 @Composable
 fun RegOrganizationBlock(
     state: RegScreenState,
@@ -54,14 +55,58 @@ fun RegOrganizationBlock(
             )
             ModeButton(
                 modifier = Modifier.weight(1f),
-                text = "Найти организацию",
+                text = "По номеру",
+                selected = state.orgMode == OrgMode.NUMBER,
+                onClick = { onAction(RegScreenAction.SetOrgMode(OrgMode.NUMBER)) }
+            )
+            ModeButton(
+                modifier = Modifier.weight(1f),
+                text = "Найти",
                 selected = state.orgMode == OrgMode.SEARCH,
                 onClick = { onAction(RegScreenAction.SetOrgMode(OrgMode.SEARCH)) }
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (state.orgMode == OrgMode.INVITE) {
+        if (state.orgMode == OrgMode.NUMBER) {
+            // Номер продиктовал админ (9.2); опечатку ловит контрольная цифра ещё до запроса
+            LoginTextField(
+                value = state.orgNumber,
+                placeholderText = "Номер организации, например 482 913 1",
+                type = TextFieldType.NUMBER,
+                onValueChange = { onAction(RegScreenAction.InputOrgNumber(it)) }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            val numberOrg = state.numberOrg
+            when {
+                numberOrg != null -> {
+                    Text(
+                        text = "Организация: ${numberOrg.shortName?.takeIf { it.isNotBlank() } ?: numberOrg.name}",
+                        color = Gray800,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "Заявку рассмотрит администратор организации",
+                        color = Gray700,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+                state.isOrgNumberInvalid -> Text(
+                    text = "Номер неверный — проверьте цифры",
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 13.sp
+                )
+                state.isOrgNumberComplete -> ActionButton(text = "Проверить номер", loading = state.isCheckingOrgNumber) {
+                    onAction(RegScreenAction.OnCheckOrgNumberClicked)
+                }
+                else -> Text(
+                    text = "Номер из 7 цифр знает администратор организации",
+                    color = Gray700,
+                    fontSize = 13.sp
+                )
+            }
+        } else if (state.orgMode == OrgMode.INVITE) {
             LoginTextField(
                 value = state.inviteCode,
                 placeholderText = "Код приглашения, например K7M-42Q",

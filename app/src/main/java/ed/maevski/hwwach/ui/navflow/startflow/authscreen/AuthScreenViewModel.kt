@@ -3,6 +3,8 @@ package ed.maevski.hwwach.ui.navflow.startflow.authscreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ed.maevski.hwwach.domain.DomainResult
+import ed.maevski.hwwach.domain.irepositories.IOrgRepository
+import ed.maevski.hwwach.domain.models.OrgNumber
 import ed.maevski.hwwach.domain.usecases.settings.WakeUpServersUseCase
 import ed.maevski.hwwach.domain.usecases.user.CheckRegistrationUseCase
 import ed.maevski.hwwach.domain.usecases.user.LoginWithProfileUseCase
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,7 +24,8 @@ import javax.inject.Inject
 class AuthScreenViewModel @Inject constructor(
     private val loginWithProfileUseCase: LoginWithProfileUseCase,
     private val checkRegistrationUseCase: CheckRegistrationUseCase,
-    private val wakeUpServersUseCase: WakeUpServersUseCase
+    private val wakeUpServersUseCase: WakeUpServersUseCase,
+    private val orgRepository: IOrgRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthScreenState())
@@ -35,6 +39,13 @@ class AuthScreenViewModel @Inject constructor(
         // или протухшего токена) — серверы к этому моменту могли снова уснуть.
         // Сразу после сплэша серверы только что ответили — репозиторий в течение минуты запросов не шлёт.
         viewModelScope.launch { wakeUpServersUseCase() }
+
+        // Организация последнего входа (9.2): номер подставляется, вместо поля — название
+        viewModelScope.launch {
+            orgRepository.lastOrganization.first()?.let { (number, name) ->
+                _state.update { it.copy(orgNumber = number, rememberedOrgName = name.ifBlank { OrgNumber.format(number) }) }
+            }
+        }
 
         // Проверяем статус регистрации при инициализации ViewModel
         viewModelScope.launch {
@@ -65,6 +76,14 @@ class AuthScreenViewModel @Inject constructor(
 
             is AuthScreenAction.InputPassword -> {
                 _state.update { it.copy(password = action.password) }
+            }
+
+            is AuthScreenAction.InputOrgNumber -> {
+                _state.update { it.copy(orgNumber = OrgNumber.digits(action.number), errorMessage = "") }
+            }
+
+            AuthScreenAction.OnChangeOrgClicked -> {
+                _state.update { it.copy(orgNumber = "", rememberedOrgName = null) }
             }
 
             AuthScreenAction.OnAuthClicked -> onAuthClicked()
@@ -111,11 +130,19 @@ class AuthScreenViewModel @Inject constructor(
                 return@launch
             }
 
+            // Номер набран с опечаткой — контрольная цифра не сходится, на сервер не идём
+            val orgNumber = currentState.orgNumber.takeIf { it.isNotBlank() }
+            if (orgNumber != null && !OrgNumber.isValid(orgNumber)) {
+                _state.update { it.copy(errorMessage = "Номер организации неверный — проверьте цифры") }
+                return@launch
+            }
+
             _state.update { it.copy(isLoading = true, errorMessage = "") }
 
             val result = loginWithProfileUseCase(
                 login = currentState.login,
-                password = currentState.password
+                password = currentState.password,
+                organizationNumber = orgNumber,
             )
 
             println("AuthScreenViewModel result=$result")
@@ -142,8 +169,19 @@ class AuthScreenViewModel @Inject constructor(
                         _state.update { it.copy(isLoading = false, errorMessage = "") }
                         _events.emit(AuthScreenEvent.NavigateToChangeTempPassword(
                             login = currentState.login,
-                            tempPassword = currentState.password
+                            tempPassword = currentState.password,
+                            organizationNumber = orgNumber,
                         ))
+                    } else if (result.code == 409) {
+                        // Такой логин есть в нескольких организациях (9.2)
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isOrgNumberRequired = true,
+                                rememberedOrgName = null,
+                                errorMessage = "Такой логин есть в нескольких организациях.\nВведите номер организации — его знает администратор"
+                            )
+                        }
                     } else {
                         _state.update { 
                             it.copy(

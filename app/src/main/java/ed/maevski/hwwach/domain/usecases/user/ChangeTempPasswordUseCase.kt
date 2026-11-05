@@ -7,7 +7,7 @@ import javax.inject.Inject
 class ChangeTempPasswordUseCase @Inject constructor(
     private val userRepository: IUserRepository
 ) {
-    suspend operator fun invoke(login: String, oldPass: String, newPass: String): DomainResult<Unit> {
-        return userRepository.changeTempPassword(login, oldPass, newPass)
+    suspend operator fun invoke(login: String, oldPass: String, newPass: String, organizationNumber: String? = null): DomainResult<Unit> {
+        return userRepository.changeTempPassword(login, oldPass, newPass, organizationNumber)
     }
 }

@@ -10,6 +10,10 @@ import ed.maevski.hwwach.data.mappers.UserResponseDtoToUserDomainMapper
 import ed.maevski.hwwach.data.remote.api.UserApi
 import ed.maevski.hwwach.data.remote.api.UserTokensApi
 import ed.maevski.hwwach.data.remote.model.auth.ChangeTempPasswordRequest
+import ed.maevski.hwwach.data.remote.model.auth.ForgotPasswordRequest
+import ed.maevski.hwwach.data.remote.model.auth.PasswordResetConfirmRequest
+import ed.maevski.hwwach.data.remote.model.auth.PasswordResetSendCodeRequest
+import ed.maevski.hwwach.domain.models.PasswordResetResult
 import ed.maevski.hwwach.data.remote.model.user.ChangePasswordRequest
 import ed.maevski.hwwach.domain.DomainResult
 import ed.maevski.hwwach.domain.irepositories.ITokensRepository
@@ -173,11 +177,57 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun changeTempPassword(login: String, oldPass: String, newPass: String): DomainResult<Unit> {
+    override suspend fun changeTempPassword(login: String, oldPass: String, newPass: String, organizationNumber: String?): DomainResult<Unit> {
         return try {
-            val response = userApi.changeTempPassword(ChangeTempPasswordRequest(login, oldPass, newPass))
+            val response = userApi.changeTempPassword(ChangeTempPasswordRequest(login, oldPass, newPass, organizationNumber))
             if (response.isSuccessful) {
                 DomainResult.Success(Unit)
+            } else {
+                responseErrorMapper.map(response)
+            }
+        } catch (e: IOException) {
+            DomainResult.NetworkError(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun requestPasswordReset(login: String, organizationNumber: String?): DomainResult<Unit> {
+        return try {
+            val response = userApi.forgotPassword(ForgotPasswordRequest(login, organizationNumber))
+            if (response.isSuccessful) {
+                DomainResult.Success(Unit)
+            } else {
+                responseErrorMapper.map(response)
+            }
+        } catch (e: IOException) {
+            DomainResult.NetworkError(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun sendPasswordResetCode(email: String): DomainResult<Unit> {
+        return try {
+            val response = userApi.passwordResetSendCode(PasswordResetSendCodeRequest(email))
+            if (response.isSuccessful) {
+                DomainResult.Success(Unit)
+            } else {
+                responseErrorMapper.map(response)
+            }
+        } catch (e: IOException) {
+            DomainResult.NetworkError(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun confirmPasswordReset(email: String, code: String, newPassword: String): DomainResult<PasswordResetResult> {
+        return try {
+            val response = userApi.passwordResetConfirm(PasswordResetConfirmRequest(email, code, newPassword))
+            if (response.isSuccessful) {
+                val body = response.body()
+                DomainResult.Success(
+                    PasswordResetResult(
+                        login = body?.login ?: email,
+                        organizationNumber = body?.organization?.number,
+                        organizationName = body?.organization?.name,
+                    )
+                )
             } else {
                 responseErrorMapper.map(response)
             }

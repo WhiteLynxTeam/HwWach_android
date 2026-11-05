@@ -70,6 +70,7 @@ fun LoginTextField(
     val keyboardOptions = when (type) {
         TextFieldType.PASSWORD -> KeyboardOptions(keyboardType = KeyboardType.Password)
         TextFieldType.LOGIN -> KeyboardOptions(keyboardType = KeyboardType.Text, autoCorrect = false)
+        TextFieldType.NUMBER -> KeyboardOptions(keyboardType = KeyboardType.Number)
         else -> KeyboardOptions.Default
     }
 
@@ -136,7 +137,9 @@ fun LoginTextField(
 enum class TextFieldType {
     TEXT,
     PASSWORD,
-    LOGIN
+    LOGIN,
+    // только цифры — номер организации
+    NUMBER,
 }
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 400)

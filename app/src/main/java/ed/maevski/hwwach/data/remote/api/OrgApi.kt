@@ -19,6 +19,10 @@ interface OrgApi {
     @GET("/organizations/search")
     suspend fun search(@Query("q") query: String): Response<List<OrgSearchItemDto>>
 
+    // организация по номеру (9.2): только название — убедиться, что номер верный
+    @GET("/organizations/by-number/{number}")
+    suspend fun byNumber(@Path("number") number: String): Response<OrgSearchItemDto>
+
     @GET("/invites/resolve/{code}")
     suspend fun resolveInvite(@Path("code") code: String): Response<InviteResolveDto>
 

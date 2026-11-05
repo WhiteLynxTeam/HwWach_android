@@ -2,6 +2,7 @@ package ed.maevski.hwwach.di
 
 import ed.maevski.hwwach.domain.irepositories.IAdminRepository
 import ed.maevski.hwwach.domain.irepositories.IAssetRepository
+import ed.maevski.hwwach.domain.irepositories.IOrgRepository
 import ed.maevski.hwwach.domain.usecases.admin.ApprovePasswordResetUseCase
 import ed.maevski.hwwach.domain.usecases.admin.ApproveRegistrationUseCase
 import ed.maevski.hwwach.domain.usecases.admin.GetPasswordResetsUseCase
@@ -30,6 +31,8 @@ import ed.maevski.hwwach.domain.usecases.settings.SaveLastSyncTimeUseCase
 import ed.maevski.hwwach.domain.usecases.user.AuthApiUseCase
 import ed.maevski.hwwach.domain.usecases.user.ChangePasswordUseCase
 import ed.maevski.hwwach.domain.usecases.user.ChangeTempPasswordUseCase
+import ed.maevski.hwwach.domain.usecases.user.RequestPasswordResetUseCase
+import ed.maevski.hwwach.domain.usecases.user.PasswordResetByEmailUseCase
 import ed.maevski.hwwach.domain.usecases.user.CheckAuthTokenUseCase
 import ed.maevski.hwwach.domain.usecases.user.CheckRegistrationUseCase
 import ed.maevski.hwwach.domain.usecases.user.GetUserInfoUseCase
@@ -75,9 +78,10 @@ object UseCaseModule {
     @Singleton
     fun provideLoginWithProfileUseCase(
         userProfileRepository: IUserProfileRepository,
-        authApiUseCase: AuthApiUseCase
+        authApiUseCase: AuthApiUseCase,
+        orgRepository: IOrgRepository,
     ): LoginWithProfileUseCase {
-        return LoginWithProfileUseCase(userProfileRepository, authApiUseCase)
+        return LoginWithProfileUseCase(userProfileRepository, authApiUseCase, orgRepository)
     }
 
     @Provides
@@ -200,6 +204,23 @@ object UseCaseModule {
         userRepository: IUserRepository
     ): ChangeTempPasswordUseCase {
         return ChangeTempPasswordUseCase(userRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRequestPasswordResetUseCase(
+        userRepository: IUserRepository
+    ): RequestPasswordResetUseCase {
+        return RequestPasswordResetUseCase(userRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun providePasswordResetByEmailUseCase(
+        userRepository: IUserRepository,
+        orgRepository: IOrgRepository,
+    ): PasswordResetByEmailUseCase {
+        return PasswordResetByEmailUseCase(userRepository, orgRepository)
     }
 
     @Provides

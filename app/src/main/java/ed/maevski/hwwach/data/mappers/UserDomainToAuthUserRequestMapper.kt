@@ -8,6 +8,6 @@ class UserDomainToAuthUserRequestMapper @Inject constructor() {
     fun map(user: User): AuthUserRequest? {
         val username = user.username?.takeIf { it.isNotBlank() } ?: return null
         val password = user.password?.takeIf { it.isNotBlank() } ?: return null
-        return AuthUserRequest(username, password)
+        return AuthUserRequest(username, password, user.organizationNumber?.takeIf { it.isNotBlank() })
     }
 }

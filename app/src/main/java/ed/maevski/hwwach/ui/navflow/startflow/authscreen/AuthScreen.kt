@@ -38,6 +38,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ed.maevski.hwwach.domain.models.OrgNumber
 import ed.maevski.hwwach.domain.models.RegStatusEnum
 import ed.maevski.hwwach.ui.navflow.startflow.LoginTextField
 import ed.maevski.hwwach.ui.navflow.startflow.TextFieldType
@@ -105,6 +106,8 @@ fun AuthScreen(
                 type = TextFieldType.PASSWORD,
                 onValueChange = { onAction(AuthScreenAction.InputPassword(it)) }
             )
+            Spacer(modifier = Modifier.height(20.dp))
+            OrgNumberBlock(state = state, onAction = onAction)
             Spacer(modifier = Modifier.height(12.dp))
             Button(
                 modifier = Modifier
@@ -256,6 +259,53 @@ fun AuthScreen(
         }
     }
 
+}
+
+/**
+ * Номер организации (9.2): логин уникален только внутри организации. Запомненная с прошлого входа —
+ * её название и «Сменить»; иначе поле номера. Пустое поле — вход по почте или однозначному логину.
+ */
+@Composable
+private fun OrgNumberBlock(state: AuthScreenState, onAction: (AuthScreenAction) -> Unit) {
+    val remembered = state.rememberedOrgName
+    if (remembered != null) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "Организация", fontSize = 12.sp, color = Gray700)
+                Text(
+                    text = "$remembered · ${OrgNumber.format(state.orgNumber)}",
+                    fontSize = 14.sp,
+                    color = Gray800,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            TextButton(onClick = { onAction(AuthScreenAction.OnChangeOrgClicked) }) {
+                Text(text = "Сменить", fontSize = 14.sp, color = Blue800)
+            }
+        }
+        return
+    }
+    LoginTextField(
+        value = state.orgNumber,
+        placeholderText = if (state.isOrgNumberRequired) "Номер организации" else "Номер организации (если знаете)",
+        type = TextFieldType.NUMBER,
+        onValueChange = { onAction(AuthScreenAction.InputOrgNumber(it)) }
+    )
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp, start = 4.dp),
+        text = when {
+            state.isOrgNumberInvalid -> "Номер неверный — проверьте цифры"
+            state.isOrgNumberRequired -> "Номер организации знает администратор"
+            else -> "Не помните номер — войдите по почте"
+        },
+        fontSize = 12.sp,
+        color = if (state.isOrgNumberInvalid) Red500 else Gray700,
+    )
 }
 
 @Preview(showBackground = true)

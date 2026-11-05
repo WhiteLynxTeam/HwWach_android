@@ -3,6 +3,10 @@ package ed.maevski.hwwach.data.remote.api
 import ed.maevski.hwwach.data.remote.model.auth.AuthResponseDto
 import ed.maevski.hwwach.data.remote.model.auth.AuthUserRequest
 import ed.maevski.hwwach.data.remote.model.auth.ChangeTempPasswordRequest
+import ed.maevski.hwwach.data.remote.model.auth.ForgotPasswordRequest
+import ed.maevski.hwwach.data.remote.model.auth.PasswordResetConfirmRequest
+import ed.maevski.hwwach.data.remote.model.auth.PasswordResetConfirmResponse
+import ed.maevski.hwwach.data.remote.model.auth.PasswordResetSendCodeRequest
 import ed.maevski.hwwach.data.remote.model.auth.RefreshTokenRequest
 import ed.maevski.hwwach.data.remote.model.auth.RefreshTokenResponse
 import ed.maevski.hwwach.data.remote.model.reg.RegResponseDto
@@ -46,4 +50,20 @@ interface UserApi {
     suspend fun changeTempPassword(
         @Body request: ChangeTempPasswordRequest
     ): Response<Unit>
+
+    @POST("/auth/forgot-password/")
+    suspend fun forgotPassword(
+        @Body request: ForgotPasswordRequest
+    ): Response<Unit>
+
+    // Сброс кодом на почту (8.2)
+    @POST("/auth/password-reset/send-code")
+    suspend fun passwordResetSendCode(
+        @Body request: PasswordResetSendCodeRequest
+    ): Response<Unit>
+
+    @POST("/auth/password-reset/confirm")
+    suspend fun passwordResetConfirm(
+        @Body request: PasswordResetConfirmRequest
+    ): Response<PasswordResetConfirmResponse>
 }

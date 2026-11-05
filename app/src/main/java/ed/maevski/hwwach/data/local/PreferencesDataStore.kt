@@ -57,6 +57,11 @@ class PreferencesDataStore @Inject constructor(
 
         // Ключ для временной метки последней синхронизации категорий
         val LAST_CATEGORIES_SYNC_AT_KEY = stringPreferencesKey("last_categories_sync_at")
+
+        // Номер и название организации последнего входа (9.2): при выходе не стираются —
+        // следующий вход без ввода номера
+        val LAST_ORG_NUMBER_KEY = stringPreferencesKey("last_org_number")
+        val LAST_ORG_NAME_KEY = stringPreferencesKey("last_org_name")
     }
 
     // Методы для работы с uuid временной регистрации
@@ -198,6 +203,25 @@ class PreferencesDataStore @Inject constructor(
     }
 
     // Методы для работы с временем последней синхронизации
+    /** Номер и название организации последнего входа; null — не запоминали. */
+    val lastOrganization: Flow<Pair<String, String>?> = context.dataStore.data
+        .map { prefs ->
+            val number = prefs[PreferencesKeys.LAST_ORG_NUMBER_KEY] ?: return@map null
+            number to (prefs[PreferencesKeys.LAST_ORG_NAME_KEY] ?: "")
+        }
+
+    suspend fun saveLastOrganization(number: String?, name: String?) {
+        context.dataStore.edit { preferences ->
+            if (number.isNullOrBlank()) {
+                preferences.remove(PreferencesKeys.LAST_ORG_NUMBER_KEY)
+                preferences.remove(PreferencesKeys.LAST_ORG_NAME_KEY)
+            } else {
+                preferences[PreferencesKeys.LAST_ORG_NUMBER_KEY] = number
+                preferences[PreferencesKeys.LAST_ORG_NAME_KEY] = name.orEmpty()
+            }
+        }
+    }
+
     val lastSyncTime: Flow<Long> = context.dataStore.data
         .map { preferences ->
             preferences[PreferencesKeys.LAST_SYNC_TIME_KEY] ?: 0L

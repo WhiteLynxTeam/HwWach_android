@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import ed.maevski.hwwach.common.deeplink.PendingInvite
 import ed.maevski.hwwach.domain.DomainResult
 import ed.maevski.hwwach.domain.irepositories.IOrgRepository
+import ed.maevski.hwwach.domain.models.OrgNumber
 import ed.maevski.hwwach.domain.models.User
 import ed.maevski.hwwach.domain.usecases.user.RegApiUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -114,6 +115,29 @@ class RegScreenViewModel @Inject constructor(
             }
 
             RegScreenAction.OnCheckInviteClicked -> checkInvite()
+
+            is RegScreenAction.InputOrgNumber -> {
+                _state.update { it.copy(orgNumber = OrgNumber.digits(action.number), numberOrg = null, orgError = "") }
+            }
+
+            RegScreenAction.OnCheckOrgNumberClicked -> checkOrgNumber()
+        }
+    }
+
+    // Номер организации (9.2): опечатку ловит контрольная цифра, остальное — сервер; показываем название
+    private fun checkOrgNumber() {
+        val number = _state.value.orgNumber
+        if (!OrgNumber.isValid(number)) {
+            _state.update { it.copy(orgError = "Номер неверный — проверьте цифры") }
+            return
+        }
+        viewModelScope.launch {
+            _state.update { it.copy(isCheckingOrgNumber = true, orgError = "") }
+            when (val result = orgRepository.findByNumber(number)) {
+                is DomainResult.Success -> _state.update { it.copy(isCheckingOrgNumber = false, numberOrg = result.data) }
+                is DomainResult.ValidationError -> _state.update { it.copy(isCheckingOrgNumber = false, orgError = result.message) }
+                else -> _state.update { it.copy(isCheckingOrgNumber = false, orgError = "Нет связи с сервером. Попробуйте ещё раз") }
+            }
         }
     }
 
@@ -168,7 +192,13 @@ class RegScreenViewModel @Inject constructor(
 
             if (!currentState.organizationChosen) {
                 _state.update {
-                    it.copy(errorMessage = if (currentState.orgMode == OrgMode.INVITE) "Проверьте код приглашения" else "Найдите и выберите организацию")
+                    it.copy(
+                        errorMessage = when (currentState.orgMode) {
+                            OrgMode.INVITE -> "Проверьте код приглашения"
+                            OrgMode.SEARCH -> "Найдите и выберите организацию"
+                            OrgMode.NUMBER -> "Проверьте номер организации"
+                        }
+                    )
                 }
                 return@launch
             }
@@ -195,6 +225,7 @@ class RegScreenViewModel @Inject constructor(
                 position = currentState.position,
                 organizationId = if (currentState.orgMode == OrgMode.SEARCH) currentState.selectedOrg?.id else null,
                 inviteCode = if (currentState.orgMode == OrgMode.INVITE) currentState.invite?.code else null,
+                organizationNumber = if (currentState.orgMode == OrgMode.NUMBER) currentState.orgNumber else null,
             )
 
             when (val result = regApiUseCase(user)) {

@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ed.maevski.hwwach.domain.models.OrgNumber
 import ed.maevski.hwwach.ui.navflow.startflow.LoginTextField
 import ed.maevski.hwwach.ui.navflow.startflow.TextFieldType
 import ed.maevski.hwwach.ui.theme.Blue800
@@ -72,7 +73,8 @@ fun ForgotPasswordScreen(
                         color = Gray800
                     )
                     Text(
-                        text = "Введите ваш логин",
+                        textAlign = TextAlign.Center,
+                        text = "Введите логин или почту — заявка уйдёт администратору организации",
                         fontSize = 16.sp,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Gray700
@@ -82,10 +84,12 @@ fun ForgotPasswordScreen(
             Spacer(modifier = Modifier.height(40.dp))
             LoginTextField(
                 value = state.login,
-                placeholderText = "Логин",
+                placeholderText = "Логин или почта",
                 type = TextFieldType.LOGIN,
                 onValueChange = { onAction(ForgotPasswordAction.InputLogin(it.replace(" ", ""))) }
             )
+            Spacer(modifier = Modifier.height(12.dp))
+            OrgNumberBlock(state = state, onAction = onAction)
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 modifier = Modifier
@@ -166,6 +170,50 @@ fun ForgotPasswordScreen(
             }
         }
     }
+}
+
+// Номер организации (9.2) — как на экране входа: запомненная организация или поле
+@Composable
+private fun OrgNumberBlock(state: ForgotPasswordState, onAction: (ForgotPasswordAction) -> Unit) {
+    val remembered = state.rememberedOrgName
+    if (remembered != null) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "Организация", fontSize = 12.sp, color = Gray700)
+                Text(
+                    text = "$remembered · ${OrgNumber.format(state.orgNumber)}",
+                    fontSize = 14.sp,
+                    color = Gray800,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            TextButton(onClick = { onAction(ForgotPasswordAction.OnChangeOrgClicked) }) {
+                Text(text = "Сменить", fontSize = 14.sp, color = Blue800)
+            }
+        }
+        return
+    }
+    LoginTextField(
+        value = state.orgNumber,
+        placeholderText = if (state.isOrgNumberRequired) "Номер организации" else "Номер организации (если знаете)",
+        type = TextFieldType.NUMBER,
+        onValueChange = { onAction(ForgotPasswordAction.InputOrgNumber(it)) }
+    )
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp, start = 4.dp),
+        text = when {
+            state.isOrgNumberInvalid -> "Номер неверный — проверьте цифры"
+            state.isOrgNumberRequired -> "Номер организации знает администратор"
+            else -> "Не помните номер — введите почту вместо логина"
+        },
+        fontSize = 12.sp,
+        color = if (state.isOrgNumberInvalid) Red500 else Gray700,
+    )
 }
 
 @Preview(showBackground = true)

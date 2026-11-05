@@ -30,7 +30,7 @@ class ResponseErrorMapper @Inject constructor() {
             if (!body.isNullOrBlank()) {
                 val json = JSONObject(body)
                 when {
-                    json.has("error") -> json.optString("error")
+                    // Nest: message — текст для человека, error — «Not Found» и т.п.; go отдаёт только error
                     json.has("message") -> {
                         val msgObj = json.opt("message")
                         if (msgObj is org.json.JSONArray) {
@@ -39,6 +39,7 @@ class ResponseErrorMapper @Inject constructor() {
                             msgObj?.toString() ?: ""
                         }
                     }
+                    json.has("error") -> json.optString("error")
                     else -> body
                 }
             } else {

@@ -3,6 +3,7 @@ package ed.maevski.hwwach.data.remote.api
 import ed.maevski.hwwach.data.remote.model.auth.AuthResponseDto
 import ed.maevski.hwwach.data.remote.model.auth.AuthUserRequest
 import ed.maevski.hwwach.data.remote.model.auth.ChangeTempPasswordRequest
+import ed.maevski.hwwach.data.remote.model.auth.ForgotPasswordRequest
 import ed.maevski.hwwach.data.remote.model.auth.RefreshTokenRequest
 import ed.maevski.hwwach.data.remote.model.auth.RefreshTokenResponse
 import ed.maevski.hwwach.data.remote.model.reg.RegResponseDto
@@ -45,5 +46,10 @@ interface UserApi {
     @POST("/auth/change-temp-password/")
     suspend fun changeTempPassword(
         @Body request: ChangeTempPasswordRequest
+    ): Response<Unit>
+
+    @POST("/auth/forgot-password/")
+    suspend fun forgotPassword(
+        @Body request: ForgotPasswordRequest
     ): Response<Unit>
 }

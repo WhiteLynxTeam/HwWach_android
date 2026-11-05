@@ -31,6 +31,7 @@ import ed.maevski.hwwach.domain.usecases.settings.SaveLastSyncTimeUseCase
 import ed.maevski.hwwach.domain.usecases.user.AuthApiUseCase
 import ed.maevski.hwwach.domain.usecases.user.ChangePasswordUseCase
 import ed.maevski.hwwach.domain.usecases.user.ChangeTempPasswordUseCase
+import ed.maevski.hwwach.domain.usecases.user.RequestPasswordResetUseCase
 import ed.maevski.hwwach.domain.usecases.user.CheckAuthTokenUseCase
 import ed.maevski.hwwach.domain.usecases.user.CheckRegistrationUseCase
 import ed.maevski.hwwach.domain.usecases.user.GetUserInfoUseCase
@@ -202,6 +203,14 @@ object UseCaseModule {
         userRepository: IUserRepository
     ): ChangeTempPasswordUseCase {
         return ChangeTempPasswordUseCase(userRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRequestPasswordResetUseCase(
+        userRepository: IUserRepository
+    ): RequestPasswordResetUseCase {
+        return RequestPasswordResetUseCase(userRepository)
     }
 
     @Provides

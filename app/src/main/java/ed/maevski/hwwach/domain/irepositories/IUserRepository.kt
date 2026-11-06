@@ -1,7 +1,7 @@
 package ed.maevski.hwwach.domain.irepositories
 
 import ed.maevski.hwwach.domain.DomainResult
-import ed.maevski.hwwach.domain.models.PasswordResetResult
+import ed.maevski.hwwach.domain.models.EmailPasswordResetResult
 import ed.maevski.hwwach.domain.models.RegStatus
 import ed.maevski.hwwach.domain.models.Token
 import ed.maevski.hwwach.domain.models.User
@@ -27,5 +27,5 @@ interface IUserRepository {
     suspend fun changePassword(oldPass: String, newPass: String): DomainResult<Unit>
     suspend fun requestPasswordReset(login: String, organizationNumber: String? = null): DomainResult<Unit>
     suspend fun sendPasswordResetCode(email: String): DomainResult<Unit>
-    suspend fun confirmPasswordReset(email: String, code: String, newPassword: String): DomainResult<PasswordResetResult>
+    suspend fun confirmPasswordReset(email: String, code: String, newPassword: String): DomainResult<EmailPasswordResetResult>
 }

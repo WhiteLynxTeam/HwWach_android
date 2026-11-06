@@ -13,7 +13,7 @@ import ed.maevski.hwwach.data.remote.model.auth.ChangeTempPasswordRequest
 import ed.maevski.hwwach.data.remote.model.auth.ForgotPasswordRequest
 import ed.maevski.hwwach.data.remote.model.auth.PasswordResetConfirmRequest
 import ed.maevski.hwwach.data.remote.model.auth.PasswordResetSendCodeRequest
-import ed.maevski.hwwach.domain.models.PasswordResetResult
+import ed.maevski.hwwach.domain.models.EmailPasswordResetResult
 import ed.maevski.hwwach.data.remote.model.user.ChangePasswordRequest
 import ed.maevski.hwwach.domain.DomainResult
 import ed.maevski.hwwach.domain.irepositories.ITokensRepository
@@ -216,13 +216,13 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun confirmPasswordReset(email: String, code: String, newPassword: String): DomainResult<PasswordResetResult> {
+    override suspend fun confirmPasswordReset(email: String, code: String, newPassword: String): DomainResult<EmailPasswordResetResult> {
         return try {
             val response = userApi.passwordResetConfirm(PasswordResetConfirmRequest(email, code, newPassword))
             if (response.isSuccessful) {
                 val body = response.body()
                 DomainResult.Success(
-                    PasswordResetResult(
+                    EmailPasswordResetResult(
                         login = body?.login ?: email,
                         organizationNumber = body?.organization?.number,
                         organizationName = body?.organization?.name,

@@ -23,6 +23,7 @@ class UserResponseDtoToUserDomainMapper @Inject constructor() {
             personId = userResponseDto.personId,
             organizationId = userResponseDto.organizationId,
             organizationName = userResponseDto.organizationName,
+            organizationNumber = userResponseDto.organizationNumber,
             isMol = userResponseDto.isMol ?: false,
             molRequested = userResponseDto.molRequested ?: false,
             isActive = userResponseDto.isActive ?: true,

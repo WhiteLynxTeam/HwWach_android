@@ -93,6 +93,9 @@ fun AuthScreen(
                 }
             }
             Spacer(modifier = Modifier.height(40.dp))
+            // Логин уникален только внутри организации — сначала организация
+            OrgNumberBlock(state = state, onAction = onAction)
+            Spacer(modifier = Modifier.height(20.dp))
             LoginTextField(
                 value = state.login,
                 placeholderText = "Логин",
@@ -107,8 +110,6 @@ fun AuthScreen(
                 onValueChange = { onAction(AuthScreenAction.InputPassword(it)) }
             )
             Spacer(modifier = Modifier.height(20.dp))
-            OrgNumberBlock(state = state, onAction = onAction)
-            Spacer(modifier = Modifier.height(12.dp))
             Button(
                 modifier = Modifier
                     .padding(bottom = 8.dp)
@@ -301,7 +302,7 @@ private fun OrgNumberBlock(state: AuthScreenState, onAction: (AuthScreenAction) 
         text = when {
             state.isOrgNumberInvalid -> "Номер неверный — проверьте цифры"
             state.isOrgNumberRequired -> "Номер организации знает администратор"
-            else -> "Не помните номер — войдите по почте"
+            else -> "Номер не нужен, если входите по почте"
         },
         fontSize = 12.sp,
         color = if (state.isOrgNumberInvalid) Red500 else Gray700,

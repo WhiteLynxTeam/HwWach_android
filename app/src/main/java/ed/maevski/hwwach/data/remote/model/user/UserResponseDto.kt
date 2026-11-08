@@ -33,6 +33,9 @@ data class UserResponseDto(
     val organizationId: String? = null,
     @SerializedName("organizationName")
     val organizationName: String? = null,
+    // номер организации для входа (9.2)
+    @SerializedName("organizationNumber")
+    val organizationNumber: String? = null,
     // материально ответственное лицо
     @SerializedName("isMol")
     val isMol: Boolean? = false,

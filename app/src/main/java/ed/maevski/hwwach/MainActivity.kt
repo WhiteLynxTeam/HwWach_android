@@ -9,6 +9,7 @@ import ed.maevski.hwwach.common.deeplink.PendingInvite
 import ed.maevski.hwwach.ui.App
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import ed.maevski.hwwach.common.deeplink.PendingOrgNumber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -19,6 +20,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         PendingInvite.handle(intent?.data)
+        PendingOrgNumber.handle(intent?.data)
         setContent {
             app.Render()
         }
@@ -28,5 +30,6 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         PendingInvite.handle(intent.data)
+        PendingOrgNumber.handle(intent.data)
     }
 }

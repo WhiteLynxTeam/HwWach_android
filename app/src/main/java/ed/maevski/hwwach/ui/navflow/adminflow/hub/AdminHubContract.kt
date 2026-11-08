@@ -16,5 +16,8 @@ sealed class AdminHubEvent {
 data class AdminHubState(
     // null — счётчик ещё не загружен или не удалось загрузить
     val pendingRegistrationsCount: Int? = null,
-    val pendingPasswordResetsCount: Int? = null
+    val pendingPasswordResetsCount: Int? = null,
+    // для приглашения сотрудников: номер, ссылка и QR
+    val organizationNumber: String? = null,
+    val organizationName: String? = null,
 )

@@ -38,6 +38,15 @@
 
                 <data android:scheme="hwwach" android:host="invite" />
             </intent-filter>
+            <!-- ссылка для входа со страницы /org/{номер}: hwwach://login?org=4829131 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="hwwach" android:host="login" />
+            </intent-filter>
         </activity>
 
         <service android:name="com.google.android.gms.metadata.ModuleDependencies"

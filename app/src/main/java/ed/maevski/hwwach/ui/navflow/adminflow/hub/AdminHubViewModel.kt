@@ -15,11 +15,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import ed.maevski.hwwach.domain.irepositories.IUserProfileRepository
 
 @HiltViewModel
 class AdminHubViewModel @Inject constructor(
     private val getPendingRegistrationsUseCase: GetPendingRegistrationsUseCase,
-    private val getPasswordResetsUseCase: GetPasswordResetsUseCase
+    private val getPasswordResetsUseCase: GetPasswordResetsUseCase,
+    userProfileRepository: IUserProfileRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AdminHubState())
@@ -27,6 +29,16 @@ class AdminHubViewModel @Inject constructor(
 
     private val _events = MutableSharedFlow<AdminHubEvent>()
     val events: SharedFlow<AdminHubEvent> = _events.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            userProfileRepository.userProfile.collect { user ->
+                _state.update {
+                    it.copy(organizationNumber = user?.organizationNumber, organizationName = user?.organizationName)
+                }
+            }
+        }
+    }
 
     fun handleAction(action: AdminHubAction) {
         when (action) {

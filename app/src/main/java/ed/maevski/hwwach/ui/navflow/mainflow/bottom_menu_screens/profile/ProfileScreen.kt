@@ -28,6 +28,11 @@ import ed.maevski.hwwach.domain.models.User
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Tag
+import androidx.compose.ui.platform.LocalContext
+import ed.maevski.hwwach.domain.models.OrgNumber
+import ed.maevski.hwwach.ui.common.OrgInvite
 
 @Composable
 fun ProfileScreen(
@@ -142,6 +147,22 @@ fun ProfileContent(
                     label = "Организация",
                     value = user.organizationName?.takeIf { it.isNotBlank() } ?: "Не указана"
                 )
+
+                // номер для входа: его спрашивают у администратора
+                user.organizationNumber?.takeIf { it.isNotBlank() }?.let { number ->
+                    val context = LocalContext.current
+                    Divider(modifier = Modifier.padding(vertical = 12.dp))
+                    ProfileInfoRow(
+                        icon = Icons.Default.Tag,
+                        label = "Номер организации",
+                        value = OrgNumber.format(number),
+                        trailing = {
+                            IconButton(onClick = { OrgInvite.copy(context, number) }) {
+                                Icon(Icons.Default.ContentCopy, contentDescription = "Скопировать номер")
+                            }
+                        }
+                    )
+                }
 
                 Divider(modifier = Modifier.padding(vertical = 12.dp))
 
@@ -265,7 +286,8 @@ fun ProfileInfoRow(
     icon: ImageVector,
     label: String,
     value: String,
-    isReadOnly: Boolean = false
+    isReadOnly: Boolean = false,
+    trailing: (@Composable () -> Unit)? = null
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -290,5 +312,6 @@ fun ProfileInfoRow(
                 color = if (isReadOnly) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface
             )
         }
+        trailing?.invoke()
     }
 }

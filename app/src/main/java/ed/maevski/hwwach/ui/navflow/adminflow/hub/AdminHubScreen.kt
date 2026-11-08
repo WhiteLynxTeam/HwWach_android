@@ -36,6 +36,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.Image
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import ed.maevski.hwwach.domain.models.OrgNumber
+import ed.maevski.hwwach.ui.common.OrgInvite
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,7 +85,64 @@ fun AdminHubScreen(
                 badgeCount = state.pendingPasswordResetsCount,
                 onClick = { onAction(AdminHubAction.OnPasswordResetsClicked) }
             )
+            state.organizationNumber?.takeIf { it.isNotBlank() }?.let { number ->
+                Spacer(modifier = Modifier.height(16.dp))
+                InviteCard(number = number, organizationName = state.organizationName)
+            }
         }
+    }
+}
+
+/** Номер организации и ссылка-приглашение: сотрудник открывает QR камерой — номер подставится на входе. */
+@Composable
+private fun InviteCard(number: String, organizationName: String?) {
+    val context = LocalContext.current
+    var showQr by rememberSaveable { mutableStateOf(false) }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = "Пригласить сотрудника", style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Номер организации",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(text = OrgNumber.format(number), style = MaterialTheme.typography.headlineSmall)
+            Spacer(modifier = Modifier.height(8.dp))
+            Row {
+                TextButton(onClick = { OrgInvite.copy(context, number) }) { Text("Копировать") }
+                TextButton(onClick = { OrgInvite.share(context, number, organizationName) }) { Text("Поделиться") }
+                TextButton(onClick = { showQr = true }) { Text("QR-код") }
+            }
+        }
+    }
+    if (showQr) {
+        val qr = remember(number) { OrgInvite.qr(number).asImageBitmap() }
+        AlertDialog(
+            onDismissRequest = { showQr = false },
+            title = { Text("Вход в «${organizationName ?: OrgNumber.format(number)}»") },
+            text = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Image(
+                        bitmap = qr,
+                        contentDescription = "QR-код ссылки для входа",
+                        modifier = Modifier.size(240.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Наведите камеру телефона: откроется страница, с неё — приложение с номером " +
+                            OrgNumber.format(number) + ".",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = { TextButton(onClick = { showQr = false }) { Text("Готово") } }
+        )
     }
 }
 

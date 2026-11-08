@@ -49,6 +49,7 @@ class PreferencesDataStore @Inject constructor(
         val USER_PERSON_ID_KEY = stringPreferencesKey("user_person_id")
         val USER_ORG_ID_KEY = stringPreferencesKey("user_org_id")
         val USER_ORG_NAME_KEY = stringPreferencesKey("user_org_name")
+        val USER_ORG_NUMBER_KEY = stringPreferencesKey("user_org_number")
         val USER_IS_MOL_KEY = booleanPreferencesKey("user_is_mol")
         val USER_MOL_REQUESTED_KEY = booleanPreferencesKey("user_mol_requested")
 
@@ -130,6 +131,7 @@ class PreferencesDataStore @Inject constructor(
             val personId = preferences[PreferencesKeys.USER_PERSON_ID_KEY]
             val organizationId = preferences[PreferencesKeys.USER_ORG_ID_KEY]
             val organizationName = preferences[PreferencesKeys.USER_ORG_NAME_KEY]
+            val organizationNumber = preferences[PreferencesKeys.USER_ORG_NUMBER_KEY]
             val isMol = preferences[PreferencesKeys.USER_IS_MOL_KEY] ?: false
             val molRequested = preferences[PreferencesKeys.USER_MOL_REQUESTED_KEY] ?: false
 
@@ -150,6 +152,7 @@ class PreferencesDataStore @Inject constructor(
                     personId = personId,
                     organizationId = organizationId,
                     organizationName = organizationName,
+                    organizationNumber = organizationNumber,
                     isMol = isMol,
                     molRequested = molRequested,
                 )
@@ -175,6 +178,7 @@ class PreferencesDataStore @Inject constructor(
             user.personId?.let { preferences[PreferencesKeys.USER_PERSON_ID_KEY] = it }
             user.organizationId?.let { preferences[PreferencesKeys.USER_ORG_ID_KEY] = it }
             user.organizationName?.let { preferences[PreferencesKeys.USER_ORG_NAME_KEY] = it }
+            user.organizationNumber?.let { preferences[PreferencesKeys.USER_ORG_NUMBER_KEY] = it }
             preferences[PreferencesKeys.USER_IS_MOL_KEY] = user.isMol
             preferences[PreferencesKeys.USER_MOL_REQUESTED_KEY] = user.molRequested
         }
@@ -197,6 +201,7 @@ class PreferencesDataStore @Inject constructor(
             preferences.remove(PreferencesKeys.USER_PERSON_ID_KEY)
             preferences.remove(PreferencesKeys.USER_ORG_ID_KEY)
             preferences.remove(PreferencesKeys.USER_ORG_NAME_KEY)
+            preferences.remove(PreferencesKeys.USER_ORG_NUMBER_KEY)
             preferences.remove(PreferencesKeys.USER_IS_MOL_KEY)
             preferences.remove(PreferencesKeys.USER_MOL_REQUESTED_KEY)
         }

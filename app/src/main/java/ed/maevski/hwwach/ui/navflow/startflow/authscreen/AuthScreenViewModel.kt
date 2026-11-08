@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import ed.maevski.hwwach.common.deeplink.PendingOrgNumber
+import kotlinx.coroutines.flow.filterNotNull
 
 @HiltViewModel
 class AuthScreenViewModel @Inject constructor(
@@ -44,6 +46,11 @@ class AuthScreenViewModel @Inject constructor(
         viewModelScope.launch {
             orgRepository.lastOrganization.first()?.let { (number, name) ->
                 _state.update { it.copy(orgNumber = number, rememberedOrgName = name.ifBlank { OrgNumber.format(number) }) }
+            }
+            // Ссылка-приглашение важнее запомненной организации: её номер — в поле, как введённый
+            PendingOrgNumber.number.filterNotNull().collect {
+                val number = PendingOrgNumber.consume() ?: return@collect
+                _state.update { s -> s.copy(orgNumber = number, rememberedOrgName = null, errorMessage = "") }
             }
         }
 

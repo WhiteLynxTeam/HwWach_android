@@ -6,6 +6,7 @@ import ed.maevski.hwwach.data.mappers.UserResponseDtoToUserDomainMapper
 import ed.maevski.hwwach.data.remote.api.OrgApi
 import ed.maevski.hwwach.data.remote.api.OrgTokensApi
 import ed.maevski.hwwach.data.remote.model.org.CompleteOrgRegistrationRequest
+import ed.maevski.hwwach.data.remote.model.org.CreatePersonRequest
 import ed.maevski.hwwach.data.remote.model.org.SendCodeRequest
 import ed.maevski.hwwach.data.remote.model.org.VerifyCodeRequest
 import ed.maevski.hwwach.domain.DomainResult
@@ -136,6 +137,30 @@ class OrgRepositoryImpl @Inject constructor(
         personsCache = list
         personsLoadedAt = System.currentTimeMillis()
         DomainResult.Success(list)
+    }
+
+    override suspend fun createPerson(
+        lastName: String,
+        firstName: String,
+        middleName: String?,
+        position: String?,
+        isMol: Boolean,
+    ): DomainResult<PersonBrief> = call {
+        val response = orgTokensApi.createPerson(
+            CreatePersonRequest(
+                lastName = lastName.trim(),
+                firstName = firstName.trim(),
+                middleName = middleName?.trim()?.takeIf { it.isNotEmpty() },
+                position = position?.trim()?.takeIf { it.isNotEmpty() },
+                isMol = isMol,
+            )
+        )
+        if (!response.isSuccessful) return@call responseErrorMapper.map(response)
+        val dto = response.body() ?: return@call DomainResult.NetworkError("Пустой ответ сервера")
+        val person = PersonBrief(dto.id, dto.fullName, dto.position, dto.isMol, dto.isActive)
+        // новый человек сразу виден в списках выбора, без ожидания минутного кеша
+        personsCache = personsCache?.plus(person)
+        DomainResult.Success(person)
     }
 
     override suspend fun requestMol(): DomainResult<Unit> = call {

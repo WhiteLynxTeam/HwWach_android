@@ -16,7 +16,8 @@ interface IPhotoRepository {
     fun getAllPhotosFlow(): Flow<List<Photo>>
 
     fun getPhotosByStatusFlow(status: String): Flow<List<Photo>>
-    suspend fun savePhoto(photo: Photo)
+    /** Сохраняет фото (сжатая копия в filesDir) и возвращает его с новым localPath */
+    suspend fun savePhoto(photo: Photo): Photo
     suspend fun deletePhoto(clientId: String)
     suspend fun getPendingPhotos(): List<Photo>
     suspend fun syncPendingPhotos()

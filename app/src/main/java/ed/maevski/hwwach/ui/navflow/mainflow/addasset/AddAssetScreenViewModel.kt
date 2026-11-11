@@ -139,8 +139,15 @@ class AddAssetScreenViewModel @Inject constructor(
                         localPath = action.uri,
                         remoteUrl = null,
                     )
-                    savePhotoUseCase(photo)
-                    _state.update { it.copy(photos = it.photos + photo) }
+                    // Показываем сохранённую копию: исходный снимок камеры после сохранения удаляется
+                    val saved = try {
+                        savePhotoUseCase(photo)
+                    } catch (e: Exception) {
+                        if (e is kotlin.coroutines.cancellation.CancellationException) throw e
+                        _state.update { it.copy(errorMessage = "Не удалось сохранить фото: ${e.message}") }
+                        return@launch
+                    }
+                    _state.update { it.copy(photos = it.photos + saved) }
                 }
             }
 

@@ -87,6 +87,8 @@ dependencies {
     implementation(libs.zxing.core)
     implementation(libs.coil.network.okhttp)
     implementation(libs.telephoto.zoomable.coil)
+    // Поворот фото по EXIF при сжатии перед загрузкой
+    implementation(libs.androidx.exifinterface)
 
     /** Lottie */
     implementation(libs.lottie.compose)

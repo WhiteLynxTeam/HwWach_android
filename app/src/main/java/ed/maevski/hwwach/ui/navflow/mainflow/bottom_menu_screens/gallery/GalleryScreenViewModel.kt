@@ -142,7 +142,12 @@ class GalleryScreenViewModel @Inject constructor(
                         localPath = action.uri,
                         remoteUrl = null,
                     )
-                    savePhotoUseCase(photo)
+                    try {
+                        savePhotoUseCase(photo)
+                    } catch (e: Exception) {
+                        if (e is CancellationException) throw e
+                        _state.update { it.copy(errorMessage = "Не удалось сохранить фото: ${e.message}") }
+                    }
                 }
             }
             is GalleryScreenAction.RemovePhoto -> {

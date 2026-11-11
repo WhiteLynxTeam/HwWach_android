@@ -63,7 +63,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
+import ed.maevski.hwwach.domain.istorage.IFileStorage
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -324,11 +324,11 @@ fun CameraScreen(
                                     flashAlpha = 0f
                                 }
 
-                                // Снимок
+                                // Снимок — во временную папку: savePhoto сожмёт его в filesDir и удалит исходник
                                 val photoFile = File(
-                                    context.externalCacheDir,
+                                    File(context.cacheDir, IFileStorage.CAMERA_TEMP_DIR),
                                     "HW_watch_${
-                                        SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+                                        SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US)
                                             .format(System.currentTimeMillis())
                                     }.jpg"
                                 )
@@ -344,28 +344,10 @@ fun CameraScreen(
                                         override fun onImageSaved(
                                             outputFileResults: ImageCapture.OutputFileResults
                                         ) {
-                                            try {
-                                                val contentUri = FileProvider.getUriForFile(
-                                                    context,
-                                                    "${context.packageName}.fileprovider",
-                                                    photoFile
-                                                )
-                                                onAction(
-                                                    CameraAction.OnPhotoCaptured(contentUri.toString())
-                                                )
-                                            } catch (e: Exception) {
-                                                Log.e(
-                                                    "CameraScreen",
-                                                    "FileProvider failed",
-                                                    e
-                                                )
-                                                val savedUri =
-                                                    outputFileResults.savedUri
-                                                        ?: Uri.fromFile(photoFile)
-                                                onAction(
-                                                    CameraAction.OnPhotoCaptured(savedUri.toString())
-                                                )
-                                            }
+                                            // Файл читает только само приложение — FileProvider не нужен
+                                            onAction(
+                                                CameraAction.OnPhotoCaptured(Uri.fromFile(photoFile).toString())
+                                            )
                                         }
 
                                         override fun onError(exception: ImageCaptureException) {

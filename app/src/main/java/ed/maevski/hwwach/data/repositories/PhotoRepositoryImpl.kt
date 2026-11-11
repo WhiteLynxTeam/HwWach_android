@@ -157,13 +157,15 @@ class PhotoRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Сохраняет новое фото в БД и кеш-хранилище.
-     * Копирует файл в кеш и сохраняет путь к нему в сущности.
+     * Сохраняет новое фото в БД и постоянное хранилище.
+     * Сжимает копию (2048 px, JPEG 85) в filesDir и сохраняет путь к ней в сущности.
+     * Декодирование тяжёлое — в Dispatchers.IO.
      */
-    override suspend fun savePhoto(photo: Photo) {
-        val localPath = fileStorage.copyToCache(photo.localPath ?: "")
-        val entity = photoDomainToEntityMapper.map(photo.copy(localPath = localPath))
-        photoDao.insertPhoto(entity)
+    override suspend fun savePhoto(photo: Photo): Photo = withContext(Dispatchers.IO) {
+        val localPath = fileStorage.importPhoto(photo.localPath ?: "")
+        val saved = photo.copy(localPath = localPath)
+        photoDao.insertPhoto(photoDomainToEntityMapper.map(saved))
+        saved
     }
 
     /**

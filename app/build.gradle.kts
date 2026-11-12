@@ -87,6 +87,8 @@ dependencies {
     implementation(libs.zxing.core)
     implementation(libs.coil.network.okhttp)
     implementation(libs.telephoto.zoomable.coil)
+    // Поворот фото по EXIF при сжатии перед загрузкой
+    implementation(libs.androidx.exifinterface)
 
     /** Lottie */
     implementation(libs.lottie.compose)
@@ -104,6 +106,11 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
+
+    // фоновая отправка активов: переживает закрытие приложения, ждёт сеть
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     /** Room */
     implementation(libs.room.runtime)

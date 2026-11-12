@@ -40,8 +40,19 @@ data class Asset(
       )
      */
 
-    val photoClientIds: List<String> = emptyList()
+    val photoClientIds: List<String> = emptyList(),
 
+    // Где находится: место из справочника, «без места» или «носимое»
+    val locationKind: AssetLocationKind = AssetLocationKind.UNSET,
+    val locationId: String? = null,
+    val locationPath: String? = null,
+
+    // МОЛ при создании (на сервер уходит один раз, дальше — роли в карточке)
+    val molMode: MolMode = MolMode.DEFAULT,
+    val molPersonId: String? = null,
+
+    // Почему не ушёл на сервер (FAILED): «инвентарный номер уже используется» и т.п.
+    val errorMessage: String? = null,
 ) {
     // Бизнес-свойство: синхронизирован ли актив?
     val isSyncedToServer: Boolean get() = serverUuid != null

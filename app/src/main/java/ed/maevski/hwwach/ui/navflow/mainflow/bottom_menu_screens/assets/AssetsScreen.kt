@@ -19,6 +19,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,6 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ed.maevski.hwwach.domain.models.Asset
+import ed.maevski.hwwach.domain.models.AssetLocationKind
+import ed.maevski.hwwach.domain.models.UploadStatusEnum
 import ed.maevski.hwwach.ui.theme.Gray250
 
 @Composable
@@ -62,22 +69,46 @@ fun AssetsScreen(
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
-            } else if (state.errorMessage.isNotEmpty()) {
-                Text(
-                    text = state.errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            } else if (state.assets.isEmpty()) {
-                Text(
-                    text = "Нет активов",
-                    modifier = Modifier.align(Alignment.Center)
-                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp)
                 ) {
+                    item(key = "search") {
+                        OutlinedTextField(
+                            modifier = Modifier.fillMaxWidth(),
+                            value = state.query,
+                            onValueChange = { onAction(AssetsScreenAction.Search(it)) },
+                            placeholder = { Text("Поиск: название, номер, место") },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                            trailingIcon = {
+                                if (state.query.isNotEmpty()) {
+                                    IconButton(onClick = { onAction(AssetsScreenAction.Search("")) }) {
+                                        Icon(Icons.Default.Clear, contentDescription = "Очистить")
+                                    }
+                                }
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(16.dp),
+                        )
+                        if (state.errorMessage.isNotEmpty()) {
+                            Text(
+                                text = state.errorMessage,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(top = 6.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                    if (state.assets.isEmpty()) {
+                        item(key = "empty") {
+                            Text(
+                                text = if (state.query.isBlank()) "Нет активов" else "Ничего не найдено",
+                                modifier = Modifier.padding(top = 24.dp)
+                            )
+                        }
+                    }
                     items(state.assets, key = { it.clientId }) { asset ->
                         AssetItem(
                             asset = asset,
@@ -150,6 +181,47 @@ fun AssetItem(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                }
+
+                val place = when (asset.locationKind) {
+                    AssetLocationKind.PLACE -> asset.locationPath?.replace(" / ", " › ")
+                    AssetLocationKind.UNSET -> null
+                    else -> asset.locationKind.title
+                }
+                if (place != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Place,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = place,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                // ещё не на сервере: ждёт сети или не прошёл (номер занят и т.п.)
+                if (asset.status != UploadStatusEnum.SYNCED) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = if (asset.status == UploadStatusEnum.FAILED) {
+                            "Не отправлен: " + (asset.errorMessage ?: "ошибка")
+                        } else {
+                            "Ждёт отправки"
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (asset.status == UploadStatusEnum.FAILED) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
 
                 if (!asset.description.isNullOrBlank()) {

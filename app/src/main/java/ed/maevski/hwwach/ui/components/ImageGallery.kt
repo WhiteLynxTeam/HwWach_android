@@ -43,7 +43,9 @@ fun ImageGallery(
     onImageClick: (String) -> Unit,
     onDeleteClick: (Photo) -> Unit,
     showSourceSelector: () -> Unit,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    // false — отправленные снимки тоже можно убрать (форма актива: убрать из карточки, не удалить)
+    lockSent: Boolean = true,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
@@ -79,7 +81,7 @@ fun ImageGallery(
                     )
                     if (enabled) {
                         val isSent =
-                            photo.status == UploadStatusEnum.UPLOADED || photo.status == UploadStatusEnum.SYNCED
+                            lockSent && (photo.status == UploadStatusEnum.UPLOADED || photo.status == UploadStatusEnum.SYNCED)
 
                         if (isSent) {
                             Box(

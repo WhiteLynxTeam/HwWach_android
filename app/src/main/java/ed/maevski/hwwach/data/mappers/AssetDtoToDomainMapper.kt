@@ -2,6 +2,7 @@ package ed.maevski.hwwach.data.mappers
 
 import ed.maevski.hwwach.data.remote.model.asset.AssetDto
 import ed.maevski.hwwach.domain.models.Asset
+import ed.maevski.hwwach.domain.models.AssetLocationKind
 import ed.maevski.hwwach.domain.models.AssetStatusEnum
 import ed.maevski.hwwach.domain.models.ModerationStatusEnum
 import ed.maevski.hwwach.domain.models.UploadStatusEnum
@@ -13,7 +14,8 @@ import javax.inject.Inject
 class AssetDtoToDomainMapper @Inject constructor() {
     fun map(dto: AssetDto): Asset {
         return Asset(
-            clientId = dto.clientId,
+            // карточки, заведённые не с телефона (панель администратора), приходят без client_id
+            clientId = (dto.clientId as String?) ?: dto.uuid,
             serverUuid = dto.uuid,
             name = dto.name ?: "",
             category = dto.category,
@@ -28,6 +30,9 @@ class AssetDtoToDomainMapper @Inject constructor() {
             localCreatedAt = System.currentTimeMillis(),
             lastUpdatedLocally = System.currentTimeMillis(),
             status = UploadStatusEnum.SYNCED,
+            locationKind = AssetLocationKind.fromServer(dto.locationKind),
+            locationId = dto.locationId,
+            locationPath = dto.locationPath,
         )
     }
 

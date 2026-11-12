@@ -36,6 +36,15 @@ interface IOrgRepository {
 
     // люди организации (ФИО и признак МОЛ) — go отдаёт только person_id
     suspend fun getPersons(force: Boolean = false): DomainResult<List<PersonBrief>>
+
+    // завести человека без учётной записи; isMol учитывается только при праве persons.manage
+    suspend fun createPerson(
+        lastName: String,
+        firstName: String,
+        middleName: String?,
+        position: String?,
+        isMol: Boolean,
+    ): DomainResult<PersonBrief>
     suspend fun requestMol(): DomainResult<Unit>
 
     // перечитать профиль и права (после смены роли, одобрения МОЛ)

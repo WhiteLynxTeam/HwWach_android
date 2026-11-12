@@ -77,6 +77,7 @@ fun GalleryScreen(
                     )
                 }
                 GalleryScreenAction.OpenCamera -> {
+                    onAction(action)
                     onNavigateToCamera()
                 }
                 else -> onAction(action)

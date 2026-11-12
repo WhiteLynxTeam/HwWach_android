@@ -58,3 +58,13 @@ data class PersonBriefDto(
     @SerializedName("isMol") val isMol: Boolean = false,
     @SerializedName("isActive") val isActive: Boolean = true,
 )
+
+// Завести человека без учётной записи (POST /persons, ts). Признак МОЛ сервер ставит только тому,
+// у кого право persons.manage; телефон здесь не передаём
+data class CreatePersonRequest(
+    @SerializedName("lastName") val lastName: String,
+    @SerializedName("firstName") val firstName: String,
+    @SerializedName("middleName") val middleName: String? = null,
+    @SerializedName("position") val position: String? = null,
+    @SerializedName("isMol") val isMol: Boolean = false,
+)

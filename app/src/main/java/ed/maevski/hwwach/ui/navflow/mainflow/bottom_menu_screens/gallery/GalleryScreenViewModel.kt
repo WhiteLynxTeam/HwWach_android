@@ -33,6 +33,9 @@ import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
+// снимки камеры, открытой из вкладки «Галерея»
+private const val CAMERA_REQUESTER = "gallery"
+
 @HiltViewModel
 class GalleryScreenViewModel @Inject constructor(
     private val getAllPhotosUseCase: GetAllPhotosUseCase,
@@ -70,7 +73,7 @@ class GalleryScreenViewModel @Inject constructor(
             .launchIn(viewModelScope)
 
         // Подписываемся на результат камеры напрямую через Activity-scope SharedViewModel
-        cameraResultProvider.photoUri
+        cameraResultProvider.resultsFor(CAMERA_REQUESTER)
             .onEach { uri -> handleAction(GalleryScreenAction.AddImage(uri)) }
             .launchIn(viewModelScope)
     }
@@ -142,7 +145,12 @@ class GalleryScreenViewModel @Inject constructor(
                         localPath = action.uri,
                         remoteUrl = null,
                     )
-                    savePhotoUseCase(photo)
+                    try {
+                        savePhotoUseCase(photo)
+                    } catch (e: Exception) {
+                        if (e is CancellationException) throw e
+                        _state.update { it.copy(errorMessage = "Не удалось сохранить фото: ${e.message}") }
+                    }
                 }
             }
             is GalleryScreenAction.RemovePhoto -> {
@@ -183,7 +191,9 @@ class GalleryScreenViewModel @Inject constructor(
                 _state.update { it.copy(statusFilter = action.status) }
             }
 
-            // Действия ShowSourceSelector, OpenGallery и OpenCamera перехватываются локально в GalleryScreen.kt
+            // камеру открывает экран (навигация), а здесь отмечаем, что снимки — для галереи
+            GalleryScreenAction.OpenCamera -> cameraResultProvider.request(CAMERA_REQUESTER)
+            // Действия ShowSourceSelector и OpenGallery перехватываются локально в GalleryScreen.kt
             // через localOnAction и никогда не доходят до ViewModel (требуют доступа к ActivityResultLaunchers)
             else -> { }
         }

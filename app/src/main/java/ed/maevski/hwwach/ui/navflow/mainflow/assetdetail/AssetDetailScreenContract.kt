@@ -19,7 +19,21 @@ sealed class AssetDetailScreenAction {
     data class SelectPerson(val personId: String) : AssetDetailScreenAction()
     data class InputText(val text: String) : AssetDetailScreenAction()
     data object ConfirmDialog : AssetDetailScreenAction()
+
+    // «+ Новый человек» в окне выбора: числится в организации, войти сможет позже
+    data object StartNewPerson : AssetDetailScreenAction()
+    data object CancelNewPerson : AssetDetailScreenAction()
+    data class EditNewPerson(val form: NewPersonForm) : AssetDetailScreenAction()
+    data object SaveNewPerson : AssetDetailScreenAction()
 }
+
+data class NewPersonForm(
+    val lastName: String = "",
+    val firstName: String = "",
+    val middleName: String = "",
+    val position: String = "",
+    val isMol: Boolean = false,
+)
 
 sealed class AssetDetailScreenEvent {
     data object NavigateBack : AssetDetailScreenEvent()
@@ -47,6 +61,14 @@ data class AssetDetailScreenState(
     val dialogText: String = "",
     val isSaving: Boolean = false,
     val infoMessage: String = "",
+
+    // заводить людей: persons.manage или persons.create_basic; признак МОЛ — только persons.manage
+    val canCreatePerson: Boolean = false,
+    val canSetMol: Boolean = false,
+    // не null — в окне выбора открыта форма нового человека
+    val newPerson: NewPersonForm? = null,
+    // подсказка в окне (не ошибка): «Иванов добавлен — нажмите «Назначить»»
+    val dialogNotice: String = "",
 ) {
     fun personName(id: String?): String = id?.let { persons[it]?.fullName } ?: "—"
 }

@@ -17,6 +17,9 @@ interface AssetPhotoCrossRefDao {
     @Query("SELECT * FROM asset_photo_cross_ref WHERE assetClientId = :assetClientId")
     fun getCrossRefsByAsset(assetClientId: String): Flow<List<AssetPhotoCrossRef>>
 
+    @Query("SELECT photoClientId FROM asset_photo_cross_ref WHERE assetClientId = :assetClientId")
+    suspend fun getPhotoIdsByAsset(assetClientId: String): List<String>
+
     @Query("SELECT * FROM asset_photo_cross_ref WHERE photoClientId = :photoClientId")
     fun getCrossRefsByPhoto(photoClientId: String): Flow<List<AssetPhotoCrossRef>>
 

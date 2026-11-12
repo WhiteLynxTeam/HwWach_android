@@ -19,5 +19,9 @@ data class AssetDto(
     @SerializedName("updated_at") val updatedAt: String?,
     @SerializedName("created_by_person_id") val createdByPersonId: String? = null,
     @SerializedName("uuid") val uuid: String,
-    @SerializedName("verified_at") val verifiedAt: String?
+    @SerializedName("verified_at") val verifiedAt: String?,
+    // unset / place / none / portable
+    @SerializedName("location_kind") val locationKind: String? = null,
+    @SerializedName("location_id") val locationId: String? = null,
+    @SerializedName("location_path") val locationPath: String? = null,
 )

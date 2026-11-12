@@ -51,7 +51,14 @@ class AssetDetailScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val me = userProfileRepository.userProfile.firstOrNull()
             canAssignAny = me?.can("asset_roles.assign") == true
-            _state.update { it.copy(myPersonId = me?.personId) }
+            val canManagePersons = me?.can("persons.manage") == true
+            _state.update {
+                it.copy(
+                    myPersonId = me?.personId,
+                    canCreatePerson = canManagePersons || me?.can("persons.create_basic") == true,
+                    canSetMol = canManagePersons,
+                )
+            }
             (orgRepository.getPersons() as? DomainResult.Success)?.let { result ->
                 _state.update { it.copy(persons = result.data.associateBy { p -> p.id }) }
             }
@@ -106,7 +113,7 @@ class AssetDetailScreenViewModel @Inject constructor(
                 }
             }
             AssetDetailScreenAction.EditClicked -> {
-                // TODO: emit navigate to edit
+                viewModelScope.launch { _events.emit(AssetDetailScreenEvent.NavigateToEdit) }
             }
             AssetDetailScreenAction.DeleteClicked -> {
                 // TODO: emit show delete confirmation
@@ -117,18 +124,58 @@ class AssetDetailScreenViewModel @Inject constructor(
                 }
             }
             is AssetDetailScreenAction.OpenDialog -> {
-                _state.update { it.copy(dialog = action.dialog, selectedPersonId = null, dialogText = "", infoMessage = "") }
+                _state.update { it.copy(dialog = action.dialog, selectedPersonId = null, dialogText = "", infoMessage = "", newPerson = null, dialogNotice = "") }
                 viewModelScope.launch {
-                    // список людей мог устареть (новый МОЛ) — обновляем
+                    // список людей мог устареть (новый МОЛ) — обновляем. Сливаем, а не заменяем: ответ мог
+                    // прийти позже, чем в этом же окне завели нового человека, и затёр бы его
                     (orgRepository.getPersons(force = true) as? DomainResult.Success)?.let { result ->
-                        _state.update { it.copy(persons = result.data.associateBy { p -> p.id }) }
+                        _state.update { it.copy(persons = it.persons + result.data.associateBy { p -> p.id }) }
                     }
                 }
             }
-            AssetDetailScreenAction.CloseDialog -> _state.update { it.copy(dialog = null) }
+            AssetDetailScreenAction.CloseDialog -> _state.update { it.copy(dialog = null, newPerson = null, dialogNotice = "") }
+            AssetDetailScreenAction.StartNewPerson -> _state.update {
+                // для МОЛ нужен человек с признаком МОЛ — ставим сразу
+                it.copy(newPerson = NewPersonForm(isMol = it.dialog == AssetDialog.TRANSFER_MOL), infoMessage = "", dialogNotice = "")
+            }
+            AssetDetailScreenAction.CancelNewPerson -> _state.update { it.copy(newPerson = null, infoMessage = "") }
+            is AssetDetailScreenAction.EditNewPerson -> _state.update { it.copy(newPerson = action.form) }
+            AssetDetailScreenAction.SaveNewPerson -> saveNewPerson()
             is AssetDetailScreenAction.SelectPerson -> _state.update { it.copy(selectedPersonId = action.personId) }
             is AssetDetailScreenAction.InputText -> _state.update { it.copy(dialogText = action.text) }
             AssetDetailScreenAction.ConfirmDialog -> confirmDialog()
+        }
+    }
+
+    // Новый человек без учётной записи: сохраняем на сервере и сразу выбираем в списке —
+    // остаётся нажать «Назначить». Позже человек сможет зарегистрироваться, админ привяжет заявку к нему
+    private fun saveNewPerson() {
+        val s = _state.value
+        val form = s.newPerson ?: return
+        if (form.lastName.isBlank() || form.firstName.isBlank()) {
+            _state.update { it.copy(infoMessage = "Укажите фамилию и имя") }
+            return
+        }
+        val isMol = form.isMol && s.canSetMol
+        viewModelScope.launch {
+            _state.update { it.copy(isSaving = true, infoMessage = "") }
+            when (val result = orgRepository.createPerson(form.lastName, form.firstName, form.middleName, form.position, isMol)) {
+                is DomainResult.Success -> {
+                    val p = result.data
+                    _state.update {
+                        it.copy(
+                            isSaving = false,
+                            newPerson = null,
+                            persons = it.persons + (p.id to p),
+                            selectedPersonId = p.id,
+                            infoMessage = "",
+                            dialogNotice = "${p.fullName} — в списке и выбран(а). Нажмите «Назначить»",
+                        )
+                    }
+                }
+                is DomainResult.ValidationError -> _state.update { it.copy(isSaving = false, infoMessage = result.message) }
+                else -> _state.update { it.copy(isSaving = false, infoMessage = "Не удалось сохранить. Проверьте интернет и попробуйте ещё раз") }
+            }
         }
     }
 

@@ -3,11 +3,13 @@ package ed.maevski.hwwach.di
 import android.content.Context
 import androidx.room.Room
 import ed.maevski.hwwach.data.local.AppDatabase
+import ed.maevski.hwwach.data.local.MIGRATION_5_6
 import ed.maevski.hwwach.data.local.RoomTransactionRunner
 import ed.maevski.hwwach.data.local.TransactionRunner
 import ed.maevski.hwwach.data.local.dao.AssetDao
 import ed.maevski.hwwach.data.local.dao.AssetPhotoCrossRefDao
 import ed.maevski.hwwach.data.local.dao.CategoryDao
+import ed.maevski.hwwach.data.local.dao.LocationDao
 import ed.maevski.hwwach.data.local.dao.PhotoDao
 import dagger.Binds
 import dagger.Module
@@ -38,6 +40,7 @@ abstract class DatabaseModule {
                 AppDatabase::class.java,
                 "hwwach_db"
             )
+                .addMigrations(MIGRATION_5_6)
                 .fallbackToDestructiveMigration()
                 .build()
         }
@@ -64,6 +67,12 @@ abstract class DatabaseModule {
         @Singleton
         fun provideCategoryDao(database: AppDatabase): CategoryDao {
             return database.categoryDao()
+        }
+
+        @Provides
+        @Singleton
+        fun provideLocationDao(database: AppDatabase): LocationDao {
+            return database.locationDao()
         }
     }
 }

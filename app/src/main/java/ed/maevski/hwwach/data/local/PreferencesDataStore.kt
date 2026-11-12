@@ -67,6 +67,18 @@ class PreferencesDataStore @Inject constructor(
         // Закреплённые место и МОЛ для серии новых активов (JSON). При выходе стираются — у другой
         // организации свои места и люди
         val ASSET_PINNED_KEY = stringPreferencesKey("asset_pinned_defaults")
+
+        // Группа, открытая в галерее: в неё попадают новые снимки
+        val GALLERY_ACTIVE_GROUP_KEY = stringPreferencesKey("gallery_active_group")
+    }
+
+    val galleryActiveGroup: Flow<String?> = context.dataStore.data.map { it[PreferencesKeys.GALLERY_ACTIVE_GROUP_KEY] }
+
+    suspend fun saveGalleryActiveGroup(id: String?) {
+        context.dataStore.edit { preferences ->
+            preferences.remove(PreferencesKeys.GALLERY_ACTIVE_GROUP_KEY)
+            if (id != null) preferences[PreferencesKeys.GALLERY_ACTIVE_GROUP_KEY] = id
+        }
     }
 
     val assetPinnedJson: Flow<String?> = context.dataStore.data.map { it[PreferencesKeys.ASSET_PINNED_KEY] }
@@ -218,6 +230,7 @@ class PreferencesDataStore @Inject constructor(
             preferences.remove(PreferencesKeys.USER_IS_MOL_KEY)
             preferences.remove(PreferencesKeys.USER_MOL_REQUESTED_KEY)
             preferences.remove(PreferencesKeys.ASSET_PINNED_KEY)
+            preferences.remove(PreferencesKeys.GALLERY_ACTIVE_GROUP_KEY)
         }
     }
 

@@ -81,7 +81,7 @@ interface PhotoDao {
      * Получить все существующие локальные пути одним запросом
      * Используется для JOIN-оптимизации при синхронизации
      */
-    @Query("SELECT clientId, localFilePath FROM photos WHERE localFilePath IS NOT NULL")
+    @Query("SELECT clientId, localFilePath, groupId, note FROM photos WHERE localFilePath IS NOT NULL OR groupId IS NOT NULL OR note IS NOT NULL")
     suspend fun getExistingLocalPaths(): List<PhotoLocalPath>
 
     /**
@@ -106,13 +106,12 @@ interface PhotoDao {
         deleteSyncedPhotosNotInList(serverIds)
 
         // 3. Получаем все существующие пути одним запросом (JOIN подготовка)
-        val existingPaths = getExistingLocalPaths().associate {
-            it.clientId to it.localFilePath
-        }
+        val existing = getExistingLocalPaths().associateBy { it.clientId }
 
         // 4. Мержим: данные сервера + существующие localFilePath
         val mergedPhotos = serverPhotos.map { serverPhoto ->
-            serverPhoto.copy(localFilePath = existingPaths[serverPhoto.clientId])
+            val local = existing[serverPhoto.clientId]
+            serverPhoto.copy(localFilePath = local?.localFilePath, groupId = local?.groupId, note = local?.note)
         }
 
         // 5. INSERT OR REPLACE всех фото одним запросом

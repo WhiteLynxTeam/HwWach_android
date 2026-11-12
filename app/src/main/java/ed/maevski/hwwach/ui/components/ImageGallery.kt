@@ -3,6 +3,7 @@ package ed.maevski.hwwach.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -19,18 +20,21 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ed.maevski.hwwach.common.extensions.PriorityAsyncImage
 import ed.maevski.hwwach.domain.models.Photo
@@ -46,24 +50,42 @@ fun ImageGallery(
     enabled: Boolean = true,
     // false — отправленные снимки тоже можно убрать (форма актива: убрать из карточки, не удалить)
     lockSent: Boolean = true,
+    // режим выбора (галерея): галочки вместо крестиков, плитки «добавить» нет
+    selectionMode: Boolean = false,
+    selectedIds: Set<String> = emptySet(),
+    onLongClick: ((Photo) -> Unit)? = null,
+    // подпись снимка полоской внизу плитки
+    showNotes: Boolean = false,
 ) {
+    val addTile = !selectionMode
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(photos.size + 1) { index ->
+        items(photos.size + if (addTile) 1 else 0) { index ->
             if (index < photos.size) {
                 val photo = photos[index]
+                val selected = photo.clientId in selectedIds
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable(enabled = enabled) {
-                            onImageClick(photo.clientId)
-                        },
+                        .then(
+                            if (selected) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
+                            else Modifier
+                        )
+                        .combinedClickable(
+                            enabled = enabled,
+                            onClick = { onImageClick(photo.clientId) },
+                            onLongClick = if (onLongClick != null) {
+                                { onLongClick(photo) }
+                            } else {
+                                null
+                            },
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     if (!enabled) {
@@ -79,7 +101,18 @@ fun ImageGallery(
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
-                    if (enabled) {
+                    if (selectionMode) {
+                        Icon(
+                            imageVector = if (selected) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                            contentDescription = if (selected) "Выбрано" else "Не выбрано",
+                            tint = if (selected) MaterialTheme.colorScheme.primary else Color.White,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(4.dp)
+                                .size(22.dp)
+                                .background(Color.Black.copy(alpha = 0.25f), CircleShape),
+                        )
+                    } else if (enabled) {
                         val isSent =
                             lockSent && (photo.status == UploadStatusEnum.UPLOADED || photo.status == UploadStatusEnum.SYNCED)
 
@@ -122,6 +155,22 @@ fun ImageGallery(
                                 }
                             }
                         }
+                    }
+
+                    val note = photo.note
+                    if (showNotes && !note.isNullOrBlank()) {
+                        Text(
+                            text = note,
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .fillMaxWidth()
+                                .background(Color.Black.copy(alpha = 0.55f))
+                                .padding(start = 4.dp, end = 28.dp, top = 2.dp, bottom = 2.dp),
+                        )
                     }
 
                     // Статус загрузки фото (Нижний правый угол)

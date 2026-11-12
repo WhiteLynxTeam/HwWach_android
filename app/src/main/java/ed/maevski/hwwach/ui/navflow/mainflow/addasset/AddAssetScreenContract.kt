@@ -6,6 +6,7 @@ import ed.maevski.hwwach.domain.models.Location
 import ed.maevski.hwwach.domain.models.MolMode
 import ed.maevski.hwwach.domain.models.PersonBrief
 import ed.maevski.hwwach.domain.models.Photo
+import ed.maevski.hwwach.domain.models.PhotoGroup
 import ed.maevski.hwwach.domain.models.UploadQueueState
 
 sealed class AddAssetScreenAction {
@@ -29,6 +30,8 @@ sealed class AddAssetScreenAction {
     data object CloseAppPhotos : AddAssetScreenAction()
     data class ToggleAppPhoto(val clientId: String) : AddAssetScreenAction()
     data object ConfirmAppPhotos : AddAssetScreenAction()
+    // null — все свободные снимки
+    data class AppPhotosGroupFilter(val groupId: String?) : AddAssetScreenAction()
 
     // место: выбор в нижней панели
     data object OpenLocation : AddAssetScreenAction()
@@ -94,6 +97,11 @@ data class AddAssetScreenState(
     val appPhotosOpen: Boolean = false,
     val appPhotos: List<Photo> = emptyList(),
     val selectedAppPhotoIds: Set<String> = emptySet(),
+    // группы, в которых есть свободные снимки, и открытая группа (null — все)
+    val appPhotoGroups: List<PhotoGroup> = emptyList(),
+    val appPhotoGroupFilter: String? = null,
+    // форма открыта из группы снимков галереи
+    val groupName: String? = null,
 
     val locationKind: AssetLocationKind = AssetLocationKind.UNSET,
     val locationChain: List<Location> = emptyList(),

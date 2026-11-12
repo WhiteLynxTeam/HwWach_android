@@ -66,6 +66,12 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
+    abstract fun bindPhotoGroupRepository(
+        impl: ed.maevski.hwwach.data.repositories.PhotoGroupRepositoryImpl
+    ): ed.maevski.hwwach.domain.irepositories.IPhotoGroupRepository
+
+    @Binds
+    @Singleton
     abstract fun bindAssetUploadScheduler(
         impl: AssetUploadScheduler
     ): IAssetUploadScheduler

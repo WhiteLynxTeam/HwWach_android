@@ -16,5 +16,9 @@ data class PhotoEntity(
     val remoteCreatedAt: Long? = null,
     val status: UploadStatusEnum = UploadStatusEnum.PENDING,
 
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+
+    // разбор снимков на телефоне: группа и подпись (на сервер пока не уходят)
+    val groupId: String? = null,
+    val note: String? = null,
 )

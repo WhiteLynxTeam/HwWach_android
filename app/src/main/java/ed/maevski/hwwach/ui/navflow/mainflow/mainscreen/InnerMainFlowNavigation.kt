@@ -75,6 +75,10 @@ class InnerMainFlowNavigation(
                                 is GalleryScreenEvent.NavigateToFullImage -> {
                                     onNavigateToFullImage(event.clientId)
                                 }
+
+                                GalleryScreenEvent.NavigateToAddAsset -> {
+                                    onNavigateToAddAsset()
+                                }
                             }
                         }
                     }

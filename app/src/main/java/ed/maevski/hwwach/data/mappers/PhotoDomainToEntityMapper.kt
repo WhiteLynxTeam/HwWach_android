@@ -13,7 +13,9 @@ class PhotoDomainToEntityMapper @Inject constructor() {
             remoteUrl = photo.remoteUrl,
             localCreatedAt = photo.localCreatedAt,
             status = photo.status,
-            errorMessage = photo.errorMessage
+            errorMessage = photo.errorMessage,
+            groupId = photo.groupId,
+            note = photo.note,
         )
     }
 }

@@ -169,6 +169,12 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @Named("api")
+    fun provideLocationApi(@Named("api") retrofit: Retrofit): ed.maevski.hwwach.data.remote.api.LocationApi =
+        retrofit.create(ed.maevski.hwwach.data.remote.api.LocationApi::class.java)
+
+    @Provides
+    @Singleton
     @Named("auth")
     fun provideOrgApi(@Named("auth") retrofit: Retrofit): ed.maevski.hwwach.data.remote.api.OrgApi =
         retrofit.create(ed.maevski.hwwach.data.remote.api.OrgApi::class.java)

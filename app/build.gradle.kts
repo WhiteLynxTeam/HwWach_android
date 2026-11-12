@@ -107,6 +107,11 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
+    // фоновая отправка активов: переживает закрытие приложения, ждёт сеть
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
+
     /** Room */
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

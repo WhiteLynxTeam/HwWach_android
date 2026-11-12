@@ -25,6 +25,10 @@ interface PhotoDao {
     @Query("SELECT * FROM photos")
     fun getAllPhotos(): Flow<List<PhotoEntity>>
 
+    /** Снимки, ещё не прикреплённые ни к одному активу — для выбора в форме актива */
+    @Query("SELECT * FROM photos WHERE clientId NOT IN (SELECT photoClientId FROM asset_photo_cross_ref) ORDER BY localCreatedAt DESC")
+    fun getUnattachedPhotos(): Flow<List<PhotoEntity>>
+
     /** Фото с фильтрацией по статусу */
     @Query("SELECT * FROM photos WHERE status = :status")
     fun getPhotosByStatus(status: String): Flow<List<PhotoEntity>>

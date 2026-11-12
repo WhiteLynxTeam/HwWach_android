@@ -2,6 +2,7 @@ package ed.maevski.hwwach.di
 
 import ed.maevski.hwwach.data.repositories.AdminRepositoryImpl
 import ed.maevski.hwwach.data.repositories.AssetRepositoryImpl
+import ed.maevski.hwwach.data.repositories.LocationRepositoryImpl
 import ed.maevski.hwwach.data.repositories.PhotoRepositoryImpl
 import ed.maevski.hwwach.data.repositories.SettingsRepositoryImpl
 import ed.maevski.hwwach.data.repositories.TokenRepositoryImpl
@@ -9,6 +10,9 @@ import ed.maevski.hwwach.data.repositories.UserProfileRepositoryImpl
 import ed.maevski.hwwach.data.repositories.UserRepositoryImpl
 import ed.maevski.hwwach.domain.irepositories.IAdminRepository
 import ed.maevski.hwwach.domain.irepositories.IAssetRepository
+import ed.maevski.hwwach.domain.irepositories.ILocationRepository
+import ed.maevski.hwwach.domain.irepositories.IAssetUploadScheduler
+import ed.maevski.hwwach.data.work.AssetUploadScheduler
 import ed.maevski.hwwach.domain.irepositories.IPhotoRepository
 import ed.maevski.hwwach.domain.irepositories.ISettingsRepository
 import ed.maevski.hwwach.domain.irepositories.ITokensRepository
@@ -53,6 +57,18 @@ abstract class RepositoryModule {
     abstract fun bindAssetRepository(
         assetRepositoryImpl: AssetRepositoryImpl
     ): IAssetRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindLocationRepository(
+        impl: LocationRepositoryImpl
+    ): ILocationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAssetUploadScheduler(
+        impl: AssetUploadScheduler
+    ): IAssetUploadScheduler
 
     @Binds
     @Singleton

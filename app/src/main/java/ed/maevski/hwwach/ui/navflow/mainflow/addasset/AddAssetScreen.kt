@@ -3,9 +3,7 @@ package ed.maevski.hwwach.ui.navflow.mainflow.addasset
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -14,26 +12,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.BottomSheetDefaults
@@ -50,6 +43,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -70,7 +64,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ed.maevski.hwwach.domain.models.Category
 import ed.maevski.hwwach.ui.components.ImageGallery
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -101,6 +94,7 @@ fun AddAssetScreen(
                     )
                 }
                 AddAssetScreenAction.OpenCamera -> {
+                    onAction(action)
                     onNavigateToCamera()
                 }
                 else -> onAction(action)
@@ -112,11 +106,9 @@ fun AddAssetScreen(
         modifier = modifier.fillMaxSize().imePadding(),
         topBar = {
             TopAppBar(
-                title = { Text(text = "Добавить актив") },
+                title = { Text(text = if (state.isEdit) "Правка актива" else "Добавить актив") },
                 navigationIcon = {
-                    IconButton(
-                        onClick = { onAction(AddAssetScreenAction.NavigateBack) }
-                    ) {
+                    IconButton(onClick = { onAction(AddAssetScreenAction.NavigateBack) }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Назад")
                     }
                 }
@@ -131,9 +123,30 @@ fun AddAssetScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.Top
             ) {
+                if (!state.isEdit) {
+                    item {
+                        Spacer(Modifier.height(4.dp))
+                        UploadQueueCard(state = state, onAction = onAction)
+                    }
+                }
+
+                item {
+                    ImageGallery(
+                        modifier = Modifier
+                            .padding(vertical = 12.dp)
+                            .heightIn(min = 120.dp, max = 320.dp),
+                        photos = state.photos,
+                        onImageClick = { clientId -> localOnAction(AddAssetScreenAction.OpenFullImage(clientId)) },
+                        onDeleteClick = { photo -> localOnAction(AddAssetScreenAction.RemovePhoto(photo)) },
+                        showSourceSelector = { localOnAction(AddAssetScreenAction.ShowSourceSelector) },
+                        enabled = !state.isLoading,
+                        lockSent = false,
+                    )
+                }
+
                 item {
                     Column {
                         AddFormTextField(
@@ -141,43 +154,28 @@ fun AddAssetScreen(
                             onValueChange = { onAction(AddAssetScreenAction.InputName(it)) },
                             label = "Название"
                         )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        CategoryAutocompleteField(
-                            state = state,
-                            onAction = onAction
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
+                        CategoryAutocompleteField(state = state, onAction = onAction)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        LocationRow(state = state, onAction = onAction)
+                        if (state.canPickMol && !state.isEdit) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            MolRow(state = state, onAction = onAction)
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
                         AddFormTextField(
                             value = state.inventoryNumber,
                             onValueChange = { onAction(AddAssetScreenAction.InputInventoryNumber(it)) },
-                            label = "Инвентаризационный номер"
+                            label = "Инвентарный номер (необязательно)"
                         )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        AddFormTextField(
-                            value = state.address,
-                            onValueChange = { onAction(AddAssetScreenAction.InputAddress(it)) },
-                            label = "Адрес"
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
                         AddFormTextField(
                             value = state.comment,
                             onValueChange = { onAction(AddAssetScreenAction.InputComment(it)) },
                             label = "Комментарий"
                         )
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
-                }
-
-                item {
-                    ImageGallery(
-                        modifier = Modifier
-                            .padding(vertical = 16.dp)
-                            .heightIn(min = 120.dp, max = 320.dp),
-                        photos = state.photos,
-                        onImageClick = { clientId -> localOnAction(AddAssetScreenAction.OpenFullImage(clientId)) },
-                        onDeleteClick = { photo -> localOnAction(AddAssetScreenAction.RemovePhoto(photo)) },
-                        showSourceSelector = { localOnAction(AddAssetScreenAction.ShowSourceSelector) },
-                        enabled = !state.isLoading
-                    )
                 }
 
                 if (state.errorMessage.isNotEmpty()) {
@@ -192,32 +190,29 @@ fun AddAssetScreen(
                 }
 
                 item {
-                    Button(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(44.dp),
-                        enabled = !state.isLoading,
-                        onClick = {
-                            onAction(AddAssetScreenAction.Submit)
-                        },
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
-                        )
-                    ) {
-                        Text(
-                            text = "Добавить",
-                            fontSize = 16.sp,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                    if (state.isEdit) {
+                        PrimaryButton(text = "Сохранить", enabled = !state.isLoading) {
+                            onAction(AddAssetScreenAction.Submit(next = false))
+                        }
+                    } else {
+                        // на инвентаризации основной сценарий — серия: сохранить и сразу следующий
+                        PrimaryButton(text = "Сохранить и следующий", enabled = !state.isLoading) {
+                            onAction(AddAssetScreenAction.Submit(next = true))
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(44.dp),
+                            enabled = !state.isLoading,
+                            shape = RoundedCornerShape(16.dp),
+                            onClick = { onAction(AddAssetScreenAction.Submit(next = false)) },
+                        ) { Text("Сохранить и выйти") }
                     }
+                    Spacer(Modifier.height(24.dp))
                 }
             }
 
-            // Loading overlay
             if (state.isLoading) {
                 Box(
                     modifier = Modifier
@@ -226,20 +221,21 @@ fun AddAssetScreen(
                         .clickable(enabled = false) { },
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
         }
     }
+
+    LocationSheet(state = state, onAction = onAction)
+    MolSheet(state = state, onAction = onAction)
+    AppPhotosSheet(state = state, onAction = onAction)
 
     if (showSourceSheet) {
         androidx.compose.material3.ModalBottomSheet(
             onDismissRequest = { showSourceSheet = false },
             sheetState = sheetState,
             dragHandle = { BottomSheetDefaults.DragHandle() },
-            containerColor = Color.White
         ) {
             Column(
                 modifier = Modifier
@@ -251,10 +247,9 @@ fun AddAssetScreen(
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(16.dp)
                 )
-
                 ListItem(
                     headlineContent = { Text("Сделать снимок") },
-                    leadingContent = { Icon(Icons.Default.PhotoCamera, contentDescription = "Камера") },
+                    leadingContent = { Icon(Icons.Default.PhotoCamera, contentDescription = null) },
                     modifier = Modifier
                         .clickable {
                             showSourceSheet = false
@@ -262,10 +257,20 @@ fun AddAssetScreen(
                         }
                         .padding(horizontal = 12.dp)
                 )
-
                 ListItem(
-                    headlineContent = { Text("Выбрать из галереи") },
-                    leadingContent = { Icon(Icons.Default.Image, contentDescription = "Галерея") },
+                    headlineContent = { Text("Снимки приложения") },
+                    supportingContent = { Text("Сделанные во вкладке «Галерея»") },
+                    leadingContent = { Icon(Icons.Default.Collections, contentDescription = null) },
+                    modifier = Modifier
+                        .clickable {
+                            showSourceSheet = false
+                            localOnAction(AddAssetScreenAction.OpenAppPhotos)
+                        }
+                        .padding(horizontal = 12.dp)
+                )
+                ListItem(
+                    headlineContent = { Text("Галерея телефона") },
+                    leadingContent = { Icon(Icons.Default.Image, contentDescription = null) },
                     modifier = Modifier
                         .clickable {
                             showSourceSheet = false
@@ -275,6 +280,26 @@ fun AddAssetScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun PrimaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
+    Button(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(44.dp),
+        enabled = enabled,
+        onClick = onClick,
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
+        )
+    ) {
+        Text(text = text, fontSize = 16.sp, style = MaterialTheme.typography.bodyMedium)
     }
 }
 

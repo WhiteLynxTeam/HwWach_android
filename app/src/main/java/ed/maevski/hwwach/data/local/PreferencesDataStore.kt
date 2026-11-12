@@ -63,6 +63,19 @@ class PreferencesDataStore @Inject constructor(
         // следующий вход без ввода номера
         val LAST_ORG_NUMBER_KEY = stringPreferencesKey("last_org_number")
         val LAST_ORG_NAME_KEY = stringPreferencesKey("last_org_name")
+
+        // Закреплённые место и МОЛ для серии новых активов (JSON). При выходе стираются — у другой
+        // организации свои места и люди
+        val ASSET_PINNED_KEY = stringPreferencesKey("asset_pinned_defaults")
+    }
+
+    val assetPinnedJson: Flow<String?> = context.dataStore.data.map { it[PreferencesKeys.ASSET_PINNED_KEY] }
+
+    suspend fun saveAssetPinnedJson(json: String?) {
+        context.dataStore.edit { preferences ->
+            preferences.remove(PreferencesKeys.ASSET_PINNED_KEY)
+            if (json != null) preferences[PreferencesKeys.ASSET_PINNED_KEY] = json
+        }
     }
 
     // Методы для работы с uuid временной регистрации
@@ -204,6 +217,7 @@ class PreferencesDataStore @Inject constructor(
             preferences.remove(PreferencesKeys.USER_ORG_NUMBER_KEY)
             preferences.remove(PreferencesKeys.USER_IS_MOL_KEY)
             preferences.remove(PreferencesKeys.USER_MOL_REQUESTED_KEY)
+            preferences.remove(PreferencesKeys.ASSET_PINNED_KEY)
         }
     }
 

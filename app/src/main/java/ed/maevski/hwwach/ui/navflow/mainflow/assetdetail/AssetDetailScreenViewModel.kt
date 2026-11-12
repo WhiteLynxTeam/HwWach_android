@@ -113,7 +113,7 @@ class AssetDetailScreenViewModel @Inject constructor(
                 }
             }
             AssetDetailScreenAction.EditClicked -> {
-                // TODO: emit navigate to edit
+                viewModelScope.launch { _events.emit(AssetDetailScreenEvent.NavigateToEdit) }
             }
             AssetDetailScreenAction.DeleteClicked -> {
                 // TODO: emit show delete confirmation

@@ -133,6 +133,15 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getUnattachedPhotosFlow(): Flow<List<Photo>> {
+        return photoDao.getUnattachedPhotos().map { entities ->
+            entities.map { entity ->
+                val actualLocalPath = entity.localFilePath?.takeIf { fileStorage.fileExists(it) }
+                photoEntityToDomainMapper.map(entity.copy(localFilePath = actualLocalPath))
+            }
+        }
+    }
+
     /**
      * Возвращает Flow со фото, отфильтрованными по статусу.
      * Фильтрация по наличии локального файла выполняется на уровне маппинга.

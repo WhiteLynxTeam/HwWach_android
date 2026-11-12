@@ -32,5 +32,16 @@ data class AssetEntity(
     val localCreatedAt: Long,
 
     // Поле для отслеживания локальных изменений
-    val lastUpdatedLocally: Long
+    val lastUpdatedLocally: Long,
+
+    // Место: AssetLocationKind.server, id из таблицы locations, путь для показа
+    val locationKind: String = "unset",
+    val locationId: String? = null,
+    val locationPath: String? = null,
+
+    // МОЛ при создании: MolMode.name
+    val molMode: String = "DEFAULT",
+    val molPersonId: String? = null,
+
+    val errorMessage: String? = null,
 )

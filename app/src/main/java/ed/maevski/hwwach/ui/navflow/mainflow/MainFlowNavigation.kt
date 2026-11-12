@@ -60,7 +60,7 @@ class MainFlowNavigation(
                         navController.navigate("MainFlowNavigator.FullImageScreen/$clientId")
                     },
                     onNavigateToAddAsset = {
-                        navController.navigate("MainFlowNavigator.AddAssetScreen")
+                        navController.navigate(Routes.AddAssetScreen.create())
                     },
                     onNavigateToAssetDetail = { clientId ->
                         navController.navigate("MainFlowNavigator.AssetDetailScreen/$clientId")
@@ -111,7 +111,14 @@ class MainFlowNavigation(
             }
 
             // ===== Добавление нового актива в инвентаризацию =====
-            composable(Routes.AddAssetScreen.route) {
+            composable(
+                route = Routes.AddAssetScreen.route,
+                arguments = listOf(navArgument("editClientId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                })
+            ) {
                 val viewModel = hiltViewModel<AddAssetScreenViewModel>()
                 val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -128,10 +135,16 @@ class MainFlowNavigation(
                                 is AddAssetScreenEvent.NavigateToFullImage -> {
                                     navController.navigate("MainFlowNavigator.FullImageScreen/${event.clientId}")
                                 }
-                                AddAssetScreenEvent.ShowSuccessMessage -> {
-                                    android.widget.Toast.makeText(context, "Актив успешно добавлен", android.widget.Toast.LENGTH_SHORT).show()
+                                is AddAssetScreenEvent.ShowMessage -> {
+                                    android.widget.Toast.makeText(context, event.message, android.widget.Toast.LENGTH_SHORT).show()
                                 }
-                                else -> {}
+                                is AddAssetScreenEvent.ShowErrorMessage -> {
+                                    android.widget.Toast.makeText(context, event.message, android.widget.Toast.LENGTH_LONG).show()
+                                }
+                                // не ушедший актив из очереди — открыть на правку
+                                is AddAssetScreenEvent.NavigateToEdit -> {
+                                    navController.navigate(Routes.AddAssetScreen.create(event.clientId))
+                                }
                             }
                         }
                     }
@@ -195,7 +208,9 @@ class MainFlowNavigation(
                                     navController.popBackStack()
                                 }
                                 AssetDetailScreenEvent.NavigateToEdit -> {
-                                    android.widget.Toast.makeText(context, "Редактирование (заглушка)", android.widget.Toast.LENGTH_SHORT).show()
+                                    backStackEntry.arguments?.getString("clientId")?.let { id ->
+                                        navController.navigate(Routes.AddAssetScreen.create(id))
+                                    }
                                 }
                                 is AssetDetailScreenEvent.NavigateToFullImage -> {
                                     navController.navigate("MainFlowNavigator.FullImageScreen/${event.clientId}")
@@ -281,7 +296,11 @@ class MainFlowNavigation(
 
     sealed class Routes(val route: String) {
         data object MainScreen : Routes(route = "MainFlowNavigator.MainScreen")
-        data object AddAssetScreen : Routes(route = "MainFlowNavigator.AddAssetScreen")
+        // editClientId — правка существующего актива той же формой
+        data object AddAssetScreen : Routes(route = "MainFlowNavigator.AddAssetScreen?editClientId={editClientId}") {
+            fun create(editClientId: String? = null): String =
+                if (editClientId == null) "MainFlowNavigator.AddAssetScreen" else "MainFlowNavigator.AddAssetScreen?editClientId=$editClientId"
+        }
         data object FullImageScreen : Routes(route = "MainFlowNavigator.FullImageScreen/{clientId}")
         data object AssetDetailScreen : Routes(route = "MainFlowNavigator.AssetDetailScreen/{clientId}")
         data object ChangePasswordScreen : Routes(route = "MainFlowNavigator.ChangePasswordScreen")

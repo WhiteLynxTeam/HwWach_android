@@ -134,6 +134,19 @@ private fun AssetInfoCard(asset: Asset, serverInfo: AssetServerInfo?, modifier: 
             DetailRow(label = "Наименование", value = asset.name)
             DetailRow(label = "Категория", value = asset.category ?: "Не указана")
             DetailRow(label = "Инв. номер", value = asset.inventoryNum ?: "Не указан")
+            DetailRow(
+                label = "Место",
+                value = when (asset.locationKind) {
+                    ed.maevski.hwwach.domain.models.AssetLocationKind.PLACE ->
+                        asset.locationPath?.replace(" / ", " › ") ?: "Не указано"
+                    else -> asset.locationKind.title
+                }
+            )
+            if (asset.status == ed.maevski.hwwach.domain.models.UploadStatusEnum.FAILED) {
+                DetailRow(label = "Не отправлен", value = asset.errorMessage ?: "Ошибка отправки — исправьте и сохраните")
+            } else if (asset.serverUuid == null) {
+                DetailRow(label = "Отправка", value = "Ждёт сети, уйдёт в фоне")
+            }
             DetailRow(label = "Описание", value = asset.description ?: "Нет описания")
             val statusDisplay = when (asset.assetStatus) {
                 ed.maevski.hwwach.domain.models.AssetStatusEnum.ACTIVE -> "В эксплуатации"

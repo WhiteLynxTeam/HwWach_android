@@ -22,6 +22,12 @@ class AssetDomainToEntityMapper @Inject constructor() {
             localCreatedAt = asset.localCreatedAt,
             lastUpdatedLocally = asset.lastUpdatedLocally,
             status = asset.status,
+            locationKind = asset.locationKind.server,
+            locationId = asset.locationId,
+            locationPath = asset.locationPath,
+            molMode = asset.molMode.name,
+            molPersonId = asset.molPersonId,
+            errorMessage = asset.errorMessage,
         )
     }
 }

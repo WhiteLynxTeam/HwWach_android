@@ -10,7 +10,11 @@ data class Photo(
     val localPath: String?,
     val remoteUrl: String?,
 
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+
+    // разбор на телефоне: группа снимков и подпись
+    val groupId: String? = null,
+    val note: String? = null,
 ) {
     // Бизнес-свойство: синхронизировано ли фото?
     val isSyncedToServer: Boolean get() = serverUuid != null

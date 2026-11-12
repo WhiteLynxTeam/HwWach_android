@@ -157,6 +157,14 @@ fun AddAssetScreen(
                         Spacer(modifier = Modifier.height(12.dp))
                         CategoryAutocompleteField(state = state, onAction = onAction)
                         Spacer(modifier = Modifier.height(12.dp))
+                        state.groupName?.let { g ->
+                            Text(
+                                text = "Из группы «$g»: место и МОЛ взяты из группы",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.padding(bottom = 6.dp),
+                            )
+                        }
                         LocationRow(state = state, onAction = onAction)
                         if (state.canPickMol && !state.isEdit) {
                             Spacer(modifier = Modifier.height(12.dp))

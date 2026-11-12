@@ -42,6 +42,7 @@ interface LocationDao {
         DELETE FROM locations WHERE synced = 0
           AND id NOT IN (SELECT locationId FROM assets WHERE locationId IS NOT NULL AND status != 'SYNCED')
           AND id NOT IN (SELECT parentId FROM locations WHERE parentId IS NOT NULL)
+          AND id NOT IN (SELECT locationId FROM photo_groups WHERE locationId IS NOT NULL)
         """
     )
     suspend fun deleteOrphanLocal(): Int

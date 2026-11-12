@@ -11,6 +11,7 @@ import ed.maevski.hwwach.data.local.dao.AssetPhotoCrossRefDao
 import ed.maevski.hwwach.data.local.dao.CategoryDao
 import ed.maevski.hwwach.data.local.dao.LocationDao
 import ed.maevski.hwwach.data.local.dao.PhotoDao
+import ed.maevski.hwwach.data.local.dao.PhotoGroupDao
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -40,7 +41,7 @@ abstract class DatabaseModule {
                 AppDatabase::class.java,
                 "hwwach_db"
             )
-                .addMigrations(MIGRATION_5_6)
+                .addMigrations(MIGRATION_5_6, MIGRATION_6_7)
                 .fallbackToDestructiveMigration()
                 .build()
         }
@@ -73,6 +74,12 @@ abstract class DatabaseModule {
         @Singleton
         fun provideLocationDao(database: AppDatabase): LocationDao {
             return database.locationDao()
+        }
+
+        @Provides
+        @Singleton
+        fun providePhotoGroupDao(database: AppDatabase): PhotoGroupDao {
+            return database.photoGroupDao()
         }
     }
 }

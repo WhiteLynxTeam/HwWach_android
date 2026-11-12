@@ -9,6 +9,7 @@ import ed.maevski.hwwach.domain.DomainResult
 import ed.maevski.hwwach.domain.irepositories.IAssetRepository
 import ed.maevski.hwwach.domain.irepositories.ILocationRepository
 import ed.maevski.hwwach.domain.irepositories.IOrgRepository
+import ed.maevski.hwwach.domain.irepositories.IPhotoGroupRepository
 import ed.maevski.hwwach.domain.irepositories.IPhotoRepository
 import ed.maevski.hwwach.domain.irepositories.ITokensRepository
 import ed.maevski.hwwach.domain.irepositories.IUserProfileRepository
@@ -23,11 +24,14 @@ import ed.maevski.hwwach.domain.models.ModerationStatusEnum
 import ed.maevski.hwwach.domain.models.MolMode
 import ed.maevski.hwwach.domain.models.PersonBrief
 import ed.maevski.hwwach.domain.models.Photo
+import ed.maevski.hwwach.domain.models.PhotoGroup
+import ed.maevski.hwwach.domain.models.chainTo
 import ed.maevski.hwwach.domain.models.UploadStatusEnum
 import ed.maevski.hwwach.domain.usecases.category.SearchCategoriesUseCase
 import ed.maevski.hwwach.domain.usecases.category.SyncCategoriesUseCase
 import ed.maevski.hwwach.domain.usecases.photo.DeletePhotoUseCase
 import ed.maevski.hwwach.domain.usecases.photo.SavePhotoUseCase
+import ed.maevski.hwwach.ui.navflow.mainflow.AssetFormSeed
 import ed.maevski.hwwach.ui.navflow.mainflow.CameraResultProvider
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -61,6 +65,8 @@ class AddAssetScreenViewModel @Inject constructor(
     private val syncCategoriesUseCase: SyncCategoriesUseCase,
     private val tokensRepository: ITokensRepository,
     private val cameraResultProvider: CameraResultProvider,
+    private val photoGroupRepository: IPhotoGroupRepository,
+    assetFormSeed: AssetFormSeed,
 ) : ViewModel() {
 
     private val editClientId: String? = savedStateHandle.get<String>("editClientId")?.takeIf { it.isNotBlank() }
@@ -78,6 +84,10 @@ class AddAssetScreenViewModel @Inject constructor(
     private var editOriginal: Asset? = null
     // своя метка у каждой формы: открытая поверх другой (правка из очереди) не получит чужих снимков
     private val cameraRequester = "asset-form-" + UUID.randomUUID()
+    // форма открыта из галереи: выбранные снимки и их группа
+    private val seed = if (editClientId == null) assetFormSeed.consume() else null
+    // группа снимков: её место и МОЛ остаются для следующих активов серии
+    private var seedGroup: PhotoGroup? = null
 
     init {
         currentUserUuid = extractUserUuid(tokensRepository.accessTokenCache.value)
@@ -110,6 +120,7 @@ class AddAssetScreenViewModel @Inject constructor(
                 loadForEdit(editClientId)
             } else {
                 applyPinned()
+                applySeed()
             }
             if (canPickMol && editClientId == null) {
                 (orgRepository.getPersons() as? DomainResult.Success)?.let { r ->
@@ -131,6 +142,40 @@ class AddAssetScreenViewModel @Inject constructor(
             if (mol != null && s.canPickMol) {
                 val person = mol.personId?.let { id -> PersonBrief(id, mol.personName ?: "—", null, isMol = true, isActive = true) }
                 n = n.copy(molMode = mol.mode, molPerson = person, molPinned = true)
+            }
+            n
+        }
+    }
+
+    // снимки из галереи; место и человек группы — поверх закреплённых
+    private suspend fun applySeed() {
+        val s = seed ?: return
+        val photos = s.photoIds.mapNotNull { photoRepository.getPhotoByClientId(it) }
+        val group = s.groupId?.let { photoGroupRepository.getGroup(it) }
+        seedGroup = group
+        val chain = if (group != null && group.locationKind == AssetLocationKind.PLACE) {
+            group.locationId?.let { locationRepository.chainFor(it) }.orEmpty()
+        } else {
+            emptyList()
+        }
+        _state.update { st ->
+            var n = st.copy(photos = st.photos + photos.filter { p -> st.photos.none { it.clientId == p.clientId } })
+            if (group != null) {
+                n = n.copy(groupName = group.name)
+                when (group.locationKind) {
+                    AssetLocationKind.PLACE -> {
+                        if (chain.isNotEmpty()) n = n.copy(locationKind = AssetLocationKind.PLACE, locationChain = chain, locationPinned = false)
+                    }
+                    AssetLocationKind.UNSET -> Unit
+                    else -> n = n.copy(locationKind = group.locationKind, locationChain = emptyList(), locationPinned = false)
+                }
+                if (st.canPickMol && group.personId != null && group.personIsMol) {
+                    n = n.copy(
+                        molMode = MolMode.PERSON,
+                        molPerson = PersonBrief(group.personId, group.personName ?: "—", null, isMol = true, isActive = true),
+                        molPinned = false,
+                    )
+                }
             }
             n
         }
@@ -225,9 +270,14 @@ class AddAssetScreenViewModel @Inject constructor(
                 viewModelScope.launch {
                     val inForm = _state.value.photos.map { it.clientId }.toSet()
                     val list = photoRepository.getUnattachedPhotosFlow().first().filter { it.clientId !in inForm }
-                    _state.update { it.copy(appPhotos = list) }
+                    val groups = photoGroupRepository.observeGroups().first()
+                        .filter { g -> list.any { it.groupId == g.id } }
+                    // сразу открыта группа серии, если в ней есть свободные снимки
+                    val start = seedGroup?.id?.takeIf { id -> groups.any { it.id == id } }
+                    _state.update { it.copy(appPhotos = list, appPhotoGroups = groups, appPhotoGroupFilter = start) }
                 }
             }
+            is AddAssetScreenAction.AppPhotosGroupFilter -> _state.update { it.copy(appPhotoGroupFilter = action.groupId) }
             AddAssetScreenAction.CloseAppPhotos -> _state.update { it.copy(appPhotosOpen = false) }
             is AddAssetScreenAction.ToggleAppPhoto -> _state.update {
                 val sel = it.selectedAppPhotoIds
@@ -316,16 +366,7 @@ class AddAssetScreenViewModel @Inject constructor(
     }
 
     // цепочка от корня по справочнику в памяти
-    private fun chainOf(location: Location): List<Location> {
-        val byId = _state.value.allLocations.associateBy { it.id }
-        val chain = ArrayList<Location>()
-        var current: Location? = location
-        while (current != null && chain.size < 20) {
-            chain.add(0, current)
-            current = current.parentId?.let { byId[it] }
-        }
-        return chain
-    }
+    private fun chainOf(location: Location): List<Location> = _state.value.allLocations.chainTo(location)
 
     private fun updateMolCandidates() {
         val q = _state.value.molQuery.trim().lowercase()
@@ -447,7 +488,10 @@ class AddAssetScreenViewModel @Inject constructor(
 
     // следующий актив: закреплённое остаётся, остальное — как в новой форме
     private fun resetForNext() {
+        val fromGroup = seedGroup != null
         _state.update { s ->
+            val keepLocation = s.locationPinned || fromGroup
+            val keepMol = s.molPinned || fromGroup
             AddAssetScreenState(
                 categorySuggestions = s.categorySuggestions,
                 allLocations = s.allLocations,
@@ -457,11 +501,12 @@ class AddAssetScreenViewModel @Inject constructor(
                 molCandidates = s.molCandidates,
                 savedInSession = s.savedInSession + 1,
                 locationPinned = s.locationPinned,
-                locationKind = if (s.locationPinned) s.locationKind else AssetLocationKind.UNSET,
-                locationChain = if (s.locationPinned) s.locationChain else emptyList(),
+                locationKind = if (keepLocation) s.locationKind else AssetLocationKind.UNSET,
+                locationChain = if (keepLocation) s.locationChain else emptyList(),
                 molPinned = s.molPinned,
-                molMode = if (s.molPinned) s.molMode else MolMode.DEFAULT,
-                molPerson = if (s.molPinned) s.molPerson else null,
+                molMode = if (keepMol) s.molMode else MolMode.DEFAULT,
+                molPerson = if (keepMol) s.molPerson else null,
+                groupName = s.groupName,
             )
         }
         loadSuggestions("")

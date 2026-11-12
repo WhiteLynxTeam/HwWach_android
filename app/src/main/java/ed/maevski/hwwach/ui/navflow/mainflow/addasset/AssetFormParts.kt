@@ -1,6 +1,7 @@
 package ed.maevski.hwwach.ui.navflow.mainflow.addasset
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -65,6 +66,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ed.maevski.hwwach.common.extensions.PriorityAsyncImage
 import ed.maevski.hwwach.domain.models.AssetLocationKind
+import ed.maevski.hwwach.domain.models.Location
 import ed.maevski.hwwach.domain.models.LocationKind
 import ed.maevski.hwwach.domain.models.MolMode
 import ed.maevski.hwwach.domain.models.UploadQueueState
@@ -213,13 +215,46 @@ fun LocationSheet(state: AddAssetScreenState, onAction: (AddAssetScreenAction) -
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
         Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
-            Text("Где находится", style = MaterialTheme.typography.titleLarge)
+            LocationPickerBody(
+                title = "Где находится",
+                sheet = sheet,
+                allLocations = state.allLocations,
+                recentLocations = state.recentLocations,
+                onKind = { onAction(AddAssetScreenAction.LocationSetKind(it)) },
+                onQuery = { onAction(AddAssetScreenAction.LocationQuery(it)) },
+                onPick = { onAction(AddAssetScreenAction.LocationPick(it)) },
+                onAddNew = { onAction(AddAssetScreenAction.LocationAddNew(it)) },
+                onCutTo = { onAction(AddAssetScreenAction.LocationCutTo(it)) },
+                onConfirm = { onAction(AddAssetScreenAction.LocationConfirm) },
+            )
+        }
+    }
+}
+
+/** Выбор места: вид (место / носимое / без места) и цепочка по справочнику. Общий для формы актива и группы снимков */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+fun LocationPickerBody(
+    title: String,
+    sheet: LocationSheetState,
+    allLocations: List<Location>,
+    recentLocations: List<Location>,
+    onKind: (AssetLocationKind) -> Unit,
+    onQuery: (String) -> Unit,
+    onPick: (Location) -> Unit,
+    onAddNew: (String) -> Unit,
+    onCutTo: (Int) -> Unit,
+    onConfirm: () -> Unit,
+    confirmText: String = "Готово",
+) {
+    Column {
+            Text(title, style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(8.dp))
             androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(AssetLocationKind.PLACE, AssetLocationKind.PORTABLE, AssetLocationKind.NONE).forEach { kind ->
                     FilterChip(
                         selected = sheet.kind == kind,
-                        onClick = { onAction(AddAssetScreenAction.LocationSetKind(kind)) },
+                        onClick = { onKind(kind) },
                         label = {
                             Text(
                                 when (kind) {
@@ -245,28 +280,35 @@ fun LocationSheet(state: AddAssetScreenState, onAction: (AddAssetScreenAction) -
                     color = MaterialTheme.colorScheme.outline,
                 )
             } else {
-                PlacePicker(state, sheet, onAction)
+                PlacePicker(sheet, allLocations, recentLocations, onQuery, onPick, onAddNew, onCutTo)
             }
 
             Spacer(Modifier.height(12.dp))
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = { onAction(AddAssetScreenAction.LocationConfirm) },
-            ) { Text("Готово") }
-        }
+                onClick = onConfirm,
+            ) { Text(confirmText) }
     }
 }
 
 @Composable
-private fun PlacePicker(state: AddAssetScreenState, sheet: LocationSheetState, onAction: (AddAssetScreenAction) -> Unit) {
+private fun PlacePicker(
+    sheet: LocationSheetState,
+    allLocations: List<Location>,
+    recentLocations: List<Location>,
+    onQuery: (String) -> Unit,
+    onPick: (Location) -> Unit,
+    onAddNew: (String) -> Unit,
+    onCutTo: (Int) -> Unit,
+) {
     val last = sheet.chain.lastOrNull()
     val query = sheet.query.trim()
     val q = query.lowercase()
 
     // дети выбранного уровня, по вводу — ещё совпадения по пути из любого места справочника
-    val children = state.allLocations.filter { it.parentId == last?.id && (q.isEmpty() || it.name.lowercase().contains(q)) }
+    val children = allLocations.filter { it.parentId == last?.id && (q.isEmpty() || it.name.lowercase().contains(q)) }
     val elsewhere = if (q.length >= 2) {
-        state.allLocations.filter { it.parentId != last?.id && it.path.lowercase().contains(q) }.take(15)
+        allLocations.filter { it.parentId != last?.id && it.path.lowercase().contains(q) }.take(15)
     } else {
         emptyList()
     }
@@ -284,13 +326,13 @@ private fun PlacePicker(state: AddAssetScreenState, sheet: LocationSheetState, o
                 Text(LocationKind.forDepth(index).title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
                 Text(loc.name + if (!loc.synced) "  · новое" else "", style = MaterialTheme.typography.bodyLarge)
             }
-            IconButton(onClick = { onAction(AddAssetScreenAction.LocationCutTo(index)) }) {
+            IconButton(onClick = { onCutTo(index) }) {
                 Icon(Icons.Default.Close, contentDescription = "Убрать уровень")
             }
         }
     }
 
-    if (sheet.chain.isEmpty() && state.recentLocations.isNotEmpty()) {
+    if (sheet.chain.isEmpty() && recentLocations.isNotEmpty()) {
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.History, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.outline)
@@ -298,9 +340,9 @@ private fun PlacePicker(state: AddAssetScreenState, sheet: LocationSheetState, o
             Text("Недавние", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.outline)
         }
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(state.recentLocations, key = { it.id }) { loc ->
+            items(recentLocations, key = { it.id }) { loc ->
                 AssistChip(
-                    onClick = { onAction(AddAssetScreenAction.LocationPick(loc)) },
+                    onClick = { onPick(loc) },
                     label = { Text(loc.path.replace(" / ", " › "), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 )
             }
@@ -311,7 +353,7 @@ private fun PlacePicker(state: AddAssetScreenState, sheet: LocationSheetState, o
     OutlinedTextField(
         modifier = Modifier.fillMaxWidth(),
         value = sheet.query,
-        onValueChange = { onAction(AddAssetScreenAction.LocationQuery(it)) },
+        onValueChange = onQuery,
         label = { Text(LocationKind.forDepth(sheet.chain.size).title + if (sheet.chain.isEmpty()) "" else " (необязательно)") },
         placeholder = { Text("Найти или добавить") },
         singleLine = true,
@@ -329,14 +371,14 @@ private fun PlacePicker(state: AddAssetScreenState, sheet: LocationSheetState, o
                         null
                     },
                     leadingContent = { Icon(Icons.Default.Add, null, tint = MaterialTheme.colorScheme.primary) },
-                    modifier = Modifier.clickable { onAction(AddAssetScreenAction.LocationAddNew(query)) },
+                    modifier = Modifier.clickable { onAddNew(query) },
                 )
             }
         }
         items(children, key = { "c" + it.id }) { loc ->
             ListItem(
                 headlineContent = { Text(loc.name) },
-                modifier = Modifier.clickable { onAction(AddAssetScreenAction.LocationPick(loc)) },
+                modifier = Modifier.clickable { onPick(loc) },
             )
         }
         if (elsewhere.isNotEmpty()) {
@@ -348,7 +390,7 @@ private fun PlacePicker(state: AddAssetScreenState, sheet: LocationSheetState, o
                 ListItem(
                     headlineContent = { Text(loc.name) },
                     supportingContent = { Text(loc.path.replace(" / ", " › "), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    modifier = Modifier.clickable { onAction(AddAssetScreenAction.LocationPick(loc)) },
+                    modifier = Modifier.clickable { onPick(loc) },
                 )
             }
         }
@@ -435,8 +477,28 @@ fun AppPhotosSheet(state: AddAssetScreenState, onAction: (AddAssetScreenAction) 
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.outline,
             )
+            if (state.appPhotoGroups.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    item(key = "all") {
+                        FilterChip(
+                            selected = state.appPhotoGroupFilter == null,
+                            onClick = { onAction(AddAssetScreenAction.AppPhotosGroupFilter(null)) },
+                            label = { Text("Все") },
+                        )
+                    }
+                    items(state.appPhotoGroups, key = { it.id }) { g ->
+                        FilterChip(
+                            selected = state.appPhotoGroupFilter == g.id,
+                            onClick = { onAction(AddAssetScreenAction.AppPhotosGroupFilter(g.id)) },
+                            label = { Text(g.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        )
+                    }
+                }
+            }
+            val shown = state.appPhotoGroupFilter?.let { gid -> state.appPhotos.filter { it.groupId == gid } } ?: state.appPhotos
             Spacer(Modifier.height(8.dp))
-            if (state.appPhotos.isEmpty()) {
+            if (shown.isEmpty()) {
                 Text("Свободных снимков нет", modifier = Modifier.padding(vertical = 24.dp))
             } else {
                 LazyVerticalGrid(
@@ -445,7 +507,7 @@ fun AppPhotosSheet(state: AddAssetScreenState, onAction: (AddAssetScreenAction) 
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    items(state.appPhotos, key = { it.clientId }) { photo ->
+                    items(shown, key = { it.clientId }) { photo ->
                         val selected = photo.clientId in state.selectedAppPhotoIds
                         Box(
                             Modifier
@@ -463,6 +525,21 @@ fun AppPhotosSheet(state: AddAssetScreenState, onAction: (AddAssetScreenAction) 
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop,
                             )
+                            val note = photo.note
+                            if (!note.isNullOrBlank()) {
+                                Text(
+                                    note,
+                                    color = androidx.compose.ui.graphics.Color.White,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier
+                                        .align(Alignment.BottomStart)
+                                        .fillMaxWidth()
+                                        .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.55f))
+                                        .padding(horizontal = 4.dp, vertical = 2.dp),
+                                )
+                            }
                             if (selected) {
                                 Icon(
                                     Icons.Default.CheckCircle,

@@ -31,4 +31,4 @@ Android-приложение для учёта активов организац
 
 ## Технологии
 
-Kotlin, Jetpack Compose, Hilt, Retrofit, Room, CameraX, Coil. Структура проекта — в [architecture.md](architecture.md).
+Kotlin, Jetpack Compose, Hilt, Retrofit, Room, CameraX, Coil.

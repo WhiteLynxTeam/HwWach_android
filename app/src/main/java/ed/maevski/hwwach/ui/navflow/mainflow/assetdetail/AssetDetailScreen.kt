@@ -51,7 +51,10 @@ fun AssetDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onAction(AssetDetailScreenAction.EditClicked) }) {
+                    IconButton(
+                        enabled = state.asset != null,
+                        onClick = { onAction(AssetDetailScreenAction.EditClicked) },
+                    ) {
                         Icon(imageVector = Icons.Default.Edit, contentDescription = "Редактировать")
                     }
                     IconButton(onClick = { onAction(AssetDetailScreenAction.DeleteClicked) }) {
@@ -102,16 +105,12 @@ fun AssetDetailScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
-                        // Переиспользуем ImageGallery в read-only режиме
                         ImageGallery(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(max = 240.dp),
                             photos = state.photos,
                             onImageClick = { clientId -> onAction(AssetDetailScreenAction.PhotoClicked(clientId)) },
-                            onDeleteClick = { /* Disabled */ },
-                            showSourceSelector = { /* Disabled */ },
-                            enabled = false // Отключаем удаление и добавление
                         )
                     }
                 }

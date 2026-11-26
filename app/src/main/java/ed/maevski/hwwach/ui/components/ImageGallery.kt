@@ -45,8 +45,8 @@ fun ImageGallery(
     modifier: Modifier = Modifier,
     photos: List<Photo>,
     onImageClick: (String) -> Unit,
-    onDeleteClick: (Photo) -> Unit,
-    showSourceSelector: () -> Unit,
+    onDeleteClick: ((Photo) -> Unit)? = null,
+    showSourceSelector: (() -> Unit)? = null,
     enabled: Boolean = true,
     // false — отправленные снимки тоже можно убрать (форма актива: убрать из карточки, не удалить)
     lockSent: Boolean = true,
@@ -57,7 +57,7 @@ fun ImageGallery(
     // подпись снимка полоской внизу плитки
     showNotes: Boolean = false,
 ) {
-    val addTile = !selectionMode
+    val addTile = !selectionMode && showSourceSelector != null
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         modifier = modifier.fillMaxWidth(),
@@ -112,7 +112,7 @@ fun ImageGallery(
                                 .size(22.dp)
                                 .background(Color.Black.copy(alpha = 0.25f), CircleShape),
                         )
-                    } else if (enabled) {
+                    } else if (enabled && onDeleteClick != null) {
                         val isSent =
                             lockSent && (photo.status == UploadStatusEnum.UPLOADED || photo.status == UploadStatusEnum.SYNCED)
 
@@ -233,7 +233,7 @@ fun ImageGallery(
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                             shape = RoundedCornerShape(12.dp)
                         )
-                        .clickable(enabled = enabled) { showSourceSelector() },
+                        .clickable(enabled = enabled) { showSourceSelector?.invoke() },
                     contentAlignment = Alignment.Center
                 ) {
                     Box(

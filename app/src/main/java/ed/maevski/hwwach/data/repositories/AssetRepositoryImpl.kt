@@ -109,10 +109,9 @@ class AssetRepositoryImpl @Inject constructor(
     override suspend fun updateAsset(asset: Asset, chain: List<Location>): DomainResult<Asset> {
         val current = assetDao.getByClientId(asset.clientId)
             ?: return DomainResult.ValidationError("Актив не найден на телефоне")
-        if (asset.locationKind == AssetLocationKind.PLACE) locationRepository.ensureChain(chain)
-
         // ещё не на сервере — правим на телефоне и отправляем заново
         if (current.serverUuid == null) {
+            if (asset.locationKind == AssetLocationKind.PLACE) locationRepository.ensureChain(chain)
             val edited = asset.copy(
                 serverUuid = null,
                 status = UploadStatusEnum.PENDING,
@@ -125,18 +124,22 @@ class AssetRepositoryImpl @Inject constructor(
         }
 
         return try {
-            // новые снимки сначала на сервер — иначе он их не найдёт
-            photoRepository.syncPhotosByClientIds(asset.photoClientIds)
+            val previousPhotoIds = assetPhotoCrossRefDao.getPhotoIdsByAsset(asset.clientId).toSet()
+            val updatedPhotoIds = asset.photoClientIds.distinct().takeUnless { it.toSet() == previousPhotoIds }
+            if (updatedPhotoIds != null) photoRepository.syncPhotosByClientIds(updatedPhotoIds - previousPhotoIds)
+            val categoryChanged = asset.category != current.category || asset.categoryUuid != current.categoryUuid
+            val locationChanged = asset.locationKind.server != current.locationKind || asset.locationId != current.locationId
+            if (locationChanged && asset.locationKind == AssetLocationKind.PLACE) locationRepository.ensureChain(chain)
             val request = UpdateAssetRequestDto(
-                name = asset.name,
-                inventoryNum = asset.inventoryNum ?: "",
-                description = asset.description ?: "",
-                category = asset.category,
-                categoryUuid = asset.categoryUuid,
-                categoryText = if (asset.categoryUuid == null) asset.category else null,
-                locationKind = asset.locationKind.server,
-                location = if (asset.locationKind == AssetLocationKind.PLACE) chain.toNodes() else null,
-                photoClientIds = asset.photoClientIds,
+                name = asset.name.takeIf { it != current.name },
+                inventoryNum = (asset.inventoryNum ?: "").takeIf { asset.inventoryNum != current.inventoryNum },
+                description = (asset.description ?: "").takeIf { asset.description != current.description },
+                category = asset.category.takeIf { categoryChanged },
+                categoryUuid = asset.categoryUuid.takeIf { categoryChanged },
+                categoryText = asset.category.takeIf { categoryChanged && asset.categoryUuid == null },
+                locationKind = asset.locationKind.server.takeIf { locationChanged },
+                location = chain.toNodes().takeIf { locationChanged && asset.locationKind == AssetLocationKind.PLACE },
+                photoClientIds = updatedPhotoIds,
             )
             val response = assetApi.updateAsset(current.serverUuid, request)
             if (!response.isSuccessful) return responseErrorMapper.map(response)

@@ -79,6 +79,7 @@ data class LocationSheetState(
 data class AddAssetScreenState(
     // не null — правка существующего актива
     val editClientId: String? = null,
+    val editLoaded: Boolean = false,
     // правка уже отправленного актива: сохраняется сразу на сервере
     val editSynced: Boolean = false,
 
@@ -105,6 +106,7 @@ data class AddAssetScreenState(
 
     val locationKind: AssetLocationKind = AssetLocationKind.UNSET,
     val locationChain: List<Location> = emptyList(),
+    val savedLocationPath: String? = null,
     val locationPinned: Boolean = false,
     val locationSheet: LocationSheetState? = null,
     val allLocations: List<Location> = emptyList(),
@@ -137,7 +139,8 @@ data class AddAssetScreenState(
     // одна строка в форме: «Каленковичи › Ферма 700 › Кабинет зав. фермы»
     val locationText: String
         get() = when (locationKind) {
-            AssetLocationKind.PLACE -> locationChain.joinToString(" › ") { it.name }.ifEmpty { AssetLocationKind.UNSET.title }
+            AssetLocationKind.PLACE -> locationChain.joinToString(" › ") { it.name }
+                .ifEmpty { savedLocationPath ?: AssetLocationKind.PLACE.title }
             else -> locationKind.title
         }
 

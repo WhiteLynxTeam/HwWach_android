@@ -199,7 +199,7 @@ fun AddAssetScreen(
 
                 item {
                     if (state.isEdit) {
-                        PrimaryButton(text = "Сохранить", enabled = !state.isLoading) {
+                        PrimaryButton(text = "Сохранить", enabled = state.editLoaded && !state.isLoading) {
                             onAction(AddAssetScreenAction.Submit(next = false))
                         }
                     } else {

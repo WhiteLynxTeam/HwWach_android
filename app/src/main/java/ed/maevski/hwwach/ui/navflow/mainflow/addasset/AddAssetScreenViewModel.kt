@@ -71,7 +71,9 @@ class AddAssetScreenViewModel @Inject constructor(
 
     private val editClientId: String? = savedStateHandle.get<String>("editClientId")?.takeIf { it.isNotBlank() }
 
-    private val _state = MutableStateFlow(AddAssetScreenState(editClientId = editClientId))
+    private val _state = MutableStateFlow(
+        AddAssetScreenState(editClientId = editClientId, isLoading = editClientId != null)
+    )
     val state: StateFlow<AddAssetScreenState> = _state.asStateFlow()
 
     private val _events = MutableSharedFlow<AddAssetScreenEvent>()
@@ -82,6 +84,7 @@ class AddAssetScreenViewModel @Inject constructor(
     private var allPersons: List<PersonBrief> = emptyList()
     // исходная правка: для отправленного актива — какой МОЛ и статус были (их форма не меняет)
     private var editOriginal: Asset? = null
+    private var unavailableEditPhotoIds: List<String> = emptyList()
     // своя метка у каждой формы: открытая поверх другой (правка из очереди) не получит чужих снимков
     private val cameraRequester = "asset-form-" + UUID.randomUUID()
     // форма открыта из галереи: выбранные снимки и их группа
@@ -113,16 +116,16 @@ class AddAssetScreenViewModel @Inject constructor(
         viewModelScope.launch { locationRepository.refresh() }
 
         viewModelScope.launch {
+            if (editClientId != null) {
+                loadForEdit(editClientId)
+                return@launch
+            }
             val me = userProfileRepository.userProfile.firstOrNull()
             val canPickMol = me?.can("asset_roles.assign") == true
             _state.update { it.copy(canPickMol = canPickMol) }
-            if (editClientId != null) {
-                loadForEdit(editClientId)
-            } else {
-                applyPinned()
-                applySeed()
-            }
-            if (canPickMol && editClientId == null) {
+            applyPinned()
+            applySeed()
+            if (canPickMol) {
                 (orgRepository.getPersons() as? DomainResult.Success)?.let { r ->
                     allPersons = r.data.filter { it.isMol && it.isActive }
                     updateMolCandidates()
@@ -196,24 +199,27 @@ class AddAssetScreenViewModel @Inject constructor(
     private suspend fun loadForEdit(clientId: String) {
         val asset = assetRepository.getAsset(clientId)
         if (asset == null) {
-            _state.update { it.copy(errorMessage = "Актив не найден на телефоне") }
+            _state.update { it.copy(isLoading = false, errorMessage = "Актив не найден на телефоне") }
             return
         }
-        editOriginal = asset
         val photos = asset.photoClientIds.mapNotNull { photoRepository.getPhotoByClientId(it) }
         val chain = asset.locationId?.let { locationRepository.chainFor(it) }.orEmpty()
+        editOriginal = asset
+        unavailableEditPhotoIds = asset.photoClientIds - photos.map { it.clientId }.toSet()
         _state.update {
             it.copy(
                 editSynced = asset.serverUuid != null,
+                editLoaded = true,
+                isLoading = false,
                 name = asset.name,
                 categoryText = asset.category.orEmpty(),
                 selectedCategory = asset.categoryUuid?.let { uuid -> Category(uuid = uuid, name = asset.category.orEmpty(), level = 2) },
                 inventoryNumber = asset.inventoryNum.orEmpty(),
                 comment = asset.description.orEmpty(),
                 photos = photos,
-                // место из справочника не нашлось (не обновлён) — показываем «не указано», путь сохранится как был
-                locationKind = if (asset.locationKind == AssetLocationKind.PLACE && chain.isEmpty()) AssetLocationKind.UNSET else asset.locationKind,
+                locationKind = asset.locationKind,
                 locationChain = chain,
+                savedLocationPath = asset.locationPath,
                 molMode = asset.molMode,
             )
         }
@@ -398,16 +404,19 @@ class AddAssetScreenViewModel @Inject constructor(
 
     private fun submit(next: Boolean) {
         val s = _state.value
+        val original = editOriginal
+        if (s.isEdit && !s.editLoaded) return
+        val isSyncedEdit = original?.isSyncedToServer == true
         if (s.name.isBlank()) {
             _state.update { it.copy(errorMessage = "Название обязательно") }
             return
         }
         val categoryName = s.selectedCategory?.name ?: s.categoryText.trim().ifBlank { null }
-        if (categoryName.isNullOrBlank()) {
+        if (categoryName.isNullOrBlank() && (!isSyncedEdit || !original?.category.isNullOrBlank())) {
             _state.update { it.copy(errorMessage = "Категория обязательна") }
             return
         }
-        if (s.photos.isEmpty()) {
+        if (s.photos.isEmpty() && !isSyncedEdit) {
             _state.update { it.copy(errorMessage = "Добавьте хотя бы одно фото") }
             return
         }
@@ -416,18 +425,18 @@ class AddAssetScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = "") }
             val now = System.currentTimeMillis()
-            val original = editOriginal
             val asset = if (original != null) {
+                val keepSavedLocation = s.locationKind == AssetLocationKind.PLACE && chain.isEmpty()
                 original.copy(
                     name = s.name.trim(),
                     category = categoryName,
-                    categoryUuid = s.selectedCategory?.uuid,
+                    categoryUuid = s.selectedCategory?.uuid ?: original.categoryUuid.takeIf { categoryName == original.category },
                     inventoryNum = s.inventoryNumber.trim().ifBlank { null },
                     description = s.comment.trim().ifBlank { null },
-                    photoClientIds = s.photos.map { it.clientId },
+                    photoClientIds = s.photos.map { it.clientId } + unavailableEditPhotoIds,
                     locationKind = s.locationKind,
-                    locationId = chain.lastOrNull()?.id,
-                    locationPath = chain.lastOrNull()?.path,
+                    locationId = if (keepSavedLocation) original.locationId else chain.lastOrNull()?.id,
+                    locationPath = if (keepSavedLocation) original.locationPath else chain.lastOrNull()?.path,
                     lastUpdatedLocally = now,
                 )
             } else {

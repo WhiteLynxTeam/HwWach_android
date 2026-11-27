@@ -18,6 +18,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import ed.maevski.hwwach.data.local.MIGRATION_6_7
 import javax.inject.Singleton
 
 @Module
